@@ -1,0 +1,102 @@
+<pre class='metadata'>
+Title: Don't use `char8_t` and `std::u8string` yet in D1389
+Status: D
+Audience: SG20
+Editor: Yehezkel Bernat, YehezkelShB@gmail.com
+Shortname: Pxxxx
+Abstract: Pxxxx claims that we shouldn't use `char8_t` and `std::u8string` in D1389 as of C++20
+Group: WG21
+Date: 2019-06-12
+Markup Shorthands: markdown yes
+Revision: 0
+Default Highlight: CPP
+ED: https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-come-back-one-year.html
+</pre>
+
+Problem statement {#problem}
+=================
+
+D1389, under 2.2.1.1. Primary types ([types.basic.primary]), suggest that post-
+C++20 we should teach begginers to use `char8_t` for characters and `std::u8string`
+for strings (instead of `char` and `std::string` in pre-C++20).
+
+The author thinks this is wrong.
+
+C++20 still has no tools to handle input and output with these types.
+Even the new `{fmt}` facilities doesn't support it.
+There is even no good conversion tools for it (and even the existing conversions,
+like `codecvt` stuff, are deprecated since C++17).
+
+The main usage of strings and characters is for input and output and C++20 still
+missing tools to do so with these types.
+
+This parper suggests to remove the distinction between pre-C++20 and post-C++20
+and reintroduce these types as soon as the proper tools are added (by SG16,
+hopefully for C++23).
+
+
+Proposed Wording {#word}
+================
+
+Under 2.2.1.1. Primary types ([types.basic.primary]):
+
+<table>
+   <tr>
+      <th>Abstract type</th>
+      <th><center><del>Pre-</del>C++<del>20</del> type</center></th>
+      <th><center><del>Post-C++20 type</del></center></th>
+   </tr>
+   <tr>
+      <td>Integer</td>
+      <td><center><code>int</code></center></td>
+      <td><center><code><del>int</del></code></center></td>
+   </tr>
+   <tr>
+      <td>Floating-point</td>
+      <td><center><code>double</code></center></td>
+      <td><center><code><del>double</del></code></center></td>
+   </tr>
+   <tr>
+      <td>Boolean</td>
+      <td><center><code>bool</code></center></td>
+      <td><center><code><del>bool</del></code></center></td>
+   </tr>
+   <tr>
+      <td>Character</td>
+      <td><center><code>char</code></center></td>
+      <td><center><code><del>char8_t</del></code></center></td>
+   </tr>
+   <tr>
+      <td>String</td>
+      <td><center><code>std::string</code></center></td>
+      <td><center><code><del>std::u8string</del></code></center></td>
+   </tr>
+   <tr>
+      <td>Sequence container</td>
+      <td><center><code>std::vector</code></center></td>
+      <td><center><code><del>std::vector</del></code></center></td>
+   </tr>
+   <tr>
+      <td>Associative container</td>
+      <td><center><code>std::map</code></center></td>
+      <td><center><code><del>std::map</del></code></center></td>
+   </tr>
+</table>
+
+<del>
+The distinction between pre-C++20 and C++20 is simply the acknowldgement of UTF-8. This is not to
+suggest that students should be introduced to the details of UTF-8 any earlier, but rather to get
+the idea of UTF-8 support on their radar, so that when they need to care about locales, they won't
+need to shift from thinking about why `char` is insufficient in the current programming world: they
+can just start using what they are already familiar with.
+</del>
+
+<ins>
+It may worth to warn the students that the support for non-English locales may
+vary depends on the specific platform.
+</ins>
+
+Acknowledgements {#acknowledgements}
+================
+
+Thanks for Christopher Di Bella for mentioning the point about `{fmt}`
