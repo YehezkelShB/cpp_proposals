@@ -1,0 +1,70 @@
+<pre class='metadata'>
+Title: Fill in [delay.cpp] TODO in D1389
+Status: D
+Audience: SG20
+Editor: Yehezkel Bernat, YehezkelShB@gmail.com
+Shortname: Pxxxx
+Abstract: Pxxxx adds wording to replace the TODO of [delay.cpp] section in D1389
+Group: WG21
+Date: 2019-06-12
+Markup Shorthands: markdown yes
+Revision: 0
+Default Highlight: CPP
+ED: https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-delay-cpp.html
+</pre>
+
+Proposed Wording {#word}
+================
+
+Under 2.3.5 C Preprocessor [**delay.cpp**]:
+
+<del>
+Excludes `#include`, which is necessary until modules are in C++.
+
+TODO
+</del>
+
+<ins>
+Most of the traditional usages of the C Preprocessor have better and safer C++ replacements.
+For example:
+```cpp
+// compile-time constant
+#define BUFFER_SIZE 256
+// better as:
+auto constexpr buffer_size = 256;
+
+// named constants
+#define RED   0xFF0000
+#define GREEN 0x00FF00
+#define BLUE  0x0000FF
+// better as:
+enum class Color { red = 0xFF0000, green = 0x00FF00, blue = 0x0000FF };
+
+// inline function
+#define SUCCEEDED(res) (res == 0)
+// better as:
+inline constexpr bool succeeded(int const res) { return res == 0; }
+
+// generic function
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+// better as:
+template <typename T>
+T const& min(T const& a, T const& b) {
+   return a < b ? a : b;
+}
+// (in actual code, use std::min() instead of reimplementing it)
+```
+
+All these macros have many possible pitfalls (see [gcc docs](https://gcc.gnu.org/onlinedocs/cpp/Macro-Pitfalls.html#Macro-Pitfalls)),
+they hard to get right and they don't obey scope and type rules.  The C++
+replacements are easier to get right and fit better into the general picture.
+
+The only preprocessor usages that are necessary right at the beginning are:
+* `#include` for textual inclusion of header files (at least until modules
+    become the main tool for consuming external code)
+* `#ifndef` for creating "include guards" to prevent multiple inclusion 
+
+</ins>
+
+Acknowledgements {#acknowledgements}
+================
