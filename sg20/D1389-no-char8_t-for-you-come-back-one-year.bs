@@ -1,10 +1,10 @@
 <pre class='metadata'>
-Title: Don't use `char8_t` and `std::u8string` yet in D1389
-Status: D
+Title: Don't use `char8_t` and `std::u8string` yet in P1389
+Status: P
 Audience: SG20
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
-Shortname: Pxxxx
-Abstract: Pxxxx claims that we shouldn't use `char8_t` and `std::u8string` in D1389 as of C++20
+Shortname: P1747
+Abstract: P1747 claims that we shouldn't use `char8_t` and `std::u8string` in P1389 as of C++20
 Group: WG21
 Date: 2019-06-12
 Markup Shorthands: markdown yes
@@ -16,8 +16,8 @@ ED: https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-co
 Problem statement {#problem}
 =================
 
-D1389, under 2.2.1.1. Primary types ([types.basic.primary]), suggest that post-
-C++20 we should teach begginers to use `char8_t` for characters and `std::u8string`
+P1389, under 2.2.1.1. Primary types ([types.basic.primary]), suggest that post-
+C++20 we should teach beginners to use `char8_t` for characters and `std::u8string`
 for strings (instead of `char` and `std::string` in pre-C++20).
 
 The author thinks this is wrong.
@@ -30,7 +30,7 @@ like `codecvt` stuff, are deprecated since C++17).
 The main usage of strings and characters is for input and output and C++20 still
 missing tools to do so with these types.
 
-This parper suggests to remove the distinction between pre-C++20 and post-C++20
+This paper suggests to remove the distinction between pre-C++20 and post-C++20
 and reintroduce these types as soon as the proper tools are added (by SG16,
 hopefully for C++23).
 
