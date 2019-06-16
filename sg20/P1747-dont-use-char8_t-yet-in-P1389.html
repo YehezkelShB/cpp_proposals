@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P1748R0: Fill in [delay.cpp] TODO in P1389</title>
+  <title>P1747R0: Don’t use `char8_t` and `std::u8string` yet in P1389</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1228,9 +1228,9 @@ Possible extra rowspan handling
     }
   </style>
   <meta content="Bikeshed version e036b293b2a1c6b3630bc094922f64bed031a220" name="generator">
-  <link href="https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-delay-cpp.html" rel="canonical">
+  <link href="https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-come-back-one-year.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="8b831a80190095ece8f3b73e51da98fe89774cc5" name="document-revision">
+  <meta content="0d2d1c58cf04dc58469e0fd5383a1f73fde38081" name="document-revision">
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -1439,12 +1439,12 @@ pre .property::before, pre .property::after {
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P1748R0<br>Fill in [delay.cpp] TODO in P1389</h1>
+   <h1 class="p-name no-ref" id="title">P1747R0<br>Don’t use `char8_t` and `std::u8string` yet in P1389</h1>
    <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2019-06-12">2019-06-12</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
-     <dd><a class="u-url" href="https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-delay-cpp.html">https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-delay-cpp.html</a>
+     <dd><a class="u-url" href="https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-come-back-one-year.html">https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-come-back-one-year.html</a>
      <dt>Author:
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:YehezkelShB@gmail.com">Yehezkel Bernat</a>
@@ -1459,64 +1459,99 @@ pre .property::before, pre .property::after {
   </div>
   <div class="p-summary" data-fill-with="abstract">
    <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
-   <p>P1748 adds wording to replace the TODO of [delay.cpp] section in P1389</p>
+   <p>P1747 claims that we shouldn’t use `char8_t` and `std::u8string` in P1389 as of C++20</p>
   </div>
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
-    <li><a href="#word"><span class="secno">1</span> <span class="content">Proposed Wording</span></a>
-    <li><a href="#acknowledgements"><span class="secno">2</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#problem"><span class="secno">1</span> <span class="content">Problem statement</span></a>
+    <li><a href="#word"><span class="secno">2</span> <span class="content">Proposed Wording</span></a>
+    <li><a href="#acknowledgements"><span class="secno">3</span> <span class="content">Acknowledgements</span></a>
    </ol>
   </nav>
   <main>
-   <h2 class="heading settled" data-level="1" id="word"><span class="secno">1. </span><span class="content">Proposed Wording</span><a class="self-link" href="#word"></a></h2>
-   <p>Under 2.3.5 C Preprocessor [<strong>delay.cpp</strong>]:</p>
-   <del>
-     Excludes <code class="highlight"><c- cp>#include</c-></code>, which is necessary until modules are in C++. 
-    <p>TODO</p>
-   </del>
-   <ins>
-     Most of the traditional usages of the C Preprocessor have better and safer C++ replacements.
-For example: 
-<pre class="language-cpp highlight"><c- c1>// compile-time constant</c->
-<c- cp>#define BUFFER_SIZE 256</c->
-<c- c1>// better as:</c->
-<c- k>auto</c-> <c- k>constexpr</c-> <c- n>buffer_size</c-> <c- o>=</c-> <c- mi>256</c-><c- p>;</c->
-
-<c- c1>// named constants</c->
-<c- cp>#define RED   0xFF0000</c->
-<c- cp>#define GREEN 0x00FF00</c->
-<c- cp>#define BLUE  0x0000FF</c->
-<c- c1>// better as:</c->
-<c- k>enum</c-> <c- k>class</c-> <c- nc>Color</c-> <c- p>{</c-> <c- n>red</c-> <c- o>=</c-> <c- mh>0xFF0000</c-><c- p>,</c-> <c- n>green</c-> <c- o>=</c-> <c- mh>0x00FF00</c-><c- p>,</c-> <c- n>blue</c-> <c- o>=</c-> <c- mh>0x0000FF</c-> <c- p>};</c->
-
-<c- c1>// inline function</c->
-<c- cp>#define SUCCEEDED(res) (res == 0)</c->
-<c- c1>// better as:</c->
-<c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>succeeded</c-><c- p>(</c-><c- b>int</c-> <c- k>const</c-> <c- n>res</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>res</c-> <c- o>==</c-> <c- mi>0</c-><c- p>;</c-> <c- p>}</c->
-
-<c- c1>// generic function</c->
-<c- cp>#define MIN(a,b) ((a) &lt; (b) ? (a) : (b))</c->
-<c- c1>// better as:</c->
-<c- k>template</c-> <c- o>&lt;</c-><c- k>typename</c-> <c- n>T</c-><c- o>></c->
-<c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>min</c-><c- p>(</c-><c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>a</c-><c- p>,</c-> <c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>b</c-><c- p>)</c-> <c- p>{</c->
-   <c- k>return</c-> <c- n>a</c-> <c- o>&lt;</c-> <c- n>b</c-> <c- o>?</c-> <c- nl>a</c-> <c- p>:</c-> <c- n>b</c-><c- p>;</c->
-<c- p>}</c->
-<c- c1>// (in actual code, use std::min() instead of reimplementing it)</c->
-</pre>
-    <p>All these macros have many possible pitfalls (see <a href="https://gcc.gnu.org/onlinedocs/cpp/Macro-Pitfalls.html#Macro-Pitfalls">gcc docs</a>),
-they hard to get right and they don’t obey scope and type rules.  The C++
-replacements are easier to get right and fit better into the general picture.</p>
-    <p>The only preprocessor usages that are necessary right at the beginning are:</p>
-    <ul>
-     <li data-md>
-      <p><code class="highlight"><c- cp>#include</c-></code> for textual inclusion of header files (at least until modules
-become the main tool for consuming external code)</p>
-     <li data-md>
-      <p><code class="highlight"><c- cp>#ifndef</c-></code> for creating "include guards" to prevent multiple inclusion</p>
-    </ul>
-   </ins>
-   <h2 class="heading settled" data-level="2" id="acknowledgements"><span class="secno">2. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="1" id="problem"><span class="secno">1. </span><span class="content">Problem statement</span><a class="self-link" href="#problem"></a></h2>
+   <p>P1389, under 2.2.1.1. Primary types ([types.basic.primary]), suggest that post-
+C++20 we should teach beginners to use <code class="highlight"><c- n>char8_t</c-></code> for characters and <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>u8string</c-></code> for strings (instead of <code class="highlight"><c- b>char</c-></code> and <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>string</c-></code> in pre-C++20).</p>
+   <p>The author thinks this is wrong.</p>
+   <p>C++20 still has no tools to handle input and output with these types.
+Even the new <code class="highlight"><c- p>{</c-><c- n>fmt</c-><c- p>}</c-></code> facilities doesn’t support it.
+There is even no good conversion tools for it (and even the existing conversions,
+like <code class="highlight"><c- n>codecvt</c-></code> stuff, are deprecated since C++17).</p>
+   <p>The main usage of strings and characters is for input and output and C++20 still
+missing tools to do so with these types.</p>
+   <p>This paper suggests to remove the distinction between pre-C++20 and post-C++20
+and reintroduce these types as soon as the proper tools are added (by SG16,
+hopefully for C++23).</p>
+   <h2 class="heading settled" data-level="2" id="word"><span class="secno">2. </span><span class="content">Proposed Wording</span><a class="self-link" href="#word"></a></h2>
+   <p>Under 2.2.1.1. Primary types ([types.basic.primary]):</p>
+   <table>
+    <tbody>
+     <tr>
+      <th>Abstract type
+      <th>
+       <center>
+        <del>Pre-</del>
+        C++
+        <del>20</del>
+         type
+       </center>
+      <th>
+       <center>
+        <del>Post-C++20 type</del>
+       </center>
+     <tr>
+      <td>Integer
+      <td>
+       <center><code class="highlight"><c- b>int</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- b>int</c-></del></code></center>
+     <tr>
+      <td>Floating-point
+      <td>
+       <center><code class="highlight"><c- b>double</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- b>double</c-></del></code></center>
+     <tr>
+      <td>Boolean
+      <td>
+       <center><code class="highlight"><c- b>bool</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- b>bool</c-></del></code></center>
+     <tr>
+      <td>Character
+      <td>
+       <center><code class="highlight"><c- b>char</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- n>char8_t</c-></del></code></center>
+     <tr>
+      <td>String
+      <td>
+       <center><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>string</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- n>std</c-><c- o>::</c-><c- n>u8string</c-></del></code></center>
+     <tr>
+      <td>Sequence container
+      <td>
+       <center><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>vector</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- n>std</c-><c- o>::</c-><c- n>vector</c-></del></code></center>
+     <tr>
+      <td>Associative container
+      <td>
+       <center><code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>map</c-></code></center>
+      <td>
+       <center><code class="highlight"><del><c- n>std</c-><c- o>::</c-><c- n>map</c-></del></code></center>
+   </table>
+   <del> The distinction between pre-C++20 and C++20 is simply the acknowldgement of UTF-8. This is not to
+suggest that students should be introduced to the details of UTF-8 any earlier, but rather to get
+the idea of UTF-8 support on their radar, so that when they need to care about locales, they won’t
+need to shift from thinking about why <code class="highlight"><c- b>char</c-></code> is insufficient in the current programming world: they
+can just start using what they are already familiar with. </del>
+   <ins> It may worth to warn the students that the support for non-English locales may
+vary depends on the specific platform. </ins>
+   <h2 class="heading settled" data-level="3" id="acknowledgements"><span class="secno">3. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <p>Thanks for Christopher Di Bella for mentioning the point about <code class="highlight"><c- p>{</c-><c- n>fmt</c-><c- p>}</c-></code></p>
   </main>
 <script>
 (function() {

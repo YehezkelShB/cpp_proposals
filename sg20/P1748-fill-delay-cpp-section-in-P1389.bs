@@ -10,7 +10,7 @@ Date: 2019-06-12
 Markup Shorthands: markdown yes
 Revision: 0
 Default Highlight: CPP
-ED: https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-delay-cpp.html
+ED: https://yehezkelshb.github.io/cpp_proposals/sg20/P1748-fill-delay-cpp-section-in-P1389.html
 </pre>
 
 Proposed Wording {#word}

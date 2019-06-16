@@ -10,7 +10,7 @@ Date: 2019-06-12
 Markup Shorthands: markdown yes
 Revision: 0
 Default Highlight: CPP
-ED: https://yehezkelshb.github.io/cpp_proposals/sg20/D1389-no-char8_t-for-you-come-back-one-year.html
+ED: https://yehezkelshb.github.io/cpp_proposals/sg20/P1747-dont-use-char8_t-yet-in-P1389.html
 </pre>
 
 Problem statement {#problem}
