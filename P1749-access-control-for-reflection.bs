@@ -13,8 +13,6 @@ Default Highlight: CPP
 ED: https://yehezkelshb.github.io/cpp_proposals/P1749-access-control-for-reflection.html
 </pre>
 
-<meta http-equiv="refresh" content="1" >
-
 Problem statement {#problem}
 =================
 
