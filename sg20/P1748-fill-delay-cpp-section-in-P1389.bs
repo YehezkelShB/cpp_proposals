@@ -11,6 +11,7 @@ Markup Shorthands: markdown yes
 Revision: 0
 Default Highlight: CPP
 ED: https://yehezkelshb.github.io/cpp_proposals/sg20/P1748-fill-delay-cpp-section-in-P1389.html
+!Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/sg20/P1748-fill-delay-cpp-section-in-P1389.bs">GitHub</a>
 </pre>
 
 Proposed Wording {#word}
