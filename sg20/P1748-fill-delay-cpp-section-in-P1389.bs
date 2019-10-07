@@ -6,9 +6,9 @@ Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Shortname: P1748
 Abstract: P1748 adds wording to replace the TODO of [delay.cpp] section in P1389
 Group: WG21
-Date: 2019-06-12
+Date: 2019-10-07
 Markup Shorthands: markdown yes
-Revision: 0
+Revision: 1
 Default Highlight: CPP
 ED: https://yehezkelshb.github.io/cpp_proposals/sg20/P1748-fill-delay-cpp-section-in-P1389.html
 !Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/sg20/P1748-fill-delay-cpp-section-in-P1389.bs">GitHub</a>
@@ -28,6 +28,15 @@ ED: https://yehezkelshb.github.io/cpp_proposals/sg20/P1748-fill-delay-cpp-sectio
   text-decoration-color: rgb(255, 0, 0);
 }
 </style>
+
+Revision History {#rev}
+================
+
+r0: initial revision, pre-Cologne mailing
+
+r1:
+- update "generic function" example based on feedback from sg20 in Cologne
+- style update
 
 Proposed Wording {#word}
 ================
@@ -62,13 +71,12 @@ enum class Color { red = 0xFF0000, green = 0x00FF00, blue = 0x0000FF };
 inline constexpr bool succeeded(int const res) { return res == 0; }
 
 // generic function
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define IS_NEGATIVE(x) ((x) < 0)
 // better as:
 template <typename T>
-T const& min(T const& a, T const& b) {
-   return a < b ? a : b;
+bool is_negative(T x) {
+   return x < T{};
 }
-// (in actual code, use std::min() instead of reimplementing it)
 ```
 
 All these macros have many possible pitfalls (see [gcc docs](https://gcc.gnu.org/onlinedocs/cpp/Macro-Pitfalls.html#Macro-Pitfalls)),

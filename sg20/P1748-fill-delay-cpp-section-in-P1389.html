@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P1748R0: Fill in [delay.cpp] TODO in P1389</title>
+  <title>P1748R1: Fill in [delay.cpp] TODO in P1389</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1230,7 +1230,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version e036b293b2a1c6b3630bc094922f64bed031a220" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/sg20/P1748-fill-delay-cpp-section-in-P1389.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="1ec2ab7cc3d557ea4907ecf001ce14c8db639f0e" name="document-revision">
+  <meta content="201b432f02998fc9e933bbfd6d51fc190af450b3" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -1453,8 +1453,8 @@ pre .property::before, pre .property::after {
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P1748R0<br>Fill in [delay.cpp] TODO in P1389</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2019-06-12">2019-06-12</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P1748R1<br>Fill in [delay.cpp] TODO in P1389</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2019-10-07">2019-10-07</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1480,12 +1480,22 @@ pre .property::before, pre .property::after {
   <nav data-fill-with="table-of-contents" id="toc">
    <h2 class="no-num no-toc no-ref" id="contents">Table of Contents</h2>
    <ol class="toc" role="directory">
-    <li><a href="#word"><span class="secno">1</span> <span class="content">Proposed Wording</span></a>
-    <li><a href="#acknowledgements"><span class="secno">2</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#rev"><span class="secno">1</span> <span class="content">Revision History</span></a>
+    <li><a href="#word"><span class="secno">2</span> <span class="content">Proposed Wording</span></a>
+    <li><a href="#acknowledgements"><span class="secno">3</span> <span class="content">Acknowledgements</span></a>
    </ol>
   </nav>
   <main>
-   <h2 class="heading settled" data-level="1" id="word"><span class="secno">1. </span><span class="content">Proposed Wording</span><a class="self-link" href="#word"></a></h2>
+   <h2 class="heading settled" data-level="1" id="rev"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#rev"></a></h2>
+   <p>r0: initial revision, pre-Cologne mailing</p>
+   <p>r1:</p>
+   <ul>
+    <li data-md>
+     <p>update "generic function" example based on feedback from sg20 in Cologne</p>
+    <li data-md>
+     <p>style update</p>
+   </ul>
+   <h2 class="heading settled" data-level="2" id="word"><span class="secno">2. </span><span class="content">Proposed Wording</span><a class="self-link" href="#word"></a></h2>
    <p>Under 2.3.5 C Preprocessor [<strong>delay.cpp</strong>]:</p>
    <del>
      Excludes <code class="highlight"><c- cp>#include</c-></code>, which is necessary until modules are in C++. 
@@ -1512,13 +1522,12 @@ For example:
 <c- kr>inline</c-> <c- k>constexpr</c-> <c- b>bool</c-> <c- nf>succeeded</c-><c- p>(</c-><c- b>int</c-> <c- k>const</c-> <c- n>res</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>res</c-> <c- o>==</c-> <c- mi>0</c-><c- p>;</c-> <c- p>}</c->
 
 <c- c1>// generic function</c->
-<c- cp>#define MIN(a,b) ((a) &lt; (b) ? (a) : (b))</c->
+<c- cp>#define IS_NEGATIVE(x) ((x) &lt; 0)</c->
 <c- c1>// better as:</c->
 <c- k>template</c-> <c- o>&lt;</c-><c- k>typename</c-> <c- n>T</c-><c- o>></c->
-<c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>min</c-><c- p>(</c-><c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>a</c-><c- p>,</c-> <c- n>T</c-> <c- k>const</c-><c- o>&amp;</c-> <c- n>b</c-><c- p>)</c-> <c- p>{</c->
-   <c- k>return</c-> <c- n>a</c-> <c- o>&lt;</c-> <c- n>b</c-> <c- o>?</c-> <c- nl>a</c-> <c- p>:</c-> <c- n>b</c-><c- p>;</c->
+<c- b>bool</c-> <c- n>is_negative</c-><c- p>(</c-><c- n>T</c-> <c- n>x</c-><c- p>)</c-> <c- p>{</c->
+   <c- k>return</c-> <c- n>x</c-> <c- o>&lt;</c-> <c- n>T</c-><c- p>{};</c->
 <c- p>}</c->
-<c- c1>// (in actual code, use std::min() instead of reimplementing it)</c->
 </pre>
     <p>All these macros have many possible pitfalls (see <a href="https://gcc.gnu.org/onlinedocs/cpp/Macro-Pitfalls.html#Macro-Pitfalls">gcc docs</a>),
 they hard to get right and they don’t obey scope and type rules.  The C++
@@ -1532,7 +1541,7 @@ become the main tool for consuming external code)</p>
       <p><code class="highlight"><c- cp>#ifndef</c-></code> for creating "include guards" to prevent multiple inclusion</p>
     </ul>
    </ins>
-   <h2 class="heading settled" data-level="2" id="acknowledgements"><span class="secno">2. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="3" id="acknowledgements"><span class="secno">3. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
   </main>
 <script>
 (function() {
