@@ -1,0 +1,149 @@
+<pre class='metadata'>
+Title: A new approach for ABI breaking 
+Status: D
+Audience: SG17 (EWG-I), SG18 (LEWG-I)
+Editor: Yehezkel Bernat, YehezkelShB@gmail.com
+Shortname: Dxxxx
+Abstract: Dxxxx proposes a new approach for ABI breaking
+Group: WG21
+Date: 2020-03-01
+Markup Shorthands: markdown yes
+Revision: 0
+Default Highlight: CPP
+ED: wg21.link/Dxxxx
+</pre>
+
+<meta http-equiv="refresh" content="1">
+
+<style>
+.ins, ins, ins *, span.ins, span.ins * {
+  background-color: rgb(200, 250, 200);
+  color: rgb(0, 136, 0);
+  text-decoration: none;
+}
+
+.del, del, del *, span.del, span.del * {
+  background-color: rgb(250, 200, 200);
+  color: rgb(255, 0, 0);
+  text-decoration: line-through;
+  text-decoration-color: rgb(255, 0, 0);
+}
+</style>
+
+Revision History {#rev}
+================
+
+r0: initial revision (pre-Varna mailing?)
+
+
+Problem statement {#problem}
+=================
+
+ABI, you know it.
+
+Mention here Linux distros, Gentoo, games.
+
+We don't want to maintain additional "branches" in the standard, do we?
+So if we break ABI in new standard revision, we never "backport" the definition
+of new non-breaking changes and additions to older ABIs, do we? Which means
+those who must maintain ABI compatibility are left behind (or have to rely on
+non-standard behavior, if the implementation decides to backport things).
+
+Mention platform ABI vs. lib ABI
+
+
+`abi_tag` {#abi_tag}
+=========
+
+To handle ABI change required to implement full C++11 support in libstdc++ [[DualABI]],
+gcc added a new attribute, `abi_tag` [[abi_tag]].
+
+The idea is that new entities can get an additional attribute, `abi_tag`, with
+one or more "tags" (any string can work). Those tags become part of the name
+mangling for this entity. Such tags are automatically propagated to functions
+that return such a type or variables of such a type (the tag has a viral effect),
+thus changing their mangled name too.
+
+Even while a type `T` that has type `C` as a subobject, doesn't get the tags of
+`C` automatically, a special compiler warning was added (`-Wabi-tag`) to warn if
+`C` has any tag that `T` doesn't. This way, it help propagation of the attribute
+for containing types too (unlike inline namespaces).
+
+Please note: this doesn't solve ABI incompatibility. Linkage still fails when
+ABI has changed. The main advantages of this attribute are (1) making it easier
+and almost automatic to propagate the change in the type definition to all the
+usages and (2) making any ABI incompatibility a linkage error, instead of IF-NDR.
+
+
+Proposed solution {#solution}
+=================
+
+Add a new namespace, `std::unstable` ([[#bikeshed]] section below). Add there
+all the types we want to change and expect them to be changed again later (e.g.
+hash tables, maybe some networking and graphics?).
+
+Add `abi_tag`-like mechanism, with standard attribute syntax, and automatically
+propagate it to containing types. Tag all the entities inside `std::unstable`
+with this attribute.
+
+Now, we can teach people that this namespace isn't to be used in API boundaries 
+for us to be able to give the best performance. And if they decide to take the
+risk and put it in API boundaries, at least it isn't IF-NDR anymore, diagnostic
+is now required (and trivial, as `abi_tag` is added as part of the mangled name).
+
+Adding things to the name mangling may have a cost (making the symbol table
+bigger), but when the types and functions that are using it aren't exported, the
+symbols can be removed from the final binary. Implementations can choose a short
+mangling for the standard `abi_tag`s.
+
+In addition, if we don't allow pick-and-choose mode (see below), all the types
+in a specific standard revision can get the same `abi_tag`, thus the containing
+types need only one tag even when multiple types with tags are used.
+
+To help implementations to solve issues coming from platform ABI (e.g. passing
+`std::unique_ptr` on a register) we may consider allowing implementation freedom
+with adding more standard types here, to opt them into the `abi_tag` mechanism.
+
+As we change things, entities get an updated tag. Implementations may choose to
+keep providing the old versions too (for compatibility with older binaries) but
+we probably don't want to require it and instead allow implementation to be
+standard complaint without implementing all the old variations.
+
+We may want to choose a standard way to access the older variations of a type,
+when new code must be compatible with older libraries (assuming the specific
+implementation chose to keep providing those older variations). If we do so, we
+may have to consider the case of taking old variation of type `T` and new
+variation of type `S`. In such a case, it means each type needs its own tag, so
+the containing object can have both tags.
+
+We may want to consider if API break (where needed for performance) is also
+possible with such entities or we want such a degree of instability in the IS.
+
+
+Bikeshed {#bikeshed}
+========
+
+- `std::unstable`
+- `std::performant`
+- `std::not_for_api_boundaries`
+
+
+Acknowledgements {#acknowledgements}
+================
+
+
+References {#ref}
+==========
+
+<pre class=biblio>
+{
+    "abi_tag": {
+        "href": "https://gcc.gnu.org/onlinedocs/gcc/C_002b_002b-Attributes.html",
+        "title": "C++ Attributes - gcc docs"
+    },
+    "DualABI": {
+        "href": "https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html",
+        "title": "Dual ABI - lisbstdc++ docs"
+    }
+}
+</pre>
