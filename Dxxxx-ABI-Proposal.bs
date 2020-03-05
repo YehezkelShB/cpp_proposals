@@ -13,7 +13,7 @@ Default Highlight: CPP
 ED: wg21.link/Dxxxx
 </pre>
 
-<meta http-equiv="refresh" content="1">
+<!-- meta http-equiv="refresh" content="1" -->
 
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
