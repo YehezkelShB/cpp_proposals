@@ -1,18 +1,18 @@
 <pre class='metadata'>
 Title: Fix `counted_iterator` interaction with input iterators
-Status: D
+Status: P
 Audience: SG9 (Ranges)
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Editor: Yehuda Bernat, YehudaMBer@gmail.com
-Shortname: D2406
+Shortname: P2406
 Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggest some changes to improve the situation
 Group: WG21
 Date: 2021-07-11
 Markup Shorthands: markdown yes
 Revision: 0
 Default Highlight: CPP
-ED: https://yehezkelshb.github.io/cpp_proposals/D2406R0-counted-iterator-and-input-iterators.html
-!Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/D2406R0-counted-iterator-and-input-iterators.bs">GitHub</a>
+ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html
+!Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2406-counted-iterator-and-input-iterators.bs">GitHub</a>
 </pre>
 
 <style>
@@ -62,8 +62,8 @@ Revision History
 r0: initial revision
 
 
-Into
-====
+Intro
+=====
 Project Euler is a project with many mathematical-related questions that are
 intended to encourage the reader to write a small program to compute the result.
 In this case, one of the problems there, no. 37 [[EULER]], helped reveal a
@@ -100,7 +100,7 @@ it isn't clear for the user how many items the filter is expected to return, so
 limiting the output count with `take` becomes dangerous and results in
 unexpected behavior.
 
-The problem mentioned in the into is one that actually describes a filter that
+The problem mentioned in the intro is one that actually describes a filter that
 return exactly 11 elements, so trying to use `take(11)` on it means the program
 never ends even while it got 11 elements already.
 
@@ -111,6 +111,10 @@ If the user doesn't know how many items the filter returns, it's possible that
 the filter returns less items than what `take` tries to take, and never ends
 anyway. So one might claim that the user must know the number of items returned
 by the filter and then there is no point in using `take` when they are the same.
+
+It still leaves the cases that there is a huge performance penalty on
+incrementing the iterator one additional time, but those are maybe considered
+less interesting.
 
 
 The real problem
@@ -203,7 +207,7 @@ Under 23.5.6.3 [**counted.iter.access**]:
 <ins>
 `constexpr I base() const &;`<br/>
 Effects: Equivalent to: `return length ? current : next(current);`<br/>
-Note: calling `base()` twice isn't safe when `I` is `input_iterator`
+Note: calling `base()` twice isn't safe when `I` isn't `forward_iterator`
 </ins>
 
 `constexpr const I& base() const &;`<br/>
@@ -272,14 +276,24 @@ Effects: Equivalent to:<br/>
 `return *this;`<br/>
 
 
-Effect
-======
+Effect on current state
+=======================
 This breaks ABI (as every inline function does). If implementers don't accept
 this change, or if WG21 feels it's too late to apply it to C++20, we can add
 `lazy_counted_iterator` (or bikeshed a better name) which has the same behavior
-as `counted_iterator` except for the mentioned changes (and warn users against
-using `counted_iterator` and its consumers with input iterators or those that
-take too much time to produce the n+1-th item)
+as `counted_iterator` except for the mentioned changes. In additional, it
+requires adding `lazy_take` and `lazy_counted_view` that uses it instead of
+`counted_iterator`.
+
+In such a case, we suggest to consider requiring `forward_or_output_iterator`
+for `counted_iterator`, as it always does the wrong thing for `input_iterator`
+if it doesn't reach the `end` of the input (while for `forward_iterator` and
+`bidirectional_­iterator` it's mainly just a possible performance issue and
+rarely an infinite loop, as mentioned, and for `output_iterator` the
+incrementing is usually no-op).
+
+At the very least, we have to warn users against using `counted_iterator` and
+its consumers with `input_iterator`.
 
 
 Appendix
