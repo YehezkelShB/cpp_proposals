@@ -7,9 +7,9 @@ Editor: Yehuda Bernat, YehudaMBer@gmail.com
 Shortname: P2406
 Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggest some changes to improve the situation
 Group: WG21
-Date: 2021-07-11
+Date: 2021-07-25
 Markup Shorthands: markdown yes
-Revision: 0
+Revision: 1
 Default Highlight: CPP
 ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html
 !Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2406-counted-iterator-and-input-iterators.bs">GitHub</a>
@@ -37,7 +37,7 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
         "title": "Truncatable primes, problem 37, Project Euler"
     },
     "CE-FILTER": {
-        "href": "https://gcc.godbolt.org/z/cadsr1GMj",
+        "href": "https://gcc.godbolt.org/z/9TjbdMn3d",
         "title": "filter+take problem example, Compiler Explorer"
     },
     "CE-ISTREAM": {
@@ -58,6 +58,8 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
 
 Revision History
 ================
+
+r1: Improving many parts, following feedback from Inbal Levi
 
 r0: initial revision
 
@@ -81,14 +83,14 @@ namespace rv = std::views;
  
 int main() {
     for (auto i  : rv::iota(0)
-            | rv::filter([](auto i) { return i < 10; })
-            | rv::take(10))
+            | rv::filter([](auto i) { return i < 11; })
+            | rv::take(11))
         std::cout << i << '\n';
 }
 ```
 
 Compiler explorer gets a timeout when trying to run this simple example, instead
-of printing the numbers from 0 to 9. Running the same code locally, it runs for
+of printing the numbers from 0 to 10. Running the same code locally, it runs for
 very long time. Tracking the roots of the issue, the problem is that `take` uses
 `counted_iterator` when the range isn't `random_access` and `counted_iterator`
 increments the internal iterator even if the counter has reached the requested
@@ -104,25 +106,17 @@ The problem mentioned in the intro is one that actually describes a filter that
 return exactly 11 elements, so trying to use `take(11)` on it means the program
 never ends even while it got 11 elements already.
 
-
-Counter argument
-----------------
-If the user doesn't know how many items the filter returns, it's possible that
-the filter returns less items than what `take` tries to take, and never ends
-anyway. So one might claim that the user must know the number of items returned
-by the filter and then there is no point in using `take` when they are the same.
-
-It still leaves the cases that there is a huge performance penalty on
-incrementing the iterator one additional time, but those are maybe considered
-less interesting.
+It means `take` isn't usable on ranges that have the exact count of items (and
+so is `counted_iterator` when wrapping around an iterator for such a range).
 
 
-The real problem
-----------------
-The real problem we see is when using input ranges, e.g. `basic_istream_view`.
-In these cases, advancing the internal iterator means hanging forever if no
-additional input exists and the stream isn't closed or eating an additional
-input that can't be retrieved anymore. For example [[CE-ISTREAM]]:
+`input_iterator` case
+---------------------
+Even more common problem is when using input ranges, e.g. `basic_istream_view`.
+In these cases, advancing the internal iterator when reaching the count means
+eating an additional input that can't be retrieved again later, or hanging
+forever if no additional input exists and the stream isn't closed.
+For example [[CE-ISTREAM]]:
 
 ```
 #include <ranges>
@@ -147,6 +141,33 @@ int main()
 ```
 
 It means that one can't use ranges when parsing input, for example.
+
+
+Current behavior is what the standard mandates
+==============================================
+
+Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
+`operator++` for `counted_iteraor` as:
+
+Effects: Equivalent to:<br/>
+`++current;`<br/>
+`--length;`<br/>
+`return *this;`<br/>
+
+It means that even when `length` becomes 0, the internal iterator is incremented,
+thus consuming an additional item from the range, and causing the effects
+mentioned above for input iterator case or when `++` on the internal iterator is
+costly (or never returns).
+
+
+Desired behavior
+================
+
+As long as `counted_iterator` is valid (not equal to `default_sentinel`), it
+must never try to access more than `n` items (when `n` is the given count).
+If the range doesn't have `n` items, the behavior is kept as is, i.e. it isn't
+defined (`operator++` might hang forever or access things that shouldn't be
+accessed etc.).
 
 
 Design of suggested solution
@@ -187,20 +208,28 @@ of the internal iterator and still legal for `counted_iterator` constructed with
 Option 1: Require that if `n==0`, `i` must be decrementable, and actually
 decrement it in the c-tor. (This option assumes the only reason to create such
 an `counted_iteraor` is to decrement it anyway.)
+Please note that this obviously works only for `bidirectional_­iterator`. Other
+kind of iterators can be left as UB, or just advice against calling `base()` on
+the resulted `counted_iteraor`.
 
 Option 2: Require that if `n==0`, `i` must be "the one before" the actual
 iterator (leaving it to the user to decide how to handle, and if neither `--`
 nor `base()` are ever called on it, it doesn't matter what the user does).
+Please note that this option changes behavior of existing code, which makes it
+less favorable option.
 
 Option 3: Mark this case internally (e.g. with `length=-1`) and handle specially
 when decrementing (`length` "jumps" to `1` after decrementing the internal
-iterator). Please note that `base()` doesn't need any special handling here.
+iterator). Please note that `base()` doesn't need any special handling here, but
+comparisons do.
 
 
 Proposed Wording
 ================
 
-Note: Wording doesn't include any of the options suggested for the c-tor.
+Note: Wording currently doesn't include any of the options suggested above for
+the c-tor.
+
 
 Under 23.5.6.3 [**counted.iter.access**]:
 
@@ -225,7 +254,6 @@ Returns: `std​::​move(current)`.
 
 
 Under 23.5.6.5 [**counted.iter.nav**]:
-
 
 <ins>
 `constexpr counted_iterator& operator++();`<br/>
@@ -276,14 +304,14 @@ Effects: Equivalent to:<br/>
 `return *this;`<br/>
 
 
-Effect on current state
-=======================
-This breaks ABI (as every inline function does). If implementers don't accept
-this change, or if WG21 feels it's too late to apply it to C++20, we can add
-`lazy_counted_iterator` (or bikeshed a better name) which has the same behavior
-as `counted_iterator` except for the mentioned changes. In additional, it
-requires adding `lazy_take` and `lazy_counted_view` that uses it instead of
-`counted_iterator`.
+Effect on current state / alternate solution
+============================================
+This breaks ABI (as every template/inline function does). If implementers don't
+accept this change, or if WG21 feels it's too late to apply it to C++20, we can
+add `lazy_counted_iterator` (or bikeshed a better name) which has the same
+behavior as `counted_iterator` except for the mentioned changes. In additional,
+it requires adding `lazy_take` and `views::lazy_counted` that uses the new
+iterator instead of `counted_iterator`.
 
 In such a case, we suggest to consider requiring `forward_or_output_iterator`
 for `counted_iterator`, as it always does the wrong thing for `input_iterator`
@@ -292,15 +320,14 @@ if it doesn't reach the `end` of the input (while for `forward_iterator` and
 rarely an infinite loop, as mentioned, and for `output_iterator` the
 incrementing is usually no-op).
 
-At the very least, we have to warn users against using `counted_iterator` and
-its consumers with `input_iterator`.
+At the very least, we have to warn users against using `counted_iterator` (or
+its consumers) with `input_iterator`.
 
 
 Appendix
 ========
-It's interesting to note that with optimizations enabled, gcc is able to "fix
-the issue" [[CE-OPT]]. Our assumption is that it doesn't work with more complex
-cases, and anyway we can't count on optimization to fix such an issue. It's
-maybe even more interesting to see the mentioned optimization is not an
-optimizer bug, and when the filter will never return another number, it doesn't
-change the behavior [[CE-OPT2]].
+It's interesting to note that with any level of optimization enabled (including
+`-Og`!), gcc is able to "fix the issue" [[CE-OPT]] for the filter+take case (but
+not for `input_iterator`, of course). It's maybe even more interesting to see
+the mentioned optimization is not an optimizer bug, and when the filter will
+never return another number, it doesn't change the behavior [[CE-OPT2]].

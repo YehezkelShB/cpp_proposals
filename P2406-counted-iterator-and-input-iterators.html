@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2406R0: Fix `counted_iterator` interaction with input iterators</title>
+  <title>P2406R1: Fix `counted_iterator` interaction with input iterators</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version c5fd42b86, updated Mon Apr 5 16:27:33 2021 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="c44f279332ad0a92fb08dfe892602e036873b18b" name="document-revision">
+  <meta content="1a4417fecee1a1fddb6751b35cd736783f4a3a17" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2083,8 +2083,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2406R0<br>Fix `counted_iterator` interaction with input iterators</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2021-07-11">2021-07-11</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P2406R1<br>Fix `counted_iterator` interaction with input iterators</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2021-07-25">2021-07-25</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2115,19 +2115,20 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li>
      <a href="#problem-description"><span class="secno">3</span> <span class="content">Problem description</span></a>
      <ol class="toc">
-      <li><a href="#counter-argument"><span class="secno">3.1</span> <span class="content">Counter argument</span></a>
-      <li><a href="#the-real-problem"><span class="secno">3.2</span> <span class="content">The real problem</span></a>
+      <li><a href="#input_iterator-case"><span class="secno">3.1</span> <span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span></a>
      </ol>
+    <li><a href="#current-behavior-is-what-the-standard-mandates"><span class="secno">4</span> <span class="content">Current behavior is what the standard mandates</span></a>
+    <li><a href="#desired-behavior"><span class="secno">5</span> <span class="content">Desired behavior</span></a>
     <li>
-     <a href="#design-of-suggested-solution"><span class="secno">4</span> <span class="content">Design of suggested solution</span></a>
+     <a href="#design-of-suggested-solution"><span class="secno">6</span> <span class="content">Design of suggested solution</span></a>
      <ol class="toc">
-      <li><a href="#the-main-changes"><span class="secno">4.1</span> <span class="content">The main changes</span></a>
-      <li><a href="#random_access_iterator-case-kept-as-is"><span class="secno">4.2</span> <span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span></a>
-      <li><a href="#open-question-constructing-with-0-length"><span class="secno">4.3</span> <span class="content">Open question: Constructing with 0 length</span></a>
+      <li><a href="#the-main-changes"><span class="secno">6.1</span> <span class="content">The main changes</span></a>
+      <li><a href="#random_access_iterator-case-kept-as-is"><span class="secno">6.2</span> <span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span></a>
+      <li><a href="#open-question-constructing-with-0-length"><span class="secno">6.3</span> <span class="content">Open question: Constructing with 0 length</span></a>
      </ol>
-    <li><a href="#proposed-wording"><span class="secno">5</span> <span class="content">Proposed Wording</span></a>
-    <li><a href="#effect-on-current-state"><span class="secno">6</span> <span class="content">Effect on current state</span></a>
-    <li><a href="#appendix"><span class="secno">7</span> <span class="content">Appendix</span></a>
+    <li><a href="#proposed-wording"><span class="secno">7</span> <span class="content">Proposed Wording</span></a>
+    <li><a href="#effect-on-current-state-alternate-solution"><span class="secno">8</span> <span class="content">Effect on current state / alternate solution</span></a>
+    <li><a href="#appendix"><span class="secno">9</span> <span class="content">Appendix</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2137,6 +2138,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="revision-history"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#revision-history"></a></h2>
+   <p>r1: Improving many parts, following feedback from Inbal Levi</p>
    <p>r0: initial revision</p>
    <h2 class="heading settled" data-level="2" id="intro"><span class="secno">2. </span><span class="content">Intro</span><a class="self-link" href="#intro"></a></h2>
     Project Euler is a project with many mathematical-related questions that are
@@ -2152,13 +2154,13 @@ pitfall coming from the definition of <code class="highlight"><c- n>std</c-><c- 
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c-> <c- p>{</c->
     <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>i</c->  <c- p>:</c-> <c- n>rv</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c->
-            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>filter</c-><c- p>([](</c-><c- k>auto</c-> <c- n>i</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- mi>10</c-><c- p>;</c-> <c- p>})</c->
-            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>10</c-><c- p>))</c->
+            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>filter</c-><c- p>([](</c-><c- k>auto</c-> <c- n>i</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- mi>11</c-><c- p>;</c-> <c- p>})</c->
+            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>11</c-><c- p>))</c->
         <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
 <c- p>}</c->
 </pre>
    <p>Compiler explorer gets a timeout when trying to run this simple example, instead
-of printing the numbers from 0 to 9. Running the same code locally, it runs for
+of printing the numbers from 0 to 10. Running the same code locally, it runs for
 very long time. Tracking the roots of the issue, the problem is that <code class="highlight"><c- n>take</c-></code> uses <code class="highlight"><c- n>counted_iterator</c-></code> when the range isn’t <code class="highlight"><c- n>random_access</c-></code> and <code class="highlight"><c- n>counted_iterator</c-></code> increments the internal iterator even if the counter has reached the requested
 count. In this case, the filter never returns when trying to increment it once
 again (at least not until <code class="highlight"><c- n>iota</c-></code> reaches the UB case of signed overflow).</p>
@@ -2169,19 +2171,14 @@ unexpected behavior.</p>
    <p>The problem mentioned in the intro is one that actually describes a filter that
 return exactly 11 elements, so trying to use <code class="highlight"><c- n>take</c-><c- p>(</c-><c- mi>11</c-><c- p>)</c-></code> on it means the program
 never ends even while it got 11 elements already.</p>
-   <h3 class="heading settled" data-level="3.1" id="counter-argument"><span class="secno">3.1. </span><span class="content">Counter argument</span><a class="self-link" href="#counter-argument"></a></h3>
-    If the user doesn’t know how many items the filter returns, it’s possible that
-the filter returns less items than what <code class="highlight"><c- n>take</c-></code> tries to take, and never ends
-anyway. So one might claim that the user must know the number of items returned
-by the filter and then there is no point in using <code class="highlight"><c- n>take</c-></code> when they are the same. 
-   <p>It still leaves the cases that there is a huge performance penalty on
-incrementing the iterator one additional time, but those are maybe considered
-less interesting.</p>
-   <h3 class="heading settled" data-level="3.2" id="the-real-problem"><span class="secno">3.2. </span><span class="content">The real problem</span><a class="self-link" href="#the-real-problem"></a></h3>
-    The real problem we see is when using input ranges, e.g. <code class="highlight"><c- n>basic_istream_view</c-></code>.
-In these cases, advancing the internal iterator means hanging forever if no
-additional input exists and the stream isn’t closed or eating an additional
-input that can’t be retrieved anymore. For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a>: 
+   <p>It means <code class="highlight"><c- n>take</c-></code> isn’t usable on ranges that have the exact count of items (and
+so is <code class="highlight"><c- n>counted_iterator</c-></code> when wrapping around an iterator for such a range).</p>
+   <h3 class="heading settled" data-level="3.1" id="input_iterator-case"><span class="secno">3.1. </span><span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span><a class="self-link" href="#input_iterator-case"></a></h3>
+    Even more common problem is when using input ranges, e.g. <code class="highlight"><c- n>basic_istream_view</c-></code>.
+In these cases, advancing the internal iterator when reaching the count means
+eating an additional input that can’t be retrieved again later, or hanging
+forever if no additional input exists and the stream isn’t closed.
+For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a>: 
 <pre class="highlight"><c- cp>#include</c-> &lt;ranges>
 <c- cp>#include</c-> &lt;iostream>
 <c- cp>#include</c-> &lt;sstream>
@@ -2203,18 +2200,31 @@ input that can’t be retrieved anymore. For example <a data-link-type="biblio" 
 <c- p>}</c->
 </pre>
    <p>It means that one can’t use ranges when parsing input, for example.</p>
-   <h2 class="heading settled" data-level="4" id="design-of-suggested-solution"><span class="secno">4. </span><span class="content">Design of suggested solution</span><a class="self-link" href="#design-of-suggested-solution"></a></h2>
-   <h3 class="heading settled" data-level="4.1" id="the-main-changes"><span class="secno">4.1. </span><span class="content">The main changes</span><a class="self-link" href="#the-main-changes"></a></h3>
+   <h2 class="heading settled" data-level="4" id="current-behavior-is-what-the-standard-mandates"><span class="secno">4. </span><span class="content">Current behavior is what the standard mandates</span><a class="self-link" href="#current-behavior-is-what-the-standard-mandates"></a></h2>
+   <p>Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of <code class="highlight"><c- k>operator</c-><c- o>++</c-></code> for <code class="highlight"><c- n>counted_iteraor</c-></code> as:</p>
+   <p>Effects: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
+   <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is incremented,
+thus consuming an additional item from the range, and causing the effects
+mentioned above for input iterator case or when <code class="highlight"><c- o>++</c-></code> on the internal iterator is
+costly (or never returns).</p>
+   <h2 class="heading settled" data-level="5" id="desired-behavior"><span class="secno">5. </span><span class="content">Desired behavior</span><a class="self-link" href="#desired-behavior"></a></h2>
+   <p>As long as <code class="highlight"><c- n>counted_iterator</c-></code> is valid (not equal to <code class="highlight"><c- n>default_sentinel</c-></code>), it
+must never try to access more than <code class="highlight"><c- n>n</c-></code> items (when <code class="highlight"><c- n>n</c-></code> is the given count).
+If the range doesn’t have <code class="highlight"><c- n>n</c-></code> items, the behavior is kept as is, i.e. it isn’t
+defined (<code class="highlight"><c- k>operator</c-><c- o>++</c-></code> might hang forever or access things that shouldn’t be
+accessed etc.).</p>
+   <h2 class="heading settled" data-level="6" id="design-of-suggested-solution"><span class="secno">6. </span><span class="content">Design of suggested solution</span><a class="self-link" href="#design-of-suggested-solution"></a></h2>
+   <h3 class="heading settled" data-level="6.1" id="the-main-changes"><span class="secno">6.1. </span><span class="content">The main changes</span><a class="self-link" href="#the-main-changes"></a></h3>
     We suggest changing the behavior of <code class="highlight"><c- n>counted_iterator</c-></code> operators around 0 length
 so it doesn’t increment the internal iterator when reaching 0 length, and as a
 result doesn’t decrement it when getting back from 0 to 1 length. This requires
 changing <code class="highlight"><c- n>base</c-><c- p>()</c-></code> behavior too, including the return type to be by value. 
-   <h3 class="heading settled" data-level="4.2" id="random_access_iterator-case-kept-as-is"><span class="secno">4.2. </span><span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span><a class="self-link" href="#random_access_iterator-case-kept-as-is"></a></h3>
+   <h3 class="heading settled" data-level="6.2" id="random_access_iterator-case-kept-as-is"><span class="secno">6.2. </span><span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span><a class="self-link" href="#random_access_iterator-case-kept-as-is"></a></h3>
    <p>To reduce the amount of changes required, we keep the current behavior for <code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case, so we don’t have to touch the additional operators
 defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case we can expect the view to either have all the items
 ready or able to compute all of them efficiently, so it doesn’t suffer from this
 issue.</p>
-   <h3 class="heading settled" data-level="4.3" id="open-question-constructing-with-0-length"><span class="secno">4.3. </span><span class="content">Open question: Constructing with 0 length</span><a class="self-link" href="#open-question-constructing-with-0-length"></a></h3>
+   <h3 class="heading settled" data-level="6.3" id="open-question-constructing-with-0-length"><span class="secno">6.3. </span><span class="content">Open question: Constructing with 0 length</span><a class="self-link" href="#open-question-constructing-with-0-length"></a></h3>
    <p>We don’t have a good solution for the case that user constructs <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- mi>0</c-></code> as argument for length. This puts it in an
 inconsistent internal state, as the next operations will be <code class="highlight"><c- n>base</c-><c- p>()</c-></code> or <code class="highlight"><c- o>--</c-></code>,
 and those expect the iterator to be one step back, with the changes suggested
@@ -2223,14 +2233,21 @@ here.</p>
 of the internal iterator and still legal for <code class="highlight"><c- n>counted_iterator</c-></code> constructed with <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>;</p>
    <p>Option 1: Require that if <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>, <code class="highlight"><c- n>i</c-></code> must be decrementable, and actually
 decrement it in the c-tor. (This option assumes the only reason to create such
-an <code class="highlight"><c- n>counted_iteraor</c-></code> is to decrement it anyway.)</p>
+an <code class="highlight"><c- n>counted_iteraor</c-></code> is to decrement it anyway.)
+Please note that this obviously works only for <code class="highlight"><c- n>bidirectional_</c->­<c- n>iterator</c-></code>. Other
+kind of iterators can be left as UB, or just advice against calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> on
+the resulted <code class="highlight"><c- n>counted_iteraor</c-></code>.</p>
    <p>Option 2: Require that if <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>, <code class="highlight"><c- n>i</c-></code> must be "the one before" the actual
-iterator (leaving it to the user to decide how to handle, and if neither <code class="highlight"><c- o>--</c-></code> nor <code class="highlight"><c- n>base</c-><c- p>()</c-></code> are ever called on it, it doesn’t matter what the user does).</p>
+iterator (leaving it to the user to decide how to handle, and if neither <code class="highlight"><c- o>--</c-></code> nor <code class="highlight"><c- n>base</c-><c- p>()</c-></code> are ever called on it, it doesn’t matter what the user does).
+Please note that this option changes behavior of existing code, which makes it
+less favorable option.</p>
    <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code>) and handle specially
 when decrementing (<code class="highlight"><c- n>length</c-></code> "jumps" to <code class="highlight"><c- mi>1</c-></code> after decrementing the internal
-iterator). Please note that <code class="highlight"><c- n>base</c-><c- p>()</c-></code> doesn’t need any special handling here.</p>
-   <h2 class="heading settled" data-level="5" id="proposed-wording"><span class="secno">5. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
-   <p class="note" role="note"><span>Note:</span> Wording doesn’t include any of the options suggested for the c-tor.</p>
+iterator). Please note that <code class="highlight"><c- n>base</c-><c- p>()</c-></code> doesn’t need any special handling here, but
+comparisons do.</p>
+   <h2 class="heading settled" data-level="7" id="proposed-wording"><span class="secno">7. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
+   <p class="note" role="note"><span>Note:</span> Wording currently doesn’t include any of the options suggested above for
+the c-tor.</p>
    <p>Under 23.5.6.3 [<strong>counted.iter.access</strong>]:</p>
    <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-> <c- o>?</c-> <c- nl>current</c-> <c- p>:</c-> <c- n>next</c-><c- p>(</c-><c- n>current</c-><c- p>);</c-></code><br> Note: calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> twice isn’t safe when <code class="highlight"><c- n>I</c-></code> isn’t <code class="highlight"><c- n>forward_iterator</c-></code> </ins>
    <p><code class="highlight"><c- k>constexpr</c-> <c- k>const</c-> <c- n>I</c-><c- o>&amp;</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>current</c-><c- p>;</c-></code></p>
@@ -2243,23 +2260,23 @@ iterator). Please note that <code class="highlight"><c- n>base</c-><c- p>()</c->
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>forward_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- n>counted_iterator</c-> <c- n>tmp</c-> <c- o>=</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- n>tmp</c-><c- p>;</c-></code><br></p>
    <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>bidirectional_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- k>if</c-> <c- p>(</c-><c- n>length</c-><c- p>)</c-> <c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> </ins>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to:<br> <code class="highlight"><c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
-   <h2 class="heading settled" data-level="6" id="effect-on-current-state"><span class="secno">6. </span><span class="content">Effect on current state</span><a class="self-link" href="#effect-on-current-state"></a></h2>
-    This breaks ABI (as every inline function does). If implementers don’t accept
-this change, or if WG21 feels it’s too late to apply it to C++20, we can add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> (or bikeshed a better name) which has the same behavior
-as <code class="highlight"><c- n>counted_iterator</c-></code> except for the mentioned changes. In additional, it
-requires adding <code class="highlight"><c- n>lazy_take</c-></code> and <code class="highlight"><c- n>lazy_counted_view</c-></code> that uses it instead of <code class="highlight"><c- n>counted_iterator</c-></code>. 
+   <h2 class="heading settled" data-level="8" id="effect-on-current-state-alternate-solution"><span class="secno">8. </span><span class="content">Effect on current state / alternate solution</span><a class="self-link" href="#effect-on-current-state-alternate-solution"></a></h2>
+    This breaks ABI (as every template/inline function does). If implementers don’t
+accept this change, or if WG21 feels it’s too late to apply it to C++20, we can
+add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> (or bikeshed a better name) which has the same
+behavior as <code class="highlight"><c- n>counted_iterator</c-></code> except for the mentioned changes. In additional,
+it requires adding <code class="highlight"><c- n>lazy_take</c-></code> and <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> that uses the new
+iterator instead of <code class="highlight"><c- n>counted_iterator</c-></code>. 
    <p>In such a case, we suggest to consider requiring <code class="highlight"><c- n>forward_or_output_iterator</c-></code> for <code class="highlight"><c- n>counted_iterator</c-></code>, as it always does the wrong thing for <code class="highlight"><c- n>input_iterator</c-></code> if it doesn’t reach the <code class="highlight"><c- n>end</c-></code> of the input (while for <code class="highlight"><c- n>forward_iterator</c-></code> and <code class="highlight"><c- n>bidirectional_</c->­<c- n>iterator</c-></code> it’s mainly just a possible performance issue and
 rarely an infinite loop, as mentioned, and for <code class="highlight"><c- n>output_iterator</c-></code> the
 incrementing is usually no-op).</p>
-   <p>At the very least, we have to warn users against using <code class="highlight"><c- n>counted_iterator</c-></code> and
-its consumers with <code class="highlight"><c- n>input_iterator</c-></code>.</p>
-   <h2 class="heading settled" data-level="7" id="appendix"><span class="secno">7. </span><span class="content">Appendix</span><a class="self-link" href="#appendix"></a></h2>
-    It’s interesting to note that with optimizations enabled, gcc is able to "fix
-the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a>. Our assumption is that it doesn’t work with more complex
-cases, and anyway we can’t count on optimization to fix such an issue. It’s
-maybe even more interesting to see the mentioned optimization is not an
-optimizer bug, and when the filter will never return another number, it doesn’t
-change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>. 
+   <p>At the very least, we have to warn users against using <code class="highlight"><c- n>counted_iterator</c-></code> (or
+its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>.</p>
+   <h2 class="heading settled" data-level="9" id="appendix"><span class="secno">9. </span><span class="content">Appendix</span><a class="self-link" href="#appendix"></a></h2>
+    It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
+not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
+the mentioned optimization is not an optimizer bug, and when the filter will
+never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>. 
   </main>
 <script>
 (function() {
@@ -2394,7 +2411,7 @@ change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]<
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-ce-filter">[CE-FILTER]
-   <dd><a href="https://gcc.godbolt.org/z/cadsr1GMj">filter+take problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/cadsr1GMj">https://gcc.godbolt.org/z/cadsr1GMj</a>
+   <dd><a href="https://gcc.godbolt.org/z/9TjbdMn3d">filter+take problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/9TjbdMn3d">https://gcc.godbolt.org/z/9TjbdMn3d</a>
    <dt id="biblio-ce-istream">[CE-ISTREAM]
    <dd><a href="https://gcc.godbolt.org/z/Eb8rdWYbP">istream problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/Eb8rdWYbP">https://gcc.godbolt.org/z/Eb8rdWYbP</a>
    <dt id="biblio-ce-opt">[CE-OPT]
