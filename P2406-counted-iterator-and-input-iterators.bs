@@ -30,6 +30,8 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
 }
 </style>
 
+<meta http-equiv="refresh" content="1">
+
 <pre class="biblio">
 {
     "EULER": {
@@ -74,6 +76,10 @@ pitfall coming from the definition of `std::counted_iterator`.
 
 Problem description
 ===================
+
+Range with the exact number of items
+------------------------------------
+
 Look at this example code [[CE-FILTER]]:
 ```
 #include <ranges>
@@ -304,8 +310,8 @@ Effects: Equivalent to:<br/>
 `return *this;`<br/>
 
 
-Effect on current state / alternate solution
-============================================
+Effect on current state / yet another alternative solution
+==========================================================
 This breaks ABI (as every template/inline function does). If implementers don't
 accept this change, or if WG21 feels it's too late to apply it to C++20, we can
 add `lazy_counted_iterator` (or bikeshed a better name) which has the same

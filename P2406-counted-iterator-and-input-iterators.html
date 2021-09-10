@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version c5fd42b86, updated Mon Apr 5 16:27:33 2021 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="1a4417fecee1a1fddb6751b35cd736783f4a3a17" name="document-revision">
+  <meta content="c5c66bf19e88683e34a52780b4ace3325b82a1f1" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -1575,6 +1575,7 @@ Possible extra rowspan handling
   text-decoration-color: rgb(255, 0, 0);
 }
 </style>
+  <meta content="1" http-equiv="refresh">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -2115,7 +2116,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li>
      <a href="#problem-description"><span class="secno">3</span> <span class="content">Problem description</span></a>
      <ol class="toc">
-      <li><a href="#input_iterator-case"><span class="secno">3.1</span> <span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span></a>
+      <li><a href="#range-with-the-exact-number-of-items"><span class="secno">3.1</span> <span class="content">Range with the exact number of items</span></a>
+      <li><a href="#input_iterator-case"><span class="secno">3.2</span> <span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span></a>
      </ol>
     <li><a href="#current-behavior-is-what-the-standard-mandates"><span class="secno">4</span> <span class="content">Current behavior is what the standard mandates</span></a>
     <li><a href="#desired-behavior"><span class="secno">5</span> <span class="content">Desired behavior</span></a>
@@ -2127,7 +2129,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#open-question-constructing-with-0-length"><span class="secno">6.3</span> <span class="content">Open question: Constructing with 0 length</span></a>
      </ol>
     <li><a href="#proposed-wording"><span class="secno">7</span> <span class="content">Proposed Wording</span></a>
-    <li><a href="#effect-on-current-state-alternate-solution"><span class="secno">8</span> <span class="content">Effect on current state / alternate solution</span></a>
+    <li><a href="#effect-on-current-state-yet-another-alternative-solution"><span class="secno">8</span> <span class="content">Effect on current state / yet another alternative solution</span></a>
     <li><a href="#appendix"><span class="secno">9</span> <span class="content">Appendix</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
@@ -2146,7 +2148,8 @@ intended to encourage the reader to write a small program to compute the result.
 In this case, one of the problems there, no. 37 <a data-link-type="biblio" href="#biblio-euler">[EULER]</a>, helped reveal a
 pitfall coming from the definition of <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>counted_iterator</c-></code>. 
    <h2 class="heading settled" data-level="3" id="problem-description"><span class="secno">3. </span><span class="content">Problem description</span><a class="self-link" href="#problem-description"></a></h2>
-    Look at this example code <a data-link-type="biblio" href="#biblio-ce-filter">[CE-FILTER]</a>: 
+   <h3 class="heading settled" data-level="3.1" id="range-with-the-exact-number-of-items"><span class="secno">3.1. </span><span class="content">Range with the exact number of items</span><a class="self-link" href="#range-with-the-exact-number-of-items"></a></h3>
+   <p>Look at this example code <a data-link-type="biblio" href="#biblio-ce-filter">[CE-FILTER]</a>:</p>
 <pre class="highlight"><c- cp>#include</c-> &lt;ranges>
 <c- cp>#include</c-> &lt;iostream>
  
@@ -2173,7 +2176,7 @@ return exactly 11 elements, so trying to use <code class="highlight"><c- n>take<
 never ends even while it got 11 elements already.</p>
    <p>It means <code class="highlight"><c- n>take</c-></code> isn’t usable on ranges that have the exact count of items (and
 so is <code class="highlight"><c- n>counted_iterator</c-></code> when wrapping around an iterator for such a range).</p>
-   <h3 class="heading settled" data-level="3.1" id="input_iterator-case"><span class="secno">3.1. </span><span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span><a class="self-link" href="#input_iterator-case"></a></h3>
+   <h3 class="heading settled" data-level="3.2" id="input_iterator-case"><span class="secno">3.2. </span><span class="content"><code class="highlight"><c- n>input_iterator</c-></code> case</span><a class="self-link" href="#input_iterator-case"></a></h3>
     Even more common problem is when using input ranges, e.g. <code class="highlight"><c- n>basic_istream_view</c-></code>.
 In these cases, advancing the internal iterator when reaching the count means
 eating an additional input that can’t be retrieved again later, or hanging
@@ -2260,7 +2263,7 @@ the c-tor.</p>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>forward_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- n>counted_iterator</c-> <c- n>tmp</c-> <c- o>=</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- n>tmp</c-><c- p>;</c-></code><br></p>
    <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>bidirectional_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- k>if</c-> <c- p>(</c-><c- n>length</c-><c- p>)</c-> <c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> </ins>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to:<br> <code class="highlight"><c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
-   <h2 class="heading settled" data-level="8" id="effect-on-current-state-alternate-solution"><span class="secno">8. </span><span class="content">Effect on current state / alternate solution</span><a class="self-link" href="#effect-on-current-state-alternate-solution"></a></h2>
+   <h2 class="heading settled" data-level="8" id="effect-on-current-state-yet-another-alternative-solution"><span class="secno">8. </span><span class="content">Effect on current state / yet another alternative solution</span><a class="self-link" href="#effect-on-current-state-yet-another-alternative-solution"></a></h2>
     This breaks ABI (as every template/inline function does). If implementers don’t
 accept this change, or if WG21 feels it’s too late to apply it to C++20, we can
 add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> (or bikeshed a better name) which has the same
