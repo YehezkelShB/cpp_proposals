@@ -30,7 +30,7 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
 }
 </style>
 
-<meta http-equiv="refresh" content="1">
+<meta http-equiv="refresh" content="5">
 
 <pre class="biblio">
 {
@@ -61,7 +61,8 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
 Revision History
 ================
 
-r1: Improving many parts, following feedback from Inbal Levi
+r1: Improving many parts, following feedback from Inbal Levi and from Reddit
+users
 
 r0: initial revision
 
@@ -176,6 +177,27 @@ defined (`operator++` might hang forever or access things that shouldn't be
 accessed etc.).
 
 
+Designs that were considered and (rejected)
+===========================================
+
+Don't increment the internal iterator until really required.
+This can't work as copying counted_iterator of non-forward iterator (that wasn't
+dereferenced yet for the current item) and then dereferencing one of them
+resulted with invalidation of the other one.
+Naive design of the solution
+============================
+
+Basically, what is required to implement the desired behavior is changing the
+behavior of `counted_iterator` operators around 0 length so it doesn't increment
+the internal iterator when reaching 0 length.
+
+
+Fundamental problem with `istreambuf_iterator`
+==============================================
+
+`istreambuf_iterator` behaves differently than `istream_iterator`
+
+
 Design of suggested solution
 ============================
 
@@ -187,13 +209,13 @@ result doesn't decrement it when getting back from 0 to 1 length. This requires
 changing `base()` behavior too, including the return type to be by value.
 
 
-`random_­access_­iterator` case kept as-is
+`random_access_iterator` case kept as-is
 ----------------------------------------
 
 To reduce the amount of changes required, we keep the current behavior for
-`random_­access_­iterator` case, so we don't have to touch the additional operators
+`random_access_iterator` case, so we don't have to touch the additional operators
 defined only for this category. The rational behind it is that for
-`random_­access_­iterator` case we can expect the view to either have all the items
+`random_access_iterator` case we can expect the view to either have all the items
 ready or able to compute all of them efficiently, so it doesn't suffer from this
 issue.
 
@@ -224,10 +246,11 @@ nor `base()` are ever called on it, it doesn't matter what the user does).
 Please note that this option changes behavior of existing code, which makes it
 less favorable option.
 
-Option 3: Mark this case internally (e.g. with `length=-1`) and handle specially
+Option 3: Mark this case internally (e.g. with `length=-1` or a boolean flag) and handle specially
 when decrementing (`length` "jumps" to `1` after decrementing the internal
-iterator). Please note that `base()` doesn't need any special handling here, but
-comparisons do.
+iterator). Please note that both the counter/flag and the internal iterator must be mutable (to be changed on first access to `base()`).
+Also, if -1 is used, instead of a separated flag, comparison operators have to consider this case too. Using a flag, OTOH, will probably push for separated specialization of the whole class, so for random-access iterators this member will not exist.
+This still doesn't solve the problem of invalidation of one copy when `base()` is called on the other one.
 
 
 Proposed Wording
