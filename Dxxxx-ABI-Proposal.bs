@@ -119,6 +119,10 @@ the containing object can have both tags.
 We may want to consider if API break (where needed for performance) is also
 possible with such entities or we want such a degree of instability in the IS.
 
+We want to reinforce the point: this doesn't solve platform or language ABI
+issues. As mentioned, it may help implementations to solve platform ABI issues
+around library entities, but not issues of a wider effect.
+
 
 Bikeshed {#bikeshed}
 ========
