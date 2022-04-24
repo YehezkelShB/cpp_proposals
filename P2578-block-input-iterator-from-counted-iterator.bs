@@ -1,0 +1,246 @@
+<pre class='metadata'>
+Title: Block eager input (non-forward) iterators from <code>counted_iterator</code>
+Status: P
+Audience: SG9 (Ranges)
+Editor: Yehezkel Bernat, YehezkelShB@gmail.com
+Editor: Yehuda Bernat, YehudaMBer@gmail.com
+Shortname: P2578
+Abstract: P2406 shows that <code>counted_iterator</code> behavior interacts poorly with (most) input iterators. This paper suggests blocking the dangerous usages as first step
+Group: WG21
+Date: 2022-04-18
+Markup Shorthands: markdown yes
+Revision: 0
+Default Highlight: CPP
+ED: https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-counted-iterator.html
+!Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2578-block-input-iterator-from-counted-iterator.bs">GitHub</a>
+</pre>
+
+<style>
+.ins, ins, ins *, span.ins, span.ins * {
+  background-color: rgb(200, 250, 200);
+  color: rgb(0, 136, 0);
+  text-decoration: none;
+}
+
+.del, del, del *, span.del, span.del * {
+  background-color: rgb(250, 200, 200);
+  color: rgb(255, 0, 0);
+  text-decoration: line-through;
+  text-decoration-color: rgb(255, 0, 0);
+}
+</style>
+
+<meta http-equiv="refresh" content="5">
+
+<pre class="biblio">
+{
+    "CE-ISTREAM": {
+        "href": "https://gcc.godbolt.org/z/zP4c1EhT6",
+        "title": "istream problem example, Compiler Explorer"
+    },
+    "CE-ISTREAMBUF": {
+        "href": "https://gcc.godbolt.org/z/zooashPT8",
+        "title": "istreambuf example, Compiler Explorer"
+    }
+}
+</pre>
+
+
+Revision History
+================
+
+r0: initial revision, based on the rational from P2406
+
+
+Problem description
+===================
+
+Using `views::take` on an input range, e.g. `basic_istream_view`, usually takes
+an additional element from the underlying input source, because `take` uses
+`counted_iterator` when the range isn't `random_access` and `counted_iterator`
+increments the internal iterator even if the counter has reached the requested
+count.<br />
+Taking this additional element means this element is lost forever, because the
+nature of input (non-forward) range is such that we can't reread it later. Even
+worse, if no additional element exists in the source (and the source wasn't
+closed), this operation will hang forever.
+For example [[CE-ISTREAM]]:
+
+```
+#include <ranges>
+#include <iostream>
+#include <sstream>
+#include <cassert>
+ 
+namespace rn = std::ranges;
+namespace rv = rn::views;
+ 
+int main()
+{
+    auto iss = std::istringstream("012");
+    for (auto c : rn::istream_view<char>(iss)
+                  | rv::take(1))
+    {
+        std::cout << c << '\n';
+    }
+    auto c = '\0';
+    iss >> c;
+    std::cout << c << std::endl; // flush it in case the assert fails
+    assert(c == '1'); // FAILS, c == '2'
+}
+```
+
+It means that one can't use ranges safely for input parsing, for example.
+We want to propose new tools to allow such safe usage (which is the purpose of
+P2406), but at first we believe it worth blocking the dangerous usages to remove
+this footgun.
+
+
+Some input iterators are different
+==================================
+
+`istreambuf_iterator` behaves differently than `istream_iterator`. While the
+latter removes the element from the underlying source on `++`, the former
+removes it only on the next `++` (the read on dereference done directly from the
+underlying `streambuf`). It means that `counted_iterator` works flawlessly with
+`istreambuf_iterator`.
+
+For example, we can adapt the previous example to use `istreambuf_iterator` and
+get the expected behavior [[CE-ISTREAMBUF]]:
+
+```
+    auto iss = std::istringstream("012");
+    auto ibuf_it = std::istreambuf_iterator<char>(iss);
+    for (auto c : rn::subrange(ibuf_it, std::default_sentinel)
+                  | rv::take(1))
+    {
+        std::cout << c << '\n';
+    }
+    auto c = '\0';
+    iss >> c;
+    std::cout << c << std::endl; // flush it in case the assert fails
+    assert(c == '1'); // SUCCEEDS
+```
+
+The conclusion is that we have to differentiate between "eager" input iterators
+and "lazy" input iterators.
+
+
+Current behavior is what the standard mandates
+==============================================
+
+Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
+`operator++` for `counted_iteraor` as:
+
+Effects: Equivalent to:<br/>
+`++current;`<br/>
+`--length;`<br/>
+`return *this;`<br/>
+
+It means that even when `length` becomes 0, the internal iterator is incremented,
+thus consuming an additional item from the range, causing the mentioned issues.
+
+
+Desired behavior
+================
+
+`counted_iterator` (and as result all the things based on it, e.g. `views::take`
+and `views::counted`) must not be constructible from "eager" input iterator.
+
+
+Proposed Wording
+================
+
+Under 25.2 [**iterator.synopsis**], right after `input_iterator` paragraph, add:
+
+<ins>
+// [iterator.concept.lazyinput], concept lazy_input_iterator
+
+`template<class>`<br />
+`    inline constexpr bool enable_lazy_input_iterator = false;`
+
+`template<class I>`<br />
+`    concept lazy_input_iterator = see below;`
+</ins>
+
+
+`// [iterators.counted], counted iterators`<br />
+`  template<input_­or_­output_­iterator I>`<br />
+<span class="ins">`requires see below` </span><br />
+`class counted_iterator;`
+
+Right before `ostreambuf_iterator` paragraph add:
+
+<ins>
+`template<class CharT, class Traits>`<br />
+`    inline constexpr bool enable_lazy_input_iterator<istreambuf_iterator<CharT, Traits>> = true;`
+</ins>
+
+
+Under 25.3.4 [**iterator.concepts**], between 25.3.4.9 [**iterator.concept.input**]
+and 25.3.4.10 [**iterator.concept.output**] add:
+
+<ins>
+25.3.4.x Concept lazy_input_iterator [**iterator.concept.lazyinput**]
+
+The `lazy_input_­iterator` concept defines requirements for a type that is an
+`input_iterator` and doesn't remove the current element from the underlying
+source.
+
+`template<class I>`<br />
+`    concept lazy_input_iterator =`<br />
+`        input_iterator<I> && enable_lazy_input_iterator<remove_cvref_t<I>>;`
+
+`template<class>`<br />
+`    inline constexpr bool enable_lazy_input_iterator = false;`
+
+Remarks: Pursuant to [namespace.std], users may specialize `enable_lazy_input_iterator`
+for cv-unqualified program-defined types. Such specializations shall be usable
+in constant expressions ([expr.const]) and have type `const bool`.
+
+[Example 1: Each specialization `S` of class template `istreambuf_iterator`<br />
+([istreambuf.iterator]) models `lazy_input_iterator` because<br />
+`-` `enable_lazy_input_iterator<S>` is specialized to have the value `true`, and<br />
+`-` `istreambuf_iterator` doesn't remove the current element from the underlying<br />
+  `basic_streambuf` until moving to the next element.
+— end example] 
+</ins>
+
+Under 25.5.6.1 [**counted.iterator**]:
+
+`template<input_­or_­output_­iterator I>`<br />
+<span class="ins">`    requires forward_iterator<I> || lazy_input_iterator<I> || (!input_iterator<I>)`</span><br />
+`class counted_iterator`
+
+
+Effect on current state
+=======================
+This breaks existing code that uses `counted_iteraor` or anything based on it
+with (non-lazy) input iterator, if there is any.
+
+We believe this is Good Thing(TM) as we showed that `counted_iteraor` always
+does the wrong thing for (non-lazy) `input_iterator`s.
+
+At the very least, if this change isn't accepted, we have to warn users against
+using `counted_iterator` (or its consumers) with `input_iterator`. We might want
+to encourage implementations to produce diagnostic on such a usage.
+
+We think this is a good candidate to be applied as a Defect Report.
+
+
+Open questions
+==============
+
+We intentionally allowed constructing `counted_iterator` from `output_iterator`,
+because typically its `++` doesn't have any side effect. An iterator is not
+`forward_iterator` if its `++` affects its source (and invalidates all other
+copies) or it isn't `input_iterator` at all. As result, an `input_iterator` that
+it isn't `forward_iterator` is the signal that its `++` has side effects, and
+this is problematic for `counted_iterator`, as described above. For iterators
+that don't model `input_iterator` in first place, we simply don't know, but
+don't expect to find such iterators in the wild. Adding the requirement to
+enable explicitly each type of `output_iterator`, when we expect most or all of
+them to be enabled, seemed redundant.
+
+As we are not 100% sure about it, we seek for additional feedback and opinions
+about this.
