@@ -41,6 +41,10 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-
     "CE-ISTREAMBUF": {
         "href": "https://gcc.godbolt.org/z/zooashPT8",
         "title": "istreambuf example, Compiler Explorer"
+    },
+    "CE-ISTREAMBUF-FILTER": {
+        "href": "https://godbolt.org/z/73srYPGYG",
+        "title": "istreambuf with views::filter, Compiler Explorer"
     }
 }
 </pre>
@@ -91,9 +95,32 @@ int main()
 ```
 
 It means that one can't use ranges safely for input parsing, for example.
-We want to propose new tools to allow such safe usage (which is the purpose of
-P2406), but at first we believe it worth blocking the dangerous usages to remove
-this footgun.
+We want to propose new tools to allow such safe usage (`lazy_counted_iterator`, 
+which is the purpose of P2406), but at first we believe it worth blocking the
+dangerous usages to remove this footgun.
+
+
+Current behavior is what the standard mandates
+==============================================
+
+Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
+`operator++` for `counted_iteraor` as:
+
+Effects: Equivalent to:<br/>
+`++current;`<br/>
+`--length;`<br/>
+`return *this;`<br/>
+
+It means that even when `length` becomes 0, the internal iterator is incremented,
+thus consuming an additional item from the range, causing the mentioned issues.
+
+
+Desired behavior
+================
+
+`counted_iterator` (and as result all the things based on it, e.g. `views::take`
+and `views::counted`) must not be constructible from ("eager", see next) input
+iterator.
 
 
 Some input iterators are different
@@ -122,30 +149,105 @@ get the expected behavior [[CE-ISTREAMBUF]]:
     assert(c == '1'); // SUCCEEDS
 ```
 
-The conclusion is that we have to differentiate between "eager" input iterators
-and "lazy" input iterators.
+The conclusion is that we have to differentiate between "eager" and "lazy" types.
 
 
-Current behavior is what the standard mandates
-==============================================
+Propagating the laziness
+========================
 
-Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
-`operator++` for `counted_iteraor` as:
-
-Effects: Equivalent to:<br/>
-`++current;`<br/>
-`--length;`<br/>
-`return *this;`<br/>
-
-It means that even when `length` becomes 0, the internal iterator is incremented,
-thus consuming an additional item from the range, causing the mentioned issues.
+Similarly to what was done with `borrowed_range` and similar traits, the trait
+of being lazy must be propagated by adaptors like `move_iterator` and
+`common_iterator`.
 
 
-Desired behavior
-================
+Being lazy is not just for iterators
+====================================
 
-`counted_iterator` (and as result all the things based on it, e.g. `views::take`
-and `views::counted`) must not be constructible from "eager" input iterator.
+One of the adaptors that needs to propagated laziness is `iota_view::iterator`.
+As `iota_view` works on any `weakly_incrementable`, not only on iterators, the
+laziness must be defined on `weakly_incrementable` instead of on `input_iterator`.
+
+
+Open design questions
+=====================
+
+
+`output_iterator`
+-----------------
+
+The suggested wording below allows constructing `counted_iterator` from
+`output_iterator`, because typically its `++` doesn't have any side effect. An
+iterator is not `forward_iterator` if its `++` affects its source (and
+invalidates all other copies) or it isn't `input_iterator` at all. As result, an
+`input_iterator` that it isn't `forward_iterator` is a signal that its `++` has
+side effects, and this is problematic for `counted_iterator`, as described above.
+For iterators that don't model `input_iterator` in first place, we simply don't
+know, but don't expect to find such iterators in the wild. Adding the requirement
+to enable explicitly each type of `output_iterator`, when we expect most or all
+of them to be enabled, seemed redundant.
+
+As we are not 100% sure about it, we seek for additional feedback and opinions
+about this.
+
+
+`filter_view`
+-------------
+
+Let's consider the next example [[CE-ISTREAMBUF-FILTER]]:
+
+```
+    auto buf = std::stringbuf("a1x2d3f455gh6a");
+    for (auto c : rn::subrange(std::istreambuf_iterator(&buf), std::default_sentinel)
+                | rv::filter(static_cast<int(&)(int)>(std::isdigit))
+                | rv::take(3))
+    {
+        std::cout << c << " ";
+    }
+    char c = buf.sgetc();
+    std::cout << c << std::endl; // flush before the assert
+    assert(c == 'f'); // FAILS, c == '4'
+```
+
+As we can see, `filter` makes things more complex, as in some sense `filter` is
+by nature always eager. It takes the non-matching elements from the range even
+if the next matching element will never be used.
+
+BTW, even if we could change the behavior so `take` will stop doing `++` after
+the last item has already taken (i.e. the planned `lazy_counted_iterator`), with
+`istreambuf_iterator` it'll still do the wrong thing, because then the last item
+(`3`) is left in the `stringbuf`. So it seems like there is no reasonable way to
+use the combination of lazy `input_iterator` + `filter` +
+`{,lazy_}counted_iterator`.
+
+While discussing this, we noticed that there is no easy way to continue using a
+range after using `filter` on it, even if it's `forward_range`, because even
+while the filtered-out elements aren't lost, there is no easy way to find the
+element next to the last one taken from the range. For `bidirectional_range`
+it's possible to move back with the negation of the filter, but with
+`forward_range` we must go over it again to find first the `n` matching element
+and then go to the next one. Probably the design of `std::ranges` assumed the
+whole range is used only in the current pipeline and whatever left in it will
+not be reused later. But such reasoning doesn't work for `input_range`, where
+elements from the underlying source (e.g. `std::cin`) are lost forever.
+
+The bottom line is that the wording below don't change `filter_view`, which
+effectively means it that `counted_iterator` or `take` can't be used on a
+`filter`ed `input_iterator`, even on lazy ones.
+
+
+`join_view`
+-----------
+
+`Join_view` is in some way a kind of `filter` that filters out empty elements
+(see the definition of `join_view::iterator::operator++`).
+It means those empty elements are lost forever when using `input_iterator`.
+Similarly to `filter`, we don't propose any change to `join_view`.
+
+
+`lazy_split_view`
+-----------------
+
+
 
 
 Proposed Wording
@@ -226,21 +328,3 @@ using `counted_iterator` (or its consumers) with `input_iterator`. We might want
 to encourage implementations to produce diagnostic on such a usage.
 
 We think this is a good candidate to be applied as a Defect Report.
-
-
-Open questions
-==============
-
-We intentionally allowed constructing `counted_iterator` from `output_iterator`,
-because typically its `++` doesn't have any side effect. An iterator is not
-`forward_iterator` if its `++` affects its source (and invalidates all other
-copies) or it isn't `input_iterator` at all. As result, an `input_iterator` that
-it isn't `forward_iterator` is the signal that its `++` has side effects, and
-this is problematic for `counted_iterator`, as described above. For iterators
-that don't model `input_iterator` in first place, we simply don't know, but
-don't expect to find such iterators in the wild. Adding the requirement to
-enable explicitly each type of `output_iterator`, when we expect most or all of
-them to be enabled, seemed redundant.
-
-As we are not 100% sure about it, we seek for additional feedback and opinions
-about this.
