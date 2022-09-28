@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version c5fd42b86, updated Mon Apr 5 16:27:33 2021 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-counted-iterator.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="2325c3771a3eff63293fd0da154e35af02c266da" name="document-revision">
+  <meta content="3c957616a63477486ba035fd38ba35a4ff93605d" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2280,6 +2280,11 @@ in constant expressions ([expr.const]) and have type <code class="highlight"><c-
    </ins>
    <p>Under 25.5.6.1 [<strong>counted.iterator</strong>]:</p>
    <p><code class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- n>input_</c->­<c- n>or_</c->­<c- n>output_</c->­<c- n>iterator</c-> <c- n>I</c-><c- o>></c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>forward_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- o>||</c-> <c- n>lazy_input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- o>||</c-> <c- p>(</c-><c- o>!</c-><c- n>input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>)</c-></code></span><br> <code class="highlight"><c- k>class</c-> <c- nc>counted_iterator</c-></code></p>
+   <p>
+    ****************** Find location and add to synopsis too!!!!!!!! *************
+template 
+    <view _vw> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>forward_range</c-><c- o>&lt;</c-><c- n>_Iter</c-><c- o>></c-> <c- o>||</c-> <c- n>lazy_input_iterator</c-><c- o>&lt;</c-><c- n>iterator_t</c-><c- o>&lt;</c-><c- n>_Iter</c-><c- o>>></c-> <c- o>||</c-> <c- p>(</c-><c- o>!</c-><c- n>input_range</c-><c- o>&lt;</c-><c- n>_Iter</c-><c- o>></c-><c- p>)</c-></code></span><br> class take_view</view>
+   </p>
    <h2 class="heading settled" data-level="10" id="effect-on-current-state"><span class="secno">10. </span><span class="content">Effect on current state</span><a class="self-link" href="#effect-on-current-state"></a></h2>
     This breaks existing code that uses <code class="highlight"><c- n>counted_iteraor</c-></code> or anything based on it
 with (non-lazy) input iterator, if there is any. 
@@ -2289,8 +2294,12 @@ does the wrong thing for (non-lazy) <code class="highlight"><c- n>input_iterator
 using <code class="highlight"><c- n>counted_iterator</c-></code> (or its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>. We might want
 to encourage implementations to produce diagnostic on such a usage.</p>
    <p>We think this is a good candidate to be applied as a Defect Report.</p>
+   <p>move_iterator<i> - lazy<i> common_iterator<iU0002C s> - lazy<i> counted_iterator<i> - lazy<i> istreambuf_iterator<cU0002C t> - true
+iota_view<wU0002C b>::iterator      - lazy<w> elements_view<vU0002C n>::iterator  - lazy<iteratorU0003Cv>>
+transform_view<vU0002C f>::iterator - lazy<iteratorU0003Cv>></iteratorU0003Cv></vU0002C></iteratorU0003Cv></vU0002C></w></wU0002C></cU0002C></i></i></i></iU0002C></i></i></p>
+   <i><i><i> <p>filter_view, join_view and lazy_split_view need more work.</p> </i></i></i>
   </main>
-<script>
+  <i><i><i> <script>
 (function() {
   "use strict";
   var collapseSidebarText = '<span aria-hidden="true">←</span> '
@@ -2418,7 +2427,7 @@ to encourage implementations to produce diagnostic on such a usage.</p>
   }
 
 })();
-</script>
+</script> </i></i></i>
   <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>

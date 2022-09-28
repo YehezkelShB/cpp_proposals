@@ -315,6 +315,12 @@ Under 25.5.6.1 [**counted.iterator**]:
 `class counted_iterator`
 
 
+****************** Find location and add to synopsis too!!!!!!!! *************
+template <view _Vw>
+<span class="ins">`    requires forward_range<_Iter> || lazy_input_iterator<iterator_t<_Iter>> || (!input_range<_Iter>)`</span><br />
+class take_view
+
+
 Effect on current state
 =======================
 This breaks existing code that uses `counted_iteraor` or anything based on it
@@ -328,3 +334,15 @@ using `counted_iterator` (or its consumers) with `input_iterator`. We might want
 to encourage implementations to produce diagnostic on such a usage.
 
 We think this is a good candidate to be applied as a Defect Report.
+
+
+
+move_iterator<I>               - lazy<I>
+common_iterator<I, S>          - lazy<I>
+counted_iterator<I>            - lazy<I>
+istreambuf_iterator<C, T>      - true
+iota_view<W, B>::iterator      - lazy<W>
+elements_view<V, N>::iterator  - lazy<iterator<V>>
+transform_view<V, F>::iterator - lazy<iterator<V>>
+
+filter_view, join_view and lazy_split_view need more work.
