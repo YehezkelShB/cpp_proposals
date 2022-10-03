@@ -12,7 +12,7 @@
  *   - .toc for the Table of Contents (<ol class="toc">)
  *     + <span class="secno"> for the section numbers
  *   - #toc for the Table of Contents (<nav id="toc">)
- *   - ul.index for Indices (<a href="#ref">term</a><span>, in §N.M</span>)
+ *   - ul.index for Indices (<a href="#ref">term</a><span>, in § N.M</span>)
  *   - table.index for Index Tables (e.g. for properties or elements)
  *
  * Structural Markup
@@ -368,8 +368,8 @@
 /** Subheadings ***************************************************************/
 
 	h1 + h2,
-	#subtitle {
-		/* #subtitle is a subtitle in an H2 under the H1 */
+	#profile-and-date {
+		/* #profile-and-date is a subtitle in an H2 under the H1 */
 		margin-top: 0;
 	}
 	h2 + h3,
@@ -583,34 +583,27 @@
 	a[href] {
 		color: #034575;
 		color: var(--a-normal-text);
-		text-decoration: none;
-		border-bottom: 1px solid #707070;
-		border-bottom: 1px solid var(--a-normal-underline);
-		/* Need a bit of extending for it to look okay */
-		padding: 0 1px 0;
-		margin: 0 -1px 0;
+		text-decoration: underline #707070;
+		text-decoration: underline var(--a-normal-underline);
+		text-decoration-skip-ink: none;
 	}
 	a:visited {
 		color: #034575;
 		color: var(--a-visited-text);
-		border-bottom-color: #bbb;
-		border-bottom-color: var(--a-visited-underline);
+		text-decoration-color: #bbb;
+		text-decoration-color: var(--a-visited-underline);
 	}
 
-	/* Use distinguishing colors when user is interacting with the link */
+	/* Indicate interaction with the link */
 	a[href]:focus,
 	a[href]:hover {
-		background: #f8f8f8;
-		background: rgba(75%, 75%, 75%, .25);
-		background: var(--a-hover-bg);
-		border-bottom-width: 3px;
-		margin-bottom: -2px;
+		text-decoration-thickness: 2px;
 	}
 	a[href]:active {
 		color: #c00;
 		color: var(--a-active-text);
-		border-color: #c00;
-		border-color: var(--a-active-underline);
+		text-decoration-color: #c00;
+		text-decoration-color: var(--a-active-underline);
 	}
 
 	/* Backout above styling for W3C logo */
@@ -1116,9 +1109,12 @@ Possible extra rowspan handling
 
 	.toc a {
 		/* More spacing; use padding to make it part of the click target. */
-		padding-top: 0.1rem;
+		padding: 0.1rem 1px 0;
 		/* Larger, more consistently-sized click target */
 		display: block;
+		/* Switch to using border-bottom for underlines */
+		text-decoration: none;
+		border-bottom: 1px solid;
 		/* Reverse color scheme */
 		color: black;
 		color: var(--toclink-text);
@@ -1130,6 +1126,13 @@ Possible extra rowspan handling
 		color: var(--toclink-visited-text);
 		border-color: #054572;
 		border-color: var(--toclink-visited-underline);
+	}
+	.toc a:focus,
+	.toc a:hover {
+		background: rgba(75%, 75%, 75%, .25);
+		background: var(--a-hover-bg);
+		border-bottom-width: 3px;
+		margin-bottom: -2px;
 	}
 	.toc a:not(:focus):not(:hover) {
 		/* Allow colors to cascade through from link styling */
@@ -1266,7 +1269,7 @@ Possible extra rowspan handling
 	ul.index ul,
 	ul.index dl { font-size: smaller; }
 	@media not print {
-		ul.index li span:not(.dfn-paneled) {
+		ul.index li a + span {
 			white-space: nowrap;
 			color: transparent; }
 		ul.index li a:hover + span,
@@ -1484,7 +1487,7 @@ Possible extra rowspan handling
 		}
 	}
 </style>
-<style type="text/css">
+<style>
     table, th, td {
       border: 1px solid black;
       border-collapse: collapse;
@@ -1557,10 +1560,10 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version c5fd42b86, updated Mon Apr 5 16:27:33 2021 -0700" name="generator">
+  <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-counted-iterator.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="3c957616a63477486ba035fd38ba35a4ff93605d" name="document-revision">
+  <meta content="f94fdad4998beaf315d452c175ce1c07259a3466" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -1682,9 +1685,9 @@ pre .property::before, pre .property::after {
     --ins-bg: transparent;
 
     --a-normal-text: #034575;
-    --a-normal-underline: #707070;
+    --a-normal-underline: #bbb;
     --a-visited-text: var(--a-normal-text);
-    --a-visited-underline: #bbb;
+    --a-visited-underline: #707070;
     --a-hover-bg: rgba(75%, 75%, 75%, .25);
     --a-active-text: #c00;
     --a-active-underline: #c00;
@@ -1776,6 +1779,16 @@ figcaption {
 figcaption:not(.no-marker)::before {
     content: "Figure " counter(figure) " ";
 }</style>
+<style>/* style-issues */
+
+a[href].issue-return {
+    float: right;
+    float: inline-end;
+    color: var(--issueheading-text);
+    font-weight: bold;
+    text-decoration: none;
+}
+</style>
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -2085,7 +2098,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2578R0<br>Block eager input (non-forward) iterators from <code class="highlight"><c- n>counted_iterator</c-></code></h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-04-18">2022-04-18</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-04-18">2022-04-18</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2151,13 +2164,13 @@ For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a
 <c- cp>#include</c-> &lt;sstream>
 <c- cp>#include</c-> &lt;cassert>
  
-<c- k>namespace</c-> <c- n>rn</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-><c- p>;</c->
-<c- k>namespace</c-> <c- n>rv</c-> <c- o>=</c-> <c- n>rn</c-><c- o>::</c-><c- n>views</c-><c- p>;</c->
+<c- k>namespace</c-> <c- nn>rn</c-> <c- o>=</c-> <c- nn>std</c-><c- o>::</c-><c- nn>ranges</c-><c- p>;</c->
+<c- k>namespace</c-> <c- nn>rv</c-> <c- o>=</c-> <c- nn>rn</c-><c- o>::</c-><c- nn>views</c-><c- p>;</c->
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c->
 <c- p>{</c->
     <c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"012"</c-><c- p>);</c->
-    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>c</c-> <c- p>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>istream_view</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>)</c->
+    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>c</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>istream_view</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>)</c->
                   <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>1</c-><c- p>))</c->
     <c- p>{</c->
         <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
@@ -2187,17 +2200,17 @@ removes it only on the next <code class="highlight"><c- o>++</c-></code> (the re
 underlying <code class="highlight"><c- n>streambuf</c-></code>). It means that <code class="highlight"><c- n>counted_iterator</c-></code> works flawlessly with <code class="highlight"><c- n>istreambuf_iterator</c-></code>.</p>
    <p>For example, we can adapt the previous example to use <code class="highlight"><c- n>istreambuf_iterator</c-></code> and
 get the expected behavior <a data-link-type="biblio" href="#biblio-ce-istreambuf">[CE-ISTREAMBUF]</a>:</p>
-<pre class="highlight">    <c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"012"</c-><c- p>);</c->
-    <c- k>auto</c-> <c- n>ibuf_it</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>);</c->
-    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>c</c-> <c- p>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>ibuf_it</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
-                  <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>1</c-><c- p>))</c->
-    <c- p>{</c->
-        <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
-    <c- p>}</c->
-    <c- k>auto</c-> <c- n>c</c-> <c- o>=</c-> <c- sc>'\0'</c-><c- p>;</c->
-    <c- n>iss</c-> <c- o>>></c-> <c- n>c</c-><c- p>;</c->
-    <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- n>std</c-><c- o>::</c-><c- n>endl</c-><c- p>;</c-> <c- c1>// flush it in case the assert fails</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'1'</c-><c- p>);</c-> <c- c1>// SUCCEEDS</c->
+<pre class="highlight"><c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"012"</c-><c- p>);</c->
+<c- k>auto</c-> <c- n>ibuf_it</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>);</c->
+<c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>c</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>ibuf_it</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
+              <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>1</c-><c- p>))</c->
+<c- p>{</c->
+    <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
+<c- p>}</c->
+<c- k>auto</c-> <c- n>c</c-> <c- o>=</c-> <c- sc>'\0'</c-><c- p>;</c->
+<c- n>iss</c-> <c- o>>></c-> <c- n>c</c-><c- p>;</c->
+<c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- n>std</c-><c- o>::</c-><c- n>endl</c-><c- p>;</c-> <c- c1>// flush it in case the assert fails</c->
+<c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'1'</c-><c- p>);</c-> <c- c1>// SUCCEEDS</c->
 </pre>
    <p>The conclusion is that we have to differentiate between "eager" and "lazy" types.</p>
    <h2 class="heading settled" data-level="6" id="propagating-the-laziness"><span class="secno">6. </span><span class="content">Propagating the laziness</span><a class="self-link" href="#propagating-the-laziness"></a></h2>
@@ -2221,16 +2234,16 @@ of them to be enabled, seemed redundant.</p>
 about this.</p>
    <h3 class="heading settled" data-level="8.2" id="filter_view"><span class="secno">8.2. </span><span class="content"><code class="highlight"><c- n>filter_view</c-></code></span><a class="self-link" href="#filter_view"></a></h3>
    <p>Let’s consider the next example <a data-link-type="biblio" href="#biblio-ce-istreambuf-filter">[CE-ISTREAMBUF-FILTER]</a>:</p>
-<pre class="highlight">    <c- k>auto</c-> <c- n>buf</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>stringbuf</c-><c- p>(</c-><c- s>"a1x2d3f455gh6a"</c-><c- p>);</c->
-    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>c</c-> <c- p>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
-                <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>filter</c-><c- p>(</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- b>int</c-><c- p>(</c-><c- o>&amp;</c-><c- p>)(</c-><c- b>int</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>isdigit</c-><c- p>))</c->
-                <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>3</c-><c- p>))</c->
-    <c- p>{</c->
-        <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- s>" "</c-><c- p>;</c->
-    <c- p>}</c->
-    <c- b>char</c-> <c- n>c</c-> <c- o>=</c-> <c- n>buf</c-><c- p>.</c-><c- n>sgetc</c-><c- p>();</c->
-    <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- n>std</c-><c- o>::</c-><c- n>endl</c-><c- p>;</c-> <c- c1>// flush before the assert</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'f'</c-><c- p>);</c-> <c- c1>// FAILS, c == '4'</c->
+<pre class="highlight"><c- k>auto</c-> <c- n>buf</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>stringbuf</c-><c- p>(</c-><c- s>"a1x2d3f455gh6a"</c-><c- p>);</c->
+<c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>c</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- p>(</c-><c- o>&amp;</c-><c- n>buf</c-><c- p>),</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
+            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>filter</c-><c- p>(</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- b>int</c-><c- p>(</c-><c- o>&amp;</c-><c- p>)(</c-><c- b>int</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>isdigit</c-><c- p>))</c->
+            <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>3</c-><c- p>))</c->
+<c- p>{</c->
+    <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- s>" "</c-><c- p>;</c->
+<c- p>}</c->
+<c- b>char</c-> <c- n>c</c-> <c- o>=</c-> <c- n>buf</c-><c- p>.</c-><c- n>sgetc</c-><c- p>();</c->
+<c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- n>std</c-><c- o>::</c-><c- n>endl</c-><c- p>;</c-> <c- c1>// flush before the assert</c->
+<c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'f'</c-><c- p>);</c-> <c- c1>// FAILS, c == '4'</c->
 </pre>
    <p>As we can see, <code class="highlight"><c- n>filter</c-></code> makes things more complex, as in some sense <code class="highlight"><c- n>filter</c-></code> is
 by nature always eager. It takes the non-matching elements from the range even
@@ -2247,14 +2260,30 @@ and then go to the next one. Probably the design of <code class="highlight"><c- 
 whole range is used only in the current pipeline and whatever left in it will
 not be reused later. But such reasoning doesn’t work for <code class="highlight"><c- n>input_range</c-></code>, where
 elements from the underlying source (e.g. <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>cin</c-></code>) are lost forever.</p>
-   <p>The bottom line is that the wording below don’t change <code class="highlight"><c- n>filter_view</c-></code>, which
-effectively means it that <code class="highlight"><c- n>counted_iterator</c-></code> or <code class="highlight"><c- n>take</c-></code> can’t be used on a <code class="highlight"><c- n>filter</c-></code>ed <code class="highlight"><c- n>input_iterator</c-></code>, even on lazy ones.</p>
+   <p>The bottom line is that the wording below doesn’t change <code class="highlight"><c- n>filter_view</c-></code>, which
+effectively means that <code class="highlight"><c- n>counted_iterator</c-></code> or <code class="highlight"><c- n>take</c-></code> can’t be used on a <code class="highlight"><c- n>filter</c-></code>ed <code class="highlight"><c- n>input_iterator</c-></code>, even on lazy ones.</p>
    <h3 class="heading settled" data-level="8.3" id="join_view"><span class="secno">8.3. </span><span class="content"><code class="highlight"><c- n>join_view</c-></code></span><a class="self-link" href="#join_view"></a></h3>
-   <p><code class="highlight"><c- n>Join_view</c-></code> is in some way a kind of <code class="highlight"><c- n>filter</c-></code> that filters out empty elements
+   <p><code class="highlight"><c- n>join_view</c-></code> is in some way a kind of <code class="highlight"><c- n>filter</c-></code> that filters out empty elements
 (see the definition of <code class="highlight"><c- n>join_view</c-><c- o>::</c-><c- n>iterator</c-><c- o>::</c-><c- k>operator</c-><c- o>++</c-></code>).
 It means those empty elements are lost forever when using <code class="highlight"><c- n>input_iterator</c-></code>.
 Similarly to <code class="highlight"><c- n>filter</c-></code>, we don’t propose any change to <code class="highlight"><c- n>join_view</c-></code>.</p>
    <h3 class="heading settled" data-level="8.4" id="lazy_split_view"><span class="secno">8.4. </span><span class="content"><code class="highlight"><c- n>lazy_split_view</c-></code></span><a class="self-link" href="#lazy_split_view"></a></h3>
+   <p>Similarly to <code class="highlight"><c- n>join_view</c-></code>, <code class="highlight"><c- n>lazy_split_view</c-><c- o>::</c-><c- n>outer_iterator</c-></code> filters out the
+separators (pattern), and those will lost forever when using <code class="highlight"><c- n>input_iterator</c-></code>.
+Again, we don’t propose changes to this iterator.</p>
+   <p>OTOH, <code class="highlight"><c- n>lazy_split_view</c-><c- o>::</c-><c- n>inner_iterator</c-></code> can be lazy, so users can write:</p>
+<pre class="highlight"><c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"0;1;2"</c-><c- p>);</c->
+<c- k>auto</c-> <c- n>ibuf_it</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>);</c->
+<c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>c</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>ibuf_it</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
+              <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>lazy_split</c-><c- p>(</c-><c- n>rv</c-><c- o>::</c-><c- n>single</c-><c- p>(</c-><c- sc>';'</c-><c- p>)))</c->
+<c- p>{</c->
+    <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
+<c- p>}</c->
+</pre>
+   We think it should be considered lazy unconditionally, because users shouldn’t
+touch the original source while iterating the view that reads from it, and after
+the read is over, there are no assumptions on the source state. (REVISIT RATIONAL!) 
+   <p>(Unlike <code class="highlight"><c- n>lazy_split_view</c-></code>, <code class="highlight"><c- n>split_view</c-></code> works on <code class="highlight"><c- n>forward_range</c-></code> only, is <code class="highlight"><c- n>forward_range</c-></code> itself and so is its inner range, so no need to touch it here.)</p>
    <h2 class="heading settled" data-level="9" id="proposed-wording"><span class="secno">9. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
    <p>Under 25.2 [<strong>iterator.synopsis</strong>], right after <code class="highlight"><c- n>input_iterator</c-></code> paragraph, add:</p>
    <ins>
@@ -2291,13 +2320,15 @@ with (non-lazy) input iterator, if there is any.
    <p>We believe this is Good Thing(TM) as we showed that <code class="highlight"><c- n>counted_iteraor</c-></code> always
 does the wrong thing for (non-lazy) <code class="highlight"><c- n>input_iterator</c-></code>s.</p>
    <p>At the very least, if this change isn’t accepted, we have to warn users against
-using <code class="highlight"><c- n>counted_iterator</c-></code> (or its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>. We might want
+using <code class="highlight"><c- n>counted_iterator</c-></code> (and its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>. We might want
 to encourage implementations to produce diagnostic on such a usage.</p>
    <p>We think this is a good candidate to be applied as a Defect Report.</p>
-   <p>move_iterator<i> - lazy<i> common_iterator<iU0002C s> - lazy<i> counted_iterator<i> - lazy<i> istreambuf_iterator<cU0002C t> - true
+   <p>(Draft: how to specialize lazy variable for various iterators:
+move_iterator<i> - lazy<i> common_iterator<iU0002C s> - lazy<i> counted_iterator<i> - lazy<i> istreambuf_iterator<cU0002C t> - true
 iota_view<wU0002C b>::iterator      - lazy<w> elements_view<vU0002C n>::iterator  - lazy<iteratorU0003Cv>>
-transform_view<vU0002C f>::iterator - lazy<iteratorU0003Cv>></iteratorU0003Cv></vU0002C></iteratorU0003Cv></vU0002C></w></wU0002C></cU0002C></i></i></i></iU0002C></i></i></p>
-   <i><i><i> <p>filter_view, join_view and lazy_split_view need more work.</p> </i></i></i>
+transform_view<vU0002C f>::iterator - lazy<iteratorU0003Cv>>
+)</iteratorU0003Cv></vU0002C></iteratorU0003Cv></vU0002C></w></wU0002C></cU0002C></i></i></i></iU0002C></i></i></p>
+   <i><i><i> <p>TODO: Go over C++23 ranges (e.g. zip)</p> </i></i></i>
   </main>
   <i><i><i> <script>
 (function() {
@@ -2432,9 +2463,9 @@ transform_view<vU0002C f>::iterator - lazy<iteratorU0003Cv>></iteratorU0003Cv></
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-ce-istream">[CE-ISTREAM]
-   <dd><a href="https://gcc.godbolt.org/z/zP4c1EhT6">istream problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/zP4c1EhT6">https://gcc.godbolt.org/z/zP4c1EhT6</a>
+   <dd><a href="https://gcc.godbolt.org/z/zP4c1EhT6"><cite>istream problem example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/zP4c1EhT6">https://gcc.godbolt.org/z/zP4c1EhT6</a>
    <dt id="biblio-ce-istreambuf">[CE-ISTREAMBUF]
-   <dd><a href="https://gcc.godbolt.org/z/zooashPT8">istreambuf example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/zooashPT8">https://gcc.godbolt.org/z/zooashPT8</a>
+   <dd><a href="https://gcc.godbolt.org/z/zooashPT8"><cite>istreambuf example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/zooashPT8">https://gcc.godbolt.org/z/zooashPT8</a>
    <dt id="biblio-ce-istreambuf-filter">[CE-ISTREAMBUF-FILTER]
-   <dd><a href="https://godbolt.org/z/73srYPGYG">istreambuf with views::filter, Compiler Explorer</a>. URL: <a href="https://godbolt.org/z/73srYPGYG">https://godbolt.org/z/73srYPGYG</a>
+   <dd><a href="https://godbolt.org/z/73srYPGYG"><cite>istreambuf with views::filter, Compiler Explorer</cite></a>. URL: <a href="https://godbolt.org/z/73srYPGYG">https://godbolt.org/z/73srYPGYG</a>
   </dl>

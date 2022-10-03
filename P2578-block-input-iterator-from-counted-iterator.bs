@@ -230,15 +230,15 @@ whole range is used only in the current pipeline and whatever left in it will
 not be reused later. But such reasoning doesn't work for `input_range`, where
 elements from the underlying source (e.g. `std::cin`) are lost forever.
 
-The bottom line is that the wording below don't change `filter_view`, which
-effectively means it that `counted_iterator` or `take` can't be used on a
+The bottom line is that the wording below doesn't change `filter_view`, which
+effectively means that `counted_iterator` or `take` can't be used on a
 `filter`ed `input_iterator`, even on lazy ones.
 
 
 `join_view`
 -----------
 
-`Join_view` is in some way a kind of `filter` that filters out empty elements
+`join_view` is in some way a kind of `filter` that filters out empty elements
 (see the definition of `join_view::iterator::operator++`).
 It means those empty elements are lost forever when using `input_iterator`.
 Similarly to `filter`, we don't propose any change to `join_view`.
@@ -247,7 +247,28 @@ Similarly to `filter`, we don't propose any change to `join_view`.
 `lazy_split_view`
 -----------------
 
+Similarly to `join_view`, `lazy_split_view::outer_iterator` filters out the
+separators (pattern), and those will lost forever when using `input_iterator`.
+Again, we don't propose changes to this iterator.
 
+OTOH, `lazy_split_view::inner_iterator` can be lazy, so users can write:
+
+```
+    auto iss = std::istringstream("0;1;2");
+    auto ibuf_it = std::istreambuf_iterator<char>(iss);
+    for (auto c : rn::subrange(ibuf_it, std::default_sentinel)
+                  | rv::lazy_split(rv::single(';')))
+    {
+        std::cout << c << '\n';
+    }
+```
+We think it should be considered lazy unconditionally, because users shouldn't
+touch the original source while iterating the view that reads from it, and after
+the read is over, there are no assumptions on the source state. (REVISIT RATIONAL!)
+
+
+(Unlike `lazy_split_view`, `split_view` works on `forward_range` only, is
+`forward_range` itself and so is its inner range, so no need to touch it here.)
 
 
 Proposed Wording
@@ -330,13 +351,13 @@ We believe this is Good Thing(TM) as we showed that `counted_iteraor` always
 does the wrong thing for (non-lazy) `input_iterator`s.
 
 At the very least, if this change isn't accepted, we have to warn users against
-using `counted_iterator` (or its consumers) with `input_iterator`. We might want
+using `counted_iterator` (and its consumers) with `input_iterator`. We might want
 to encourage implementations to produce diagnostic on such a usage.
 
 We think this is a good candidate to be applied as a Defect Report.
 
 
-
+(Draft: how to specialize lazy variable for various iterators:
 move_iterator<I>               - lazy<I>
 common_iterator<I, S>          - lazy<I>
 counted_iterator<I>            - lazy<I>
@@ -344,5 +365,6 @@ istreambuf_iterator<C, T>      - true
 iota_view<W, B>::iterator      - lazy<W>
 elements_view<V, N>::iterator  - lazy<iterator<V>>
 transform_view<V, F>::iterator - lazy<iterator<V>>
+)
 
-filter_view, join_view and lazy_split_view need more work.
+TODO: Go over C++23 ranges (e.g. zip)
