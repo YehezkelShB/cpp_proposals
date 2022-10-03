@@ -180,10 +180,23 @@ accessed etc.).
 Designs that were considered and (rejected)
 ===========================================
 
-Don't increment the internal iterator until really required.
+Don't increment the internal iterator until really required
+-----------------------------------------------------------
+
 This can't work as copying counted_iterator of non-forward iterator (that wasn't
 dereferenced yet for the current item) and then dereferencing one of them
 resulted with invalidation of the other one.
+
+Fix counted_iterator
+--------------------
+
+Instead of introducing new type, `lazy_counted_iterator`, we tried to apply similar
+changes to `counted_iterator` itself. This proved to be impossible, even if the
+changes can be done in ABI compatible way. For example, there is no sane way to fix
+the c-tor that takes iterator and count, when the count is 0
+
+(TODO: move here "open question" section from below)
+
 Naive design of the solution
 ============================
 

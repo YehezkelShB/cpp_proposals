@@ -12,7 +12,7 @@
  *   - .toc for the Table of Contents (<ol class="toc">)
  *     + <span class="secno"> for the section numbers
  *   - #toc for the Table of Contents (<nav id="toc">)
- *   - ul.index for Indices (<a href="#ref">term</a><span>, in §N.M</span>)
+ *   - ul.index for Indices (<a href="#ref">term</a><span>, in § N.M</span>)
  *   - table.index for Index Tables (e.g. for properties or elements)
  *
  * Structural Markup
@@ -368,8 +368,8 @@
 /** Subheadings ***************************************************************/
 
 	h1 + h2,
-	#subtitle {
-		/* #subtitle is a subtitle in an H2 under the H1 */
+	#profile-and-date {
+		/* #profile-and-date is a subtitle in an H2 under the H1 */
 		margin-top: 0;
 	}
 	h2 + h3,
@@ -583,34 +583,27 @@
 	a[href] {
 		color: #034575;
 		color: var(--a-normal-text);
-		text-decoration: none;
-		border-bottom: 1px solid #707070;
-		border-bottom: 1px solid var(--a-normal-underline);
-		/* Need a bit of extending for it to look okay */
-		padding: 0 1px 0;
-		margin: 0 -1px 0;
+		text-decoration: underline #707070;
+		text-decoration: underline var(--a-normal-underline);
+		text-decoration-skip-ink: none;
 	}
 	a:visited {
 		color: #034575;
 		color: var(--a-visited-text);
-		border-bottom-color: #bbb;
-		border-bottom-color: var(--a-visited-underline);
+		text-decoration-color: #bbb;
+		text-decoration-color: var(--a-visited-underline);
 	}
 
-	/* Use distinguishing colors when user is interacting with the link */
+	/* Indicate interaction with the link */
 	a[href]:focus,
 	a[href]:hover {
-		background: #f8f8f8;
-		background: rgba(75%, 75%, 75%, .25);
-		background: var(--a-hover-bg);
-		border-bottom-width: 3px;
-		margin-bottom: -2px;
+		text-decoration-thickness: 2px;
 	}
 	a[href]:active {
 		color: #c00;
 		color: var(--a-active-text);
-		border-color: #c00;
-		border-color: var(--a-active-underline);
+		text-decoration-color: #c00;
+		text-decoration-color: var(--a-active-underline);
 	}
 
 	/* Backout above styling for W3C logo */
@@ -1116,9 +1109,12 @@ Possible extra rowspan handling
 
 	.toc a {
 		/* More spacing; use padding to make it part of the click target. */
-		padding-top: 0.1rem;
+		padding: 0.1rem 1px 0;
 		/* Larger, more consistently-sized click target */
 		display: block;
+		/* Switch to using border-bottom for underlines */
+		text-decoration: none;
+		border-bottom: 1px solid;
 		/* Reverse color scheme */
 		color: black;
 		color: var(--toclink-text);
@@ -1130,6 +1126,13 @@ Possible extra rowspan handling
 		color: var(--toclink-visited-text);
 		border-color: #054572;
 		border-color: var(--toclink-visited-underline);
+	}
+	.toc a:focus,
+	.toc a:hover {
+		background: rgba(75%, 75%, 75%, .25);
+		background: var(--a-hover-bg);
+		border-bottom-width: 3px;
+		margin-bottom: -2px;
 	}
 	.toc a:not(:focus):not(:hover) {
 		/* Allow colors to cascade through from link styling */
@@ -1266,7 +1269,7 @@ Possible extra rowspan handling
 	ul.index ul,
 	ul.index dl { font-size: smaller; }
 	@media not print {
-		ul.index li span:not(.dfn-paneled) {
+		ul.index li a + span {
 			white-space: nowrap;
 			color: transparent; }
 		ul.index li a:hover + span,
@@ -1484,7 +1487,7 @@ Possible extra rowspan handling
 		}
 	}
 </style>
-<style type="text/css">
+<style>
     table, th, td {
       border: 1px solid black;
       border-collapse: collapse;
@@ -1557,10 +1560,10 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version c5fd42b86, updated Mon Apr 5 16:27:33 2021 -0700" name="generator">
+  <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="c5c66bf19e88683e34a52780b4ace3325b82a1f1" name="document-revision">
+  <meta content="834b002f5d1ea5ea047810ea41d256aeab515b9b" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -1575,7 +1578,7 @@ Possible extra rowspan handling
   text-decoration-color: rgb(255, 0, 0);
 }
 </style>
-  <meta content="1" http-equiv="refresh">
+  <meta content="5" http-equiv="refresh">
 <style>/* style-autolinks */
 
 .css.css, .property.property, .descriptor.descriptor {
@@ -1682,9 +1685,9 @@ pre .property::before, pre .property::after {
     --ins-bg: transparent;
 
     --a-normal-text: #034575;
-    --a-normal-underline: #707070;
+    --a-normal-underline: #bbb;
     --a-visited-text: var(--a-normal-text);
-    --a-visited-underline: #bbb;
+    --a-visited-underline: #707070;
     --a-hover-bg: rgba(75%, 75%, 75%, .25);
     --a-active-text: #c00;
     --a-active-underline: #c00;
@@ -1776,6 +1779,16 @@ figcaption {
 figcaption:not(.no-marker)::before {
     content: "Figure " counter(figure) " ";
 }</style>
+<style>/* style-issues */
+
+a[href].issue-return {
+    float: right;
+    float: inline-end;
+    color: var(--issueheading-text);
+    font-weight: bold;
+    text-decoration: none;
+}
+</style>
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -2085,7 +2098,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2406R1<br>Fix `counted_iterator` interaction with input iterators</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2021-07-25">2021-07-25</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2021-07-25">2021-07-25</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2122,15 +2135,23 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li><a href="#current-behavior-is-what-the-standard-mandates"><span class="secno">4</span> <span class="content">Current behavior is what the standard mandates</span></a>
     <li><a href="#desired-behavior"><span class="secno">5</span> <span class="content">Desired behavior</span></a>
     <li>
-     <a href="#design-of-suggested-solution"><span class="secno">6</span> <span class="content">Design of suggested solution</span></a>
+     <a href="#designs-that-were-considered-and-rejected"><span class="secno">6</span> <span class="content">Designs that were considered and (rejected)</span></a>
      <ol class="toc">
-      <li><a href="#the-main-changes"><span class="secno">6.1</span> <span class="content">The main changes</span></a>
-      <li><a href="#random_access_iterator-case-kept-as-is"><span class="secno">6.2</span> <span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span></a>
-      <li><a href="#open-question-constructing-with-0-length"><span class="secno">6.3</span> <span class="content">Open question: Constructing with 0 length</span></a>
+      <li><a href="#dont-increment-the-internal-iterator-until-really-required"><span class="secno">6.1</span> <span class="content">Don’t increment the internal iterator until really required</span></a>
+      <li><a href="#fix-counted_iterator"><span class="secno">6.2</span> <span class="content">Fix counted_iterator</span></a>
      </ol>
-    <li><a href="#proposed-wording"><span class="secno">7</span> <span class="content">Proposed Wording</span></a>
-    <li><a href="#effect-on-current-state-yet-another-alternative-solution"><span class="secno">8</span> <span class="content">Effect on current state / yet another alternative solution</span></a>
-    <li><a href="#appendix"><span class="secno">9</span> <span class="content">Appendix</span></a>
+    <li><a href="#naive-design-of-the-solution"><span class="secno">7</span> <span class="content">Naive design of the solution</span></a>
+    <li><a href="#fundamental-problem-with-istreambuf_iterator"><span class="secno">8</span> <span class="content">Fundamental problem with <code class="highlight"><c- n>istreambuf_iterator</c-></code></span></a>
+    <li>
+     <a href="#design-of-suggested-solution"><span class="secno">9</span> <span class="content">Design of suggested solution</span></a>
+     <ol class="toc">
+      <li><a href="#the-main-changes"><span class="secno">9.1</span> <span class="content">The main changes</span></a>
+      <li><a href="#random_access_iterator-case-kept-as-is"><span class="secno">9.2</span> <span class="content"><code class="highlight"><c- n>random_access_iterator</c-></code> case kept as-is</span></a>
+      <li><a href="#open-question-constructing-with-0-length"><span class="secno">9.3</span> <span class="content">Open question: Constructing with 0 length</span></a>
+     </ol>
+    <li><a href="#proposed-wording"><span class="secno">10</span> <span class="content">Proposed Wording</span></a>
+    <li><a href="#effect-on-current-state-yet-another-alternative-solution"><span class="secno">11</span> <span class="content">Effect on current state / yet another alternative solution</span></a>
+    <li><a href="#appendix"><span class="secno">12</span> <span class="content">Appendix</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2140,7 +2161,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="revision-history"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#revision-history"></a></h2>
-   <p>r1: Improving many parts, following feedback from Inbal Levi</p>
+   <p>r1: Improving many parts, following feedback from Inbal Levi and from Reddit
+users</p>
    <p>r0: initial revision</p>
    <h2 class="heading settled" data-level="2" id="intro"><span class="secno">2. </span><span class="content">Intro</span><a class="self-link" href="#intro"></a></h2>
     Project Euler is a project with many mathematical-related questions that are
@@ -2153,10 +2175,10 @@ pitfall coming from the definition of <code class="highlight"><c- n>std</c-><c- 
 <pre class="highlight"><c- cp>#include</c-> &lt;ranges>
 <c- cp>#include</c-> &lt;iostream>
  
-<c- k>namespace</c-> <c- n>rv</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>views</c-><c- p>;</c->
+<c- k>namespace</c-> <c- nn>rv</c-> <c- o>=</c-> <c- nn>std</c-><c- o>::</c-><c- nn>views</c-><c- p>;</c->
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c-> <c- p>{</c->
-    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>i</c->  <c- p>:</c-> <c- n>rv</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c->
+    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>i</c->  <c- o>:</c-> <c- n>rv</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c->
             <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>filter</c-><c- p>([](</c-><c- k>auto</c-> <c- n>i</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- mi>11</c-><c- p>;</c-> <c- p>})</c->
             <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>11</c-><c- p>))</c->
         <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
@@ -2187,13 +2209,13 @@ For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a
 <c- cp>#include</c-> &lt;sstream>
 <c- cp>#include</c-> &lt;cassert>
  
-<c- k>namespace</c-> <c- n>rn</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-><c- p>;</c->
-<c- k>namespace</c-> <c- n>rv</c-> <c- o>=</c-> <c- n>rn</c-><c- o>::</c-><c- n>views</c-><c- p>;</c->
+<c- k>namespace</c-> <c- nn>rn</c-> <c- o>=</c-> <c- nn>std</c-><c- o>::</c-><c- nn>ranges</c-><c- p>;</c->
+<c- k>namespace</c-> <c- nn>rv</c-> <c- o>=</c-> <c- nn>rn</c-><c- o>::</c-><c- nn>views</c-><c- p>;</c->
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c->
 <c- p>{</c->
     <c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"0 1 2"</c-><c- p>);</c->
-    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- nl>i</c-> <c- p>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>istream_view</c-><c- o>&lt;</c-><c- b>int</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>)</c->
+    <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>i</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>istream_view</c-><c- o>&lt;</c-><c- b>int</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>)</c->
                   <c- o>|</c-> <c- n>rv</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>1</c-><c- p>))</c->
         <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>'\n'</c-><c- p>;</c->
     <c- k>auto</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->
@@ -2216,18 +2238,35 @@ must never try to access more than <code class="highlight"><c- n>n</c-></code> i
 If the range doesn’t have <code class="highlight"><c- n>n</c-></code> items, the behavior is kept as is, i.e. it isn’t
 defined (<code class="highlight"><c- k>operator</c-><c- o>++</c-></code> might hang forever or access things that shouldn’t be
 accessed etc.).</p>
-   <h2 class="heading settled" data-level="6" id="design-of-suggested-solution"><span class="secno">6. </span><span class="content">Design of suggested solution</span><a class="self-link" href="#design-of-suggested-solution"></a></h2>
-   <h3 class="heading settled" data-level="6.1" id="the-main-changes"><span class="secno">6.1. </span><span class="content">The main changes</span><a class="self-link" href="#the-main-changes"></a></h3>
+   <h2 class="heading settled" data-level="6" id="designs-that-were-considered-and-rejected"><span class="secno">6. </span><span class="content">Designs that were considered and (rejected)</span><a class="self-link" href="#designs-that-were-considered-and-rejected"></a></h2>
+   <h3 class="heading settled" data-level="6.1" id="dont-increment-the-internal-iterator-until-really-required"><span class="secno">6.1. </span><span class="content">Don’t increment the internal iterator until really required</span><a class="self-link" href="#dont-increment-the-internal-iterator-until-really-required"></a></h3>
+   <p>This can’t work as copying counted_iterator of non-forward iterator (that wasn’t
+dereferenced yet for the current item) and then dereferencing one of them
+resulted with invalidation of the other one.</p>
+   <h3 class="heading settled" data-level="6.2" id="fix-counted_iterator"><span class="secno">6.2. </span><span class="content">Fix counted_iterator</span><a class="self-link" href="#fix-counted_iterator"></a></h3>
+   <p>Instead of introducing new type, <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, we tried to apply similar
+changes to <code class="highlight"><c- n>counted_iterator</c-></code> itself. This proved to be impossible, even if the
+changes can be done in ABI compatible way. For example, there is no sane way to fix
+the c-tor that takes iterator and count, when the count is 0</p>
+   <p>(TODO: move here "open question" section from below)</p>
+   <h2 class="heading settled" data-level="7" id="naive-design-of-the-solution"><span class="secno">7. </span><span class="content">Naive design of the solution</span><a class="self-link" href="#naive-design-of-the-solution"></a></h2>
+   <p>Basically, what is required to implement the desired behavior is changing the
+behavior of <code class="highlight"><c- n>counted_iterator</c-></code> operators around 0 length so it doesn’t increment
+the internal iterator when reaching 0 length.</p>
+   <h2 class="heading settled" data-level="8" id="fundamental-problem-with-istreambuf_iterator"><span class="secno">8. </span><span class="content">Fundamental problem with <code class="highlight"><c- n>istreambuf_iterator</c-></code></span><a class="self-link" href="#fundamental-problem-with-istreambuf_iterator"></a></h2>
+   <p><code class="highlight"><c- n>istreambuf_iterator</c-></code> behaves differently than <code class="highlight"><c- n>istream_iterator</c-></code></p>
+   <h2 class="heading settled" data-level="9" id="design-of-suggested-solution"><span class="secno">9. </span><span class="content">Design of suggested solution</span><a class="self-link" href="#design-of-suggested-solution"></a></h2>
+   <h3 class="heading settled" data-level="9.1" id="the-main-changes"><span class="secno">9.1. </span><span class="content">The main changes</span><a class="self-link" href="#the-main-changes"></a></h3>
     We suggest changing the behavior of <code class="highlight"><c- n>counted_iterator</c-></code> operators around 0 length
 so it doesn’t increment the internal iterator when reaching 0 length, and as a
 result doesn’t decrement it when getting back from 0 to 1 length. This requires
 changing <code class="highlight"><c- n>base</c-><c- p>()</c-></code> behavior too, including the return type to be by value. 
-   <h3 class="heading settled" data-level="6.2" id="random_access_iterator-case-kept-as-is"><span class="secno">6.2. </span><span class="content"><code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case kept as-is</span><a class="self-link" href="#random_access_iterator-case-kept-as-is"></a></h3>
-   <p>To reduce the amount of changes required, we keep the current behavior for <code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case, so we don’t have to touch the additional operators
-defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-></code> case we can expect the view to either have all the items
+   <h3 class="heading settled" data-level="9.2" id="random_access_iterator-case-kept-as-is"><span class="secno">9.2. </span><span class="content"><code class="highlight"><c- n>random_access_iterator</c-></code> case kept as-is</span><a class="self-link" href="#random_access_iterator-case-kept-as-is"></a></h3>
+   <p>To reduce the amount of changes required, we keep the current behavior for <code class="highlight"><c- n>random_access_iterator</c-></code> case, so we don’t have to touch the additional operators
+defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_access_iterator</c-></code> case we can expect the view to either have all the items
 ready or able to compute all of them efficiently, so it doesn’t suffer from this
 issue.</p>
-   <h3 class="heading settled" data-level="6.3" id="open-question-constructing-with-0-length"><span class="secno">6.3. </span><span class="content">Open question: Constructing with 0 length</span><a class="self-link" href="#open-question-constructing-with-0-length"></a></h3>
+   <h3 class="heading settled" data-level="9.3" id="open-question-constructing-with-0-length"><span class="secno">9.3. </span><span class="content">Open question: Constructing with 0 length</span><a class="self-link" href="#open-question-constructing-with-0-length"></a></h3>
    <p>We don’t have a good solution for the case that user constructs <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- mi>0</c-></code> as argument for length. This puts it in an
 inconsistent internal state, as the next operations will be <code class="highlight"><c- n>base</c-><c- p>()</c-></code> or <code class="highlight"><c- o>--</c-></code>,
 and those expect the iterator to be one step back, with the changes suggested
@@ -2244,18 +2283,19 @@ the resulted <code class="highlight"><c- n>counted_iteraor</c-></code>.</p>
 iterator (leaving it to the user to decide how to handle, and if neither <code class="highlight"><c- o>--</c-></code> nor <code class="highlight"><c- n>base</c-><c- p>()</c-></code> are ever called on it, it doesn’t matter what the user does).
 Please note that this option changes behavior of existing code, which makes it
 less favorable option.</p>
-   <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code>) and handle specially
+   <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code> or a boolean flag) and handle specially
 when decrementing (<code class="highlight"><c- n>length</c-></code> "jumps" to <code class="highlight"><c- mi>1</c-></code> after decrementing the internal
-iterator). Please note that <code class="highlight"><c- n>base</c-><c- p>()</c-></code> doesn’t need any special handling here, but
-comparisons do.</p>
-   <h2 class="heading settled" data-level="7" id="proposed-wording"><span class="secno">7. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
+iterator). Please note that both the counter/flag and the internal iterator must be mutable (to be changed on first access to <code class="highlight"><c- n>base</c-><c- p>()</c-></code>).
+Also, if -1 is used, instead of a separated flag, comparison operators have to consider this case too. Using a flag, OTOH, will probably push for separated specialization of the whole class, so for random-access iterators this member will not exist.
+This still doesn’t solve the problem of invalidation of one copy when <code class="highlight"><c- n>base</c-><c- p>()</c-></code> is called on the other one.</p>
+   <h2 class="heading settled" data-level="10" id="proposed-wording"><span class="secno">10. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
    <p class="note" role="note"><span>Note:</span> Wording currently doesn’t include any of the options suggested above for
 the c-tor.</p>
    <p>Under 23.5.6.3 [<strong>counted.iter.access</strong>]:</p>
-   <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-> <c- o>?</c-> <c- nl>current</c-> <c- p>:</c-> <c- n>next</c-><c- p>(</c-><c- n>current</c-><c- p>);</c-></code><br> Note: calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> twice isn’t safe when <code class="highlight"><c- n>I</c-></code> isn’t <code class="highlight"><c- n>forward_iterator</c-></code> </ins>
-   <p><code class="highlight"><c- k>constexpr</c-> <c- k>const</c-> <c- n>I</c-><c- o>&amp;</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>current</c-><c- p>;</c-></code></p>
-   <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- n>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c-></code><br> Returns: <code class="highlight"><c- n>std</c->​<c- o>::</c->​<c- n>move</c-><c- p>(</c-><c- n>length</c-> <c- o>?</c-> <c- nl>current</c-> <c- p>:</c-> <c- n>next</c-><c- p>(</c-><c- n>current</c-><c- p>))</c-></code>. </ins>
-   <p><code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- n>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Returns: <code class="highlight"><c- n>std</c->​<c- o>::</c->​<c- n>move</c-><c- p>(</c-><c- n>current</c-><c- p>)</c-></code>.</p>
+   <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- nf>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-> <c- o>?</c-> <c- n>current</c-> <c- o>:</c-> <c- n>next</c-><c- p>(</c-><c- n>current</c-><c- p>);</c-></code><br> Note: calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> twice isn’t safe when <code class="highlight"><c- n>I</c-></code> isn’t <code class="highlight"><c- n>forward_iterator</c-></code> </ins>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- k>const</c-> <c- n>I</c-><c- o>&amp;</c-> <c- nf>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-><c- p>;</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>current</c-><c- p>;</c-></code></p>
+   <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- nf>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c-></code><br> Returns: <code class="highlight"><c- n>std</c->​<c- o>::</c->​<c- n>move</c-><c- p>(</c-><c- n>length</c-> <c- o>?</c-> <c- n>current</c-> <c- o>:</c-> <c- n>next</c-><c- p>(</c-><c- n>current</c-><c- p>))</c-></code>. </ins>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- nf>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Returns: <code class="highlight"><c- n>std</c->​<c- o>::</c->​<c- n>move</c-><c- p>(</c-><c- n>current</c-><c- p>)</c-></code>.</p>
    <p>Under 23.5.6.5 [<strong>counted.iter.nav</strong>]:</p>
    <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>++</c-><c- p>();</c-></code><br> Preconditions: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.<br> Effects: Equivalent to:<br> <code class="highlight"><c- k>if</c-> <c- p>(</c-><c- n>length</c-> <c- o>></c-> <c- mi>1</c-><c- p>)</c-> <c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> </ins>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>++</c-><c- p>();</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Preconditions: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.<br> Effects: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
@@ -2263,7 +2303,7 @@ the c-tor.</p>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>forward_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- n>counted_iterator</c-> <c- n>tmp</c-> <c- o>=</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++*</c-><c- k>this</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- n>tmp</c-><c- p>;</c-></code><br></p>
    <ins> <code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <code class="highlight"><c- k>requires</c-> <c- n>bidirectional_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code><br> Effects: Equivalent to:<br> <code class="highlight"><c- k>if</c-> <c- p>(</c-><c- n>length</c-><c- p>)</c-> <c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br> </ins>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>--</c-><c- p>()</c-></code><br> <span class="ins"><code class="highlight"><c- k>requires</c-> <c- n>random_</c->­<c- n>access_</c->­<c- n>iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c-></code></span><br> Effects: Equivalent to:<br> <code class="highlight"><c- o>--</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>++</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
-   <h2 class="heading settled" data-level="8" id="effect-on-current-state-yet-another-alternative-solution"><span class="secno">8. </span><span class="content">Effect on current state / yet another alternative solution</span><a class="self-link" href="#effect-on-current-state-yet-another-alternative-solution"></a></h2>
+   <h2 class="heading settled" data-level="11" id="effect-on-current-state-yet-another-alternative-solution"><span class="secno">11. </span><span class="content">Effect on current state / yet another alternative solution</span><a class="self-link" href="#effect-on-current-state-yet-another-alternative-solution"></a></h2>
     This breaks ABI (as every template/inline function does). If implementers don’t
 accept this change, or if WG21 feels it’s too late to apply it to C++20, we can
 add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> (or bikeshed a better name) which has the same
@@ -2275,7 +2315,7 @@ rarely an infinite loop, as mentioned, and for <code class="highlight"><c- n>out
 incrementing is usually no-op).</p>
    <p>At the very least, we have to warn users against using <code class="highlight"><c- n>counted_iterator</c-></code> (or
 its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>.</p>
-   <h2 class="heading settled" data-level="9" id="appendix"><span class="secno">9. </span><span class="content">Appendix</span><a class="self-link" href="#appendix"></a></h2>
+   <h2 class="heading settled" data-level="12" id="appendix"><span class="secno">12. </span><span class="content">Appendix</span><a class="self-link" href="#appendix"></a></h2>
     It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
@@ -2414,13 +2454,13 @@ never return another number, it doesn’t change the behavior <a data-link-type=
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-ce-filter">[CE-FILTER]
-   <dd><a href="https://gcc.godbolt.org/z/9TjbdMn3d">filter+take problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/9TjbdMn3d">https://gcc.godbolt.org/z/9TjbdMn3d</a>
+   <dd><a href="https://gcc.godbolt.org/z/9TjbdMn3d"><cite>filter+take problem example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/9TjbdMn3d">https://gcc.godbolt.org/z/9TjbdMn3d</a>
    <dt id="biblio-ce-istream">[CE-ISTREAM]
-   <dd><a href="https://gcc.godbolt.org/z/Eb8rdWYbP">istream problem example, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/Eb8rdWYbP">https://gcc.godbolt.org/z/Eb8rdWYbP</a>
+   <dd><a href="https://gcc.godbolt.org/z/Eb8rdWYbP"><cite>istream problem example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/Eb8rdWYbP">https://gcc.godbolt.org/z/Eb8rdWYbP</a>
    <dt id="biblio-ce-opt">[CE-OPT]
-   <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz">Optimizer magic solves filter+take issue, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
+   <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz"><cite>Optimizer magic solves filter+take issue, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
    <dt id="biblio-ce-opt2">[CE-OPT2]
-   <dd><a href="https://gcc.godbolt.org/z/PvMY8WeaT">Optimizer is right when filter really never returns, Compiler Explorer</a>. URL: <a href="https://gcc.godbolt.org/z/PvMY8WeaT">https://gcc.godbolt.org/z/PvMY8WeaT</a>
+   <dd><a href="https://gcc.godbolt.org/z/PvMY8WeaT"><cite>Optimizer is right when filter really never returns, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/PvMY8WeaT">https://gcc.godbolt.org/z/PvMY8WeaT</a>
    <dt id="biblio-euler">[EULER]
-   <dd><a href="https://projecteuler.net/problem=37">Truncatable primes, problem 37, Project Euler</a>. URL: <a href="https://projecteuler.net/problem=37">https://projecteuler.net/problem=37</a>
+   <dd><a href="https://projecteuler.net/problem=37"><cite>Truncatable primes, problem 37, Project Euler</cite></a>. URL: <a href="https://projecteuler.net/problem=37">https://projecteuler.net/problem=37</a>
   </dl>
