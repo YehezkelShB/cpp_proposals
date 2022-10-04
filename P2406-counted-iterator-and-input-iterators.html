@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="834b002f5d1ea5ea047810ea41d256aeab515b9b" name="document-revision">
+  <meta content="6d22ab47f17ed884791d929be44bcade795fcf5c" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2228,14 +2228,14 @@ For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a
    <h2 class="heading settled" data-level="4" id="current-behavior-is-what-the-standard-mandates"><span class="secno">4. </span><span class="content">Current behavior is what the standard mandates</span><a class="self-link" href="#current-behavior-is-what-the-standard-mandates"></a></h2>
    <p>Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of <code class="highlight"><c- k>operator</c-><c- o>++</c-></code> for <code class="highlight"><c- n>counted_iteraor</c-></code> as:</p>
    <p>Effects: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
-   <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is incremented,
-thus consuming an additional item from the range, and causing the effects
-mentioned above for input iterator case or when <code class="highlight"><c- o>++</c-></code> on the internal iterator is
-costly (or never returns).</p>
+   <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is
+incremented, thus consuming an additional item from the range, and causing the
+effects mentioned above for input iterator case or when <code class="highlight"><c- o>++</c-></code> on the internal
+iterator is costly (or never returns).</p>
    <h2 class="heading settled" data-level="5" id="desired-behavior"><span class="secno">5. </span><span class="content">Desired behavior</span><a class="self-link" href="#desired-behavior"></a></h2>
    <p>As long as <code class="highlight"><c- n>counted_iterator</c-></code> is valid (not equal to <code class="highlight"><c- n>default_sentinel</c-></code>), it
-must never try to access more than <code class="highlight"><c- n>n</c-></code> items (when <code class="highlight"><c- n>n</c-></code> is the given count).
-If the range doesn’t have <code class="highlight"><c- n>n</c-></code> items, the behavior is kept as is, i.e. it isn’t
+must never try to access more than <code class="highlight"><c- n>n</c-></code> items (when <code class="highlight"><c- n>n</c-></code> is the given count). If
+the range doesn’t have <code class="highlight"><c- n>n</c-></code> items, the behavior is kept as is, i.e. it isn’t
 defined (<code class="highlight"><c- k>operator</c-><c- o>++</c-></code> might hang forever or access things that shouldn’t be
 accessed etc.).</p>
    <h2 class="heading settled" data-level="6" id="designs-that-were-considered-and-rejected"><span class="secno">6. </span><span class="content">Designs that were considered and (rejected)</span><a class="self-link" href="#designs-that-were-considered-and-rejected"></a></h2>
@@ -2244,10 +2244,10 @@ accessed etc.).</p>
 dereferenced yet for the current item) and then dereferencing one of them
 resulted with invalidation of the other one.</p>
    <h3 class="heading settled" data-level="6.2" id="fix-counted_iterator"><span class="secno">6.2. </span><span class="content">Fix counted_iterator</span><a class="self-link" href="#fix-counted_iterator"></a></h3>
-   <p>Instead of introducing new type, <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, we tried to apply similar
-changes to <code class="highlight"><c- n>counted_iterator</c-></code> itself. This proved to be impossible, even if the
-changes can be done in ABI compatible way. For example, there is no sane way to fix
-the c-tor that takes iterator and count, when the count is 0</p>
+   <p>Instead of introducing new type, <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, we tried to apply
+similar changes to <code class="highlight"><c- n>counted_iterator</c-></code> itself. This proved to be impossible, even
+if the changes can be done in ABI compatible way. For example, there is no sane
+way to fix the c-tor that takes iterator and count, when the count is 0</p>
    <p>(TODO: move here "open question" section from below)</p>
    <h2 class="heading settled" data-level="7" id="naive-design-of-the-solution"><span class="secno">7. </span><span class="content">Naive design of the solution</span><a class="self-link" href="#naive-design-of-the-solution"></a></h2>
    <p>Basically, what is required to implement the desired behavior is changing the
@@ -2262,10 +2262,10 @@ so it doesn’t increment the internal iterator when reaching 0 length, and as a
 result doesn’t decrement it when getting back from 0 to 1 length. This requires
 changing <code class="highlight"><c- n>base</c-><c- p>()</c-></code> behavior too, including the return type to be by value. 
    <h3 class="heading settled" data-level="9.2" id="random_access_iterator-case-kept-as-is"><span class="secno">9.2. </span><span class="content"><code class="highlight"><c- n>random_access_iterator</c-></code> case kept as-is</span><a class="self-link" href="#random_access_iterator-case-kept-as-is"></a></h3>
-   <p>To reduce the amount of changes required, we keep the current behavior for <code class="highlight"><c- n>random_access_iterator</c-></code> case, so we don’t have to touch the additional operators
-defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_access_iterator</c-></code> case we can expect the view to either have all the items
-ready or able to compute all of them efficiently, so it doesn’t suffer from this
-issue.</p>
+   <p>To reduce the amount of changes required, we keep the current behavior for <code class="highlight"><c- n>random_access_iterator</c-></code> case, so we don’t have to touch the additional
+operators defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_access_iterator</c-></code> case we can expect the view to either have all the
+items ready or able to compute all of them efficiently, so it doesn’t suffer
+from this issue.</p>
    <h3 class="heading settled" data-level="9.3" id="open-question-constructing-with-0-length"><span class="secno">9.3. </span><span class="content">Open question: Constructing with 0 length</span><a class="self-link" href="#open-question-constructing-with-0-length"></a></h3>
    <p>We don’t have a good solution for the case that user constructs <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- mi>0</c-></code> as argument for length. This puts it in an
 inconsistent internal state, as the next operations will be <code class="highlight"><c- n>base</c-><c- p>()</c-></code> or <code class="highlight"><c- o>--</c-></code>,
@@ -2283,11 +2283,14 @@ the resulted <code class="highlight"><c- n>counted_iteraor</c-></code>.</p>
 iterator (leaving it to the user to decide how to handle, and if neither <code class="highlight"><c- o>--</c-></code> nor <code class="highlight"><c- n>base</c-><c- p>()</c-></code> are ever called on it, it doesn’t matter what the user does).
 Please note that this option changes behavior of existing code, which makes it
 less favorable option.</p>
-   <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code> or a boolean flag) and handle specially
-when decrementing (<code class="highlight"><c- n>length</c-></code> "jumps" to <code class="highlight"><c- mi>1</c-></code> after decrementing the internal
-iterator). Please note that both the counter/flag and the internal iterator must be mutable (to be changed on first access to <code class="highlight"><c- n>base</c-><c- p>()</c-></code>).
-Also, if -1 is used, instead of a separated flag, comparison operators have to consider this case too. Using a flag, OTOH, will probably push for separated specialization of the whole class, so for random-access iterators this member will not exist.
-This still doesn’t solve the problem of invalidation of one copy when <code class="highlight"><c- n>base</c-><c- p>()</c-></code> is called on the other one.</p>
+   <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code> or a boolean flag)
+and handle specially when decrementing (<code class="highlight"><c- n>length</c-></code> "jumps" to <code class="highlight"><c- mi>1</c-></code> after
+decrementing the internal iterator). Please note that both the counter/flag and
+the internal iterator must be mutable (to be changed on first access to <code class="highlight"><c- n>base</c-><c- p>()</c-></code>). Also, if -1 is used, instead of a separated flag, comparison
+operators have to consider this case too. Using a flag, OTOH, will probably push
+for separated specialization of the whole class, so for random-access iterators
+this member will not exist. This still doesn’t solve the problem of invalidation
+of one copy when <code class="highlight"><c- n>base</c-><c- p>()</c-></code> is called on the other one.</p>
    <h2 class="heading settled" data-level="10" id="proposed-wording"><span class="secno">10. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
    <p class="note" role="note"><span>Note:</span> Wording currently doesn’t include any of the options suggested above for
 the c-tor.</p>

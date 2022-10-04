@@ -161,18 +161,18 @@ Effects: Equivalent to:<br/>
 `--length;`<br/>
 `return *this;`<br/>
 
-It means that even when `length` becomes 0, the internal iterator is incremented,
-thus consuming an additional item from the range, and causing the effects
-mentioned above for input iterator case or when `++` on the internal iterator is
-costly (or never returns).
+It means that even when `length` becomes 0, the internal iterator is
+incremented, thus consuming an additional item from the range, and causing the
+effects mentioned above for input iterator case or when `++` on the internal
+iterator is costly (or never returns).
 
 
 Desired behavior
 ================
 
 As long as `counted_iterator` is valid (not equal to `default_sentinel`), it
-must never try to access more than `n` items (when `n` is the given count).
-If the range doesn't have `n` items, the behavior is kept as is, i.e. it isn't
+must never try to access more than `n` items (when `n` is the given count). If
+the range doesn't have `n` items, the behavior is kept as is, i.e. it isn't
 defined (`operator++` might hang forever or access things that shouldn't be
 accessed etc.).
 
@@ -190,10 +190,10 @@ resulted with invalidation of the other one.
 Fix counted_iterator
 --------------------
 
-Instead of introducing new type, `lazy_counted_iterator`, we tried to apply similar
-changes to `counted_iterator` itself. This proved to be impossible, even if the
-changes can be done in ABI compatible way. For example, there is no sane way to fix
-the c-tor that takes iterator and count, when the count is 0
+Instead of introducing new type, `lazy_counted_iterator`, we tried to apply
+similar changes to `counted_iterator` itself. This proved to be impossible, even
+if the changes can be done in ABI compatible way. For example, there is no sane
+way to fix the c-tor that takes iterator and count, when the count is 0
 
 (TODO: move here "open question" section from below)
 
@@ -226,11 +226,11 @@ changing `base()` behavior too, including the return type to be by value.
 ----------------------------------------
 
 To reduce the amount of changes required, we keep the current behavior for
-`random_access_iterator` case, so we don't have to touch the additional operators
-defined only for this category. The rational behind it is that for
-`random_access_iterator` case we can expect the view to either have all the items
-ready or able to compute all of them efficiently, so it doesn't suffer from this
-issue.
+`random_access_iterator` case, so we don't have to touch the additional
+operators defined only for this category. The rational behind it is that for
+`random_access_iterator` case we can expect the view to either have all the
+items ready or able to compute all of them efficiently, so it doesn't suffer
+from this issue.
 
 
 Open question: Constructing with 0 length
@@ -259,11 +259,15 @@ nor `base()` are ever called on it, it doesn't matter what the user does).
 Please note that this option changes behavior of existing code, which makes it
 less favorable option.
 
-Option 3: Mark this case internally (e.g. with `length=-1` or a boolean flag) and handle specially
-when decrementing (`length` "jumps" to `1` after decrementing the internal
-iterator). Please note that both the counter/flag and the internal iterator must be mutable (to be changed on first access to `base()`).
-Also, if -1 is used, instead of a separated flag, comparison operators have to consider this case too. Using a flag, OTOH, will probably push for separated specialization of the whole class, so for random-access iterators this member will not exist.
-This still doesn't solve the problem of invalidation of one copy when `base()` is called on the other one.
+Option 3: Mark this case internally (e.g. with `length=-1` or a boolean flag)
+and handle specially when decrementing (`length` "jumps" to `1` after
+decrementing the internal iterator). Please note that both the counter/flag and
+the internal iterator must be mutable (to be changed on first access to
+`base()`). Also, if -1 is used, instead of a separated flag, comparison
+operators have to consider this case too. Using a flag, OTOH, will probably push
+for separated specialization of the whole class, so for random-access iterators
+this member will not exist. This still doesn't solve the problem of invalidation
+of one copy when `base()` is called on the other one.
 
 
 Proposed Wording
