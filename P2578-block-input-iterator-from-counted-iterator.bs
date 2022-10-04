@@ -94,8 +94,8 @@ int main()
 }
 ```
 
-It means that one can't use ranges safely for input parsing, for example.
-We want to propose new tools to allow such safe usage (`lazy_counted_iterator`, 
+It means that one can't use ranges safely for input parsing, for example. We
+want to propose new tools to allow such safe usage (`lazy_counted_iterator`,
 which is the purpose of P2406), but at first we believe it worth blocking the
 dangerous usages to remove this footgun.
 
@@ -111,8 +111,9 @@ Effects: Equivalent to:<br/>
 `--length;`<br/>
 `return *this;`<br/>
 
-It means that even when `length` becomes 0, the internal iterator is incremented,
-thus consuming an additional item from the range, causing the mentioned issues.
+It means that even when `length` becomes 0, the internal iterator is
+incremented, thus consuming an additional item from the range, causing the
+mentioned issues.
 
 
 Desired behavior
@@ -149,7 +150,8 @@ get the expected behavior [[CE-ISTREAMBUF]]:
     assert(c == '1'); // SUCCEEDS
 ```
 
-The conclusion is that we have to differentiate between "eager" and "lazy" types.
+The conclusion is that we have to differentiate between "eager" and "lazy"
+types.
 
 
 Propagating the laziness
@@ -165,7 +167,8 @@ Being lazy is not just for iterators
 
 One of the adaptors that needs to propagated laziness is `iota_view::iterator`.
 As `iota_view` works on any `weakly_incrementable`, not only on iterators, the
-laziness must be defined on `weakly_incrementable` instead of on `input_iterator`.
+laziness must be defined on `weakly_incrementable` instead of on
+`input_iterator`.
 
 
 Open design questions
@@ -180,11 +183,11 @@ The suggested wording below allows constructing `counted_iterator` from
 iterator is not `forward_iterator` if its `++` affects its source (and
 invalidates all other copies) or it isn't `input_iterator` at all. As result, an
 `input_iterator` that it isn't `forward_iterator` is a signal that its `++` has
-side effects, and this is problematic for `counted_iterator`, as described above.
-For iterators that don't model `input_iterator` in first place, we simply don't
-know, but don't expect to find such iterators in the wild. Adding the requirement
-to enable explicitly each type of `output_iterator`, when we expect most or all
-of them to be enabled, seemed redundant.
+side effects, and this is problematic for `counted_iterator`, as described
+above. For iterators that don't model `input_iterator` in first place, we simply
+don't know, but don't expect to find such iterators in the wild. Adding the
+requirement to enable explicitly each type of `output_iterator`, when we expect
+most or all of them to be enabled, seemed redundant.
 
 As we are not 100% sure about it, we seek for additional feedback and opinions
 about this.
@@ -239,9 +242,9 @@ effectively means that `counted_iterator` or `take` can't be used on a
 -----------
 
 `join_view` is in some way a kind of `filter` that filters out empty elements
-(see the definition of `join_view::iterator::operator++`).
-It means those empty elements are lost forever when using `input_iterator`.
-Similarly to `filter`, we don't propose any change to `join_view`.
+(see the definition of `join_view::iterator::operator++`). It means those empty
+elements are lost forever when using `input_iterator`. Similarly to `filter`, we
+don't propose any change to `join_view`.
 
 
 `lazy_split_view`
@@ -351,8 +354,8 @@ We believe this is Good Thing(TM) as we showed that `counted_iteraor` always
 does the wrong thing for (non-lazy) `input_iterator`s.
 
 At the very least, if this change isn't accepted, we have to warn users against
-using `counted_iterator` (and its consumers) with `input_iterator`. We might want
-to encourage implementations to produce diagnostic on such a usage.
+using `counted_iterator` (and its consumers) with `input_iterator`. We might
+want to encourage implementations to produce diagnostic on such a usage.
 
 We think this is a good candidate to be applied as a Defect Report.
 

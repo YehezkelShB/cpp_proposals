@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-counted-iterator.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="f94fdad4998beaf315d452c175ce1c07259a3466" name="document-revision">
+  <meta content="aa73dd8d427c8c6521aaa992ae510e5015e4df55" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2181,15 +2181,16 @@ For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a
     <c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'1'</c-><c- p>);</c-> <c- c1>// FAILS, c == '2'</c->
 <c- p>}</c->
 </pre>
-   <p>It means that one can’t use ranges safely for input parsing, for example.
-We want to propose new tools to allow such safe usage (<code class="highlight"><c- n>lazy_counted_iterator</c-></code>, 
+   <p>It means that one can’t use ranges safely for input parsing, for example. We
+want to propose new tools to allow such safe usage (<code class="highlight"><c- n>lazy_counted_iterator</c-></code>,
 which is the purpose of P2406), but at first we believe it worth blocking the
 dangerous usages to remove this footgun.</p>
    <h2 class="heading settled" data-level="3" id="current-behavior-is-what-the-standard-mandates"><span class="secno">3. </span><span class="content">Current behavior is what the standard mandates</span><a class="self-link" href="#current-behavior-is-what-the-standard-mandates"></a></h2>
    <p>Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of <code class="highlight"><c- k>operator</c-><c- o>++</c-></code> for <code class="highlight"><c- n>counted_iteraor</c-></code> as:</p>
    <p>Effects: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
-   <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is incremented,
-thus consuming an additional item from the range, causing the mentioned issues.</p>
+   <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is
+incremented, thus consuming an additional item from the range, causing the
+mentioned issues.</p>
    <h2 class="heading settled" data-level="4" id="desired-behavior"><span class="secno">4. </span><span class="content">Desired behavior</span><a class="self-link" href="#desired-behavior"></a></h2>
    <p><code class="highlight"><c- n>counted_iterator</c-></code> (and as result all the things based on it, e.g. <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>take</c-></code> and <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-></code>) must not be constructible from ("eager", see next) input
 iterator.</p>
@@ -2212,7 +2213,8 @@ get the expected behavior <a data-link-type="biblio" href="#biblio-ce-istreambuf
 <c- n>std</c-><c- o>::</c-><c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>c</c-> <c- o>&lt;&lt;</c-> <c- n>std</c-><c- o>::</c-><c- n>endl</c-><c- p>;</c-> <c- c1>// flush it in case the assert fails</c->
 <c- n>assert</c-><c- p>(</c-><c- n>c</c-> <c- o>==</c-> <c- sc>'1'</c-><c- p>);</c-> <c- c1>// SUCCEEDS</c->
 </pre>
-   <p>The conclusion is that we have to differentiate between "eager" and "lazy" types.</p>
+   <p>The conclusion is that we have to differentiate between "eager" and "lazy"
+types.</p>
    <h2 class="heading settled" data-level="6" id="propagating-the-laziness"><span class="secno">6. </span><span class="content">Propagating the laziness</span><a class="self-link" href="#propagating-the-laziness"></a></h2>
    <p>Similarly to what was done with <code class="highlight"><c- n>borrowed_range</c-></code> and similar traits, the trait
 of being lazy must be propagated by adaptors like <code class="highlight"><c- n>move_iterator</c-></code> and <code class="highlight"><c- n>common_iterator</c-></code>.</p>
@@ -2225,11 +2227,11 @@ laziness must be defined on <code class="highlight"><c- n>weakly_incrementable</
    <p>The suggested wording below allows constructing <code class="highlight"><c- n>counted_iterator</c-></code> from <code class="highlight"><c- n>output_iterator</c-></code>, because typically its <code class="highlight"><c- o>++</c-></code> doesn’t have any side effect. An
 iterator is not <code class="highlight"><c- n>forward_iterator</c-></code> if its <code class="highlight"><c- o>++</c-></code> affects its source (and
 invalidates all other copies) or it isn’t <code class="highlight"><c- n>input_iterator</c-></code> at all. As result, an <code class="highlight"><c- n>input_iterator</c-></code> that it isn’t <code class="highlight"><c- n>forward_iterator</c-></code> is a signal that its <code class="highlight"><c- o>++</c-></code> has
-side effects, and this is problematic for <code class="highlight"><c- n>counted_iterator</c-></code>, as described above.
-For iterators that don’t model <code class="highlight"><c- n>input_iterator</c-></code> in first place, we simply don’t
-know, but don’t expect to find such iterators in the wild. Adding the requirement
-to enable explicitly each type of <code class="highlight"><c- n>output_iterator</c-></code>, when we expect most or all
-of them to be enabled, seemed redundant.</p>
+side effects, and this is problematic for <code class="highlight"><c- n>counted_iterator</c-></code>, as described
+above. For iterators that don’t model <code class="highlight"><c- n>input_iterator</c-></code> in first place, we simply
+don’t know, but don’t expect to find such iterators in the wild. Adding the
+requirement to enable explicitly each type of <code class="highlight"><c- n>output_iterator</c-></code>, when we expect
+most or all of them to be enabled, seemed redundant.</p>
    <p>As we are not 100% sure about it, we seek for additional feedback and opinions
 about this.</p>
    <h3 class="heading settled" data-level="8.2" id="filter_view"><span class="secno">8.2. </span><span class="content"><code class="highlight"><c- n>filter_view</c-></code></span><a class="self-link" href="#filter_view"></a></h3>
@@ -2264,9 +2266,9 @@ elements from the underlying source (e.g. <code class="highlight"><c- n>std</c->
 effectively means that <code class="highlight"><c- n>counted_iterator</c-></code> or <code class="highlight"><c- n>take</c-></code> can’t be used on a <code class="highlight"><c- n>filter</c-></code>ed <code class="highlight"><c- n>input_iterator</c-></code>, even on lazy ones.</p>
    <h3 class="heading settled" data-level="8.3" id="join_view"><span class="secno">8.3. </span><span class="content"><code class="highlight"><c- n>join_view</c-></code></span><a class="self-link" href="#join_view"></a></h3>
    <p><code class="highlight"><c- n>join_view</c-></code> is in some way a kind of <code class="highlight"><c- n>filter</c-></code> that filters out empty elements
-(see the definition of <code class="highlight"><c- n>join_view</c-><c- o>::</c-><c- n>iterator</c-><c- o>::</c-><c- k>operator</c-><c- o>++</c-></code>).
-It means those empty elements are lost forever when using <code class="highlight"><c- n>input_iterator</c-></code>.
-Similarly to <code class="highlight"><c- n>filter</c-></code>, we don’t propose any change to <code class="highlight"><c- n>join_view</c-></code>.</p>
+(see the definition of <code class="highlight"><c- n>join_view</c-><c- o>::</c-><c- n>iterator</c-><c- o>::</c-><c- k>operator</c-><c- o>++</c-></code>). It means those empty
+elements are lost forever when using <code class="highlight"><c- n>input_iterator</c-></code>. Similarly to <code class="highlight"><c- n>filter</c-></code>, we
+don’t propose any change to <code class="highlight"><c- n>join_view</c-></code>.</p>
    <h3 class="heading settled" data-level="8.4" id="lazy_split_view"><span class="secno">8.4. </span><span class="content"><code class="highlight"><c- n>lazy_split_view</c-></code></span><a class="self-link" href="#lazy_split_view"></a></h3>
    <p>Similarly to <code class="highlight"><c- n>join_view</c-></code>, <code class="highlight"><c- n>lazy_split_view</c-><c- o>::</c-><c- n>outer_iterator</c-></code> filters out the
 separators (pattern), and those will lost forever when using <code class="highlight"><c- n>input_iterator</c-></code>.
@@ -2320,8 +2322,8 @@ with (non-lazy) input iterator, if there is any.
    <p>We believe this is Good Thing(TM) as we showed that <code class="highlight"><c- n>counted_iteraor</c-></code> always
 does the wrong thing for (non-lazy) <code class="highlight"><c- n>input_iterator</c-></code>s.</p>
    <p>At the very least, if this change isn’t accepted, we have to warn users against
-using <code class="highlight"><c- n>counted_iterator</c-></code> (and its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>. We might want
-to encourage implementations to produce diagnostic on such a usage.</p>
+using <code class="highlight"><c- n>counted_iterator</c-></code> (and its consumers) with <code class="highlight"><c- n>input_iterator</c-></code>. We might
+want to encourage implementations to produce diagnostic on such a usage.</p>
    <p>We think this is a good candidate to be applied as a Defect Report.</p>
    <p>(Draft: how to specialize lazy variable for various iterators:
 move_iterator<i> - lazy<i> common_iterator<iU0002C s> - lazy<i> counted_iterator<i> - lazy<i> istreambuf_iterator<cU0002C t> - true
