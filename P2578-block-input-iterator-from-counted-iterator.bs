@@ -1,6 +1,6 @@
 <pre class='metadata'>
 Title: Block eager input (non-forward) iterators from <code>counted_iterator</code>
-Status: P
+Status: D
 Audience: SG9 (Ranges)
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Editor: Yehuda Bernat, YehudaMBer@gmail.com
