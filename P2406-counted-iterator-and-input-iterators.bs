@@ -30,8 +30,6 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
 }
 </style>
 
-<meta http-equiv="refresh" content="5">
-
 <pre class="biblio">
 {
     "EULER": {
