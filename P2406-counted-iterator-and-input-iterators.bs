@@ -1,6 +1,6 @@
 <pre class='metadata'>
 Title: Fix `counted_iterator` interaction with input iterators
-Status: P
+Status: D
 Audience: SG9 (Ranges)
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Editor: Yehuda Bernat, YehudaMBer@gmail.com
