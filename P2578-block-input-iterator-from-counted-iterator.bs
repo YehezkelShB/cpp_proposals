@@ -30,8 +30,6 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2578-block-input-iterator-from-
 }
 </style>
 
-<meta http-equiv="refresh" content="5">
-
 <pre class="biblio">
 {
     "CE-ISTREAM": {
