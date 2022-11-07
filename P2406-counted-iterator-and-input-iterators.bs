@@ -44,6 +44,10 @@ ED: https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input
         "href": "https://gcc.godbolt.org/z/Eb8rdWYbP",
         "title": "istream problem example, Compiler Explorer"
     },
+    "CE-ISTREAMBUF": {
+        "href": "https://gcc.godbolt.org/z/ofeY74xoc",
+        "title": "istreambuf behavior example, Compiler Explorer"
+    },
     "CE-OPT": {
         "href": "https://gcc.godbolt.org/z/4dahzG8Gz",
         "title": "Optimizer magic solves filter+take issue, Compiler Explorer"

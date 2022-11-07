@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://yehezkelshb.github.io/cpp_proposals/P2406-counted-iterator-and-input-iterators.html" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="3d1a8555aabd6e0337aa5fd00e70b969ccfc10c3" name="document-revision">
+  <meta content="d842f7627d232dd208597b4c788d8eb580d45409" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2282,7 +2282,7 @@ latter removes the element from the underlying source on <code class="highlight"
 removes it only on the next <code class="highlight"><c- o>++</c-></code> (the read on dereference done directly from the
 underlying <code class="highlight"><c- n>streambuf</c-></code>). It means that <code class="highlight"><c- n>counted_iterator</c-></code> works flawlessly with <code class="highlight"><c- n>istreambuf_iterator</c-></code>.</p>
    <p>For example, we can adapt the previous example to use <code class="highlight"><c- n>istreambuf_iterator</c-></code> and
-get the expected behavior <span>[CE-ISTREAMBUF]</span>:</p>
+get the expected behavior <a data-link-type="biblio" href="#biblio-ce-istreambuf">[CE-ISTREAMBUF]</a>:</p>
 <pre class="highlight"><c- k>auto</c-> <c- n>iss</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istringstream</c-><c- p>(</c-><c- s>"012"</c-><c- p>);</c->
 <c- k>auto</c-> <c- n>ibuf_it</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>istreambuf_iterator</c-><c- o>&lt;</c-><c- b>char</c-><c- o>></c-><c- p>(</c-><c- n>iss</c-><c- p>);</c->
 <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>c</c-> <c- o>:</c-> <c- n>rn</c-><c- o>::</c-><c- n>subrange</c-><c- p>(</c-><c- n>ibuf_it</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>default_sentinel</c-><c- p>)</c->
@@ -2469,6 +2469,8 @@ never return another number, it doesn’t change the behavior <a data-link-type=
    <dd><a href="https://gcc.godbolt.org/z/9TjbdMn3d"><cite>filter+take problem example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/9TjbdMn3d">https://gcc.godbolt.org/z/9TjbdMn3d</a>
    <dt id="biblio-ce-istream">[CE-ISTREAM]
    <dd><a href="https://gcc.godbolt.org/z/Eb8rdWYbP"><cite>istream problem example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/Eb8rdWYbP">https://gcc.godbolt.org/z/Eb8rdWYbP</a>
+   <dt id="biblio-ce-istreambuf">[CE-ISTREAMBUF]
+   <dd><a href="https://gcc.godbolt.org/z/ofeY74xoc"><cite>istreambuf behavior example, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/ofeY74xoc">https://gcc.godbolt.org/z/ofeY74xoc</a>
    <dt id="biblio-ce-opt">[CE-OPT]
    <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz"><cite>Optimizer magic solves filter+take issue, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
    <dt id="biblio-ce-opt2">[CE-OPT2]
