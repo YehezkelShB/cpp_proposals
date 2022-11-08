@@ -205,9 +205,14 @@ of being lazy must be propagated by adaptors like `move_iterator` and
 Being lazy is not just for iterators
 ====================================
 
-One of the adaptors that needs to propagated laziness is `iota_view::iterator`.
-As `iota_view` works on any `weakly_incrementable`, not only on iterators, the
-lazy trait must be defined on `weakly_incrementable`, not just `input_iterator`.
+One of the adaptors that needs to propagated laziness through is
+`iota_view::iterator`. As `iota_view` works on any `weakly_incrementable`, not
+only on iterators, the lazy trait must be defined on `weakly_incrementable`, not
+just `input_iterator`.
+
+Please notice that `weakly_incrementable` (unlike `incrementable`) is similar to
+`input_iterator` being single-pass, as its `++` operator isn't
+equality-preserving.
 
 
 Open design questions
@@ -424,7 +429,8 @@ TODO
 ====
 
 Besides going over the C++23 new ranges (e.g. zip), here are the rest of the
-changes that aren't in the wording above yet:
+changes that aren't in the wording above yet, about how to specialize
+`enable_lazy_weakly_incrementable` for various adaptors:
 
 - `move_iterator<I>`               - `lazy<I>`
 - `common_iterator<I, S>`          - `lazy<I>`
@@ -438,6 +444,6 @@ changes that aren't in the wording above yet:
 Acknowledgements
 ================
 
-The Israeli NB members for their feedback and support, in particular Inbal Levi,
-Dvir Yitzchaki and Dan Raviv. r/cpp Reddit users for their [[reddit-cpp|feedback]] on
-P2406R0.
+Many thanks to the Israeli NB members for their feedback and support, in
+particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
+for their [[reddit-cpp|feedback]] on P2406R0.

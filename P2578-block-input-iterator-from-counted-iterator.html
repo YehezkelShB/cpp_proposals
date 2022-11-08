@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/p2578" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="989e34eb90978bccc173588476353db75c6125f2" name="document-revision">
+  <meta content="32214e2c7434061a1a10fae477baf8d16ead167d" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2235,9 +2235,11 @@ iterators was the source of other issues in the past, e.g. see <a data-link-type
    <p>Similarly to what was done with <code class="highlight"><c- n>borrowed_range</c-></code> and similar traits, the trait
 of being lazy must be propagated by adaptors like <code class="highlight"><c- n>move_iterator</c-></code> and <code class="highlight"><c- n>common_iterator</c-></code>.</p>
    <h2 class="heading settled" data-level="7" id="being-lazy-is-not-just-for-iterators"><span class="secno">7. </span><span class="content">Being lazy is not just for iterators</span><a class="self-link" href="#being-lazy-is-not-just-for-iterators"></a></h2>
-   <p>One of the adaptors that needs to propagated laziness is <code class="highlight"><c- n>iota_view</c-><c- o>::</c-><c- n>iterator</c-></code>.
-As <code class="highlight"><c- n>iota_view</c-></code> works on any <code class="highlight"><c- n>weakly_incrementable</c-></code>, not only on iterators, the
-lazy trait must be defined on <code class="highlight"><c- n>weakly_incrementable</c-></code>, not just <code class="highlight"><c- n>input_iterator</c-></code>.</p>
+   <p>One of the adaptors that needs to propagated laziness through is <code class="highlight"><c- n>iota_view</c-><c- o>::</c-><c- n>iterator</c-></code>. As <code class="highlight"><c- n>iota_view</c-></code> works on any <code class="highlight"><c- n>weakly_incrementable</c-></code>, not
+only on iterators, the lazy trait must be defined on <code class="highlight"><c- n>weakly_incrementable</c-></code>, not
+just <code class="highlight"><c- n>input_iterator</c-></code>.</p>
+   <p>Please notice that <code class="highlight"><c- n>weakly_incrementable</c-></code> (unlike <code class="highlight"><c- n>incrementable</c-></code>) is similar to <code class="highlight"><c- n>input_iterator</c-></code> being single-pass, as its <code class="highlight"><c- o>++</c-></code> operator isn’t
+equality-preserving.</p>
    <h2 class="heading settled" data-level="8" id="open-design-questions"><span class="secno">8. </span><span class="content">Open design questions</span><a class="self-link" href="#open-design-questions"></a></h2>
    <h3 class="heading settled" data-level="8.1" id="output_iterator"><span class="secno">8.1. </span><span class="content"><code class="highlight"><c- n>output_iterator</c-></code></span><a class="self-link" href="#output_iterator"></a></h3>
    <p>The suggested wording below allows constructing <code class="highlight"><c- n>counted_iterator</c-></code> from <code class="highlight"><c- n>output_iterator</c-></code>, because typically its <code class="highlight"><c- o>++</c-></code> doesn’t have any side effect. An
@@ -2353,7 +2355,7 @@ want to encourage implementations to produce diagnostic on such a usage.</p>
    <p>We think this is a good candidate to be applied as a Defect Report.</p>
    <h2 class="heading settled" data-level="12" id="todo"><span class="secno">12. </span><span class="content">TODO</span><a class="self-link" href="#todo"></a></h2>
    <p>Besides going over the C++23 new ranges (e.g. zip), here are the rest of the
-changes that aren’t in the wording above yet:</p>
+changes that aren’t in the wording above yet, about how to specialize <code class="highlight"><c- n>enable_lazy_weakly_incrementable</c-></code> for various adaptors:</p>
    <ul>
     <li data-md>
      <p><code class="highlight"><c- n>move_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-></code> - <code class="highlight"><c- n>lazy</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-></code></p>
@@ -2371,9 +2373,9 @@ changes that aren’t in the wording above yet:</p>
      <p><code class="highlight"><c- n>transform_view</c-><c- o>&lt;</c-><c- n>V</c-><c- p>,</c-> <c- n>F</c-><c- o>>::</c-><c- n>iterator</c-></code> - <code class="highlight"><c- n>lazy</c-><c- o>&lt;</c-><c- n>iterator</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-></code></p>
    </ul>
    <h2 class="heading settled" data-level="13" id="acknowledgements"><span class="secno">13. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
-   <p>The Israeli NB members for their feedback and support, in particular Inbal Levi,
-Dvir Yitzchaki and Dan Raviv. r/cpp Reddit users for their <a data-link-type="biblio" href="#biblio-reddit-cpp">feedback</a> on
-P2406R0.</p>
+   <p>Many thanks to the Israeli NB members for their feedback and support, in
+particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
+for their <a data-link-type="biblio" href="#biblio-reddit-cpp">feedback</a> on P2406R0.</p>
   </main>
 <script>
 (function() {
