@@ -1,0 +1,449 @@
+<pre class='metadata'>
+Title: Block eager input (non-forward) iterators from <code>counted_iterator</code>
+Status: D
+Audience: SG9 (Ranges)
+Editor: Yehezkel Bernat, YehezkelShB@gmail.com
+Editor: Yehuda Bernat, YehudaMBer@gmail.com
+Shortname: P2578
+Abstract: P2406 shows that <code>counted_iterator</code> behavior interacts poorly with (most) input iterators. This paper suggests blocking the obviously wrong usages as first step
+Group: WG21
+Date: 2022-04-18
+Markup Shorthands: markdown yes
+Revision: 0
+Default Highlight: CPP
+ED: https://wg21.link/p2578
+!Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2578-block-input-iterator-from-counted-iterator.bs">GitHub</a>
+</pre>
+
+<style>
+.ins, ins, ins *, span.ins, span.ins * {
+  background-color: rgb(200, 250, 200);
+  color: rgb(0, 136, 0);
+  text-decoration: none;
+}
+
+.del, del, del *, span.del, span.del * {
+  background-color: rgb(250, 200, 200);
+  color: rgb(255, 0, 0);
+  text-decoration: line-through;
+  text-decoration-color: rgb(255, 0, 0);
+}
+</style>
+
+<pre class="biblio">
+{
+    "CE-ISTREAM": {
+        "href": "https://gcc.godbolt.org/z/zP4c1EhT6",
+        "title": "istream problem example, Compiler Explorer"
+    },
+    "CE-ISTREAMBUF": {
+        "href": "https://gcc.godbolt.org/z/zooashPT8",
+        "title": "istreambuf example, Compiler Explorer"
+    },
+    "CE-ISTREAMBUF-FILTER": {
+        "href": "https://godbolt.org/z/73srYPGYG",
+        "title": "istreambuf with views::filter, Compiler Explorer"
+    },
+    "P2406R0": {
+        "href": "https://wg21.link/p2406r0",
+        "title": "Fix `counted_iterator` interaction with input iterators"
+    },
+    "P2406R1": {
+        "href": "https://wg21.link/p2406r1",
+        "title": "Fix `counted_iterator` interaction with input iterators"
+    },
+    "P0541": {
+        "href": "http://wg21.link/p0541",
+        "title": "Ranges TS: Post-Increment on Input and Output Iterators"
+    },
+    "range-v3-PR1664": {
+        "href": "https://github.com/ericniebler/range-v3/pull/1664",
+        "title": "Fix post increment of counted iterator"
+    },
+    "reddit-cpp": {
+        "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
+        "title": "r/cpp comments on P2406R0"
+    },
+    "LWG2471": {
+        "href": "https://cplusplus.github.io/LWG/issue2471",
+        "title": "LWG2471 - copy_n's number of InputIterator increments unspecified"
+    },
+    "MSFT-STL-FORK": {
+        "href": "https://github.com/YehezkelShB/STL/tree/LazyInputIterator",
+        "title": "(partial) implementation of this proposal on a fork of MSFT STL"
+    }
+}
+</pre>
+
+
+Revision History
+================
+
+r0: initial revision, based on the rational from [[P2406R0]]
+
+
+Problem description
+===================
+
+Using `views::take` on an input range, e.g. `basic_istream_view`, usually takes
+an additional element from the underlying input source, because `take` uses
+`counted_iterator` (when the range isn't `random_access`) and `counted_iterator`
+increments the internal iterator even if the counter has reached the requested
+count.
+Due to the nature of input (non-forward) range, where rereading is usually
+impossible, taking this additional element means that element is lost forever.
+If no additional element exists in the source (and the source wasn't closed),
+this operation hangs forever.
+
+For example [[CE-ISTREAM]]:
+
+```
+#include <ranges>
+#include <iostream>
+#include <sstream>
+#include <cassert>
+ 
+namespace rn = std::ranges;
+namespace rv = rn::views;
+ 
+int main()
+{
+    auto iss = std::istringstream("012");
+    for (auto c : rn::istream_view<char>(iss)
+                  | rv::take(1))
+    {
+        std::cout << c << '\n';
+    }
+    auto c = '\0';
+    iss >> c;
+    std::cout << c << std::endl; // flush it in case the assert fails
+    assert(c == '1'); // FAILS, c == '2'
+}
+```
+
+
+This paper vs. P2406
+====================
+
+We propose with [[P2406R1]] new tools that behave correctly with input ranges
+(`lazy_counted_iterator` and `lazy_take`). The existing tools must must not be
+used on input ranges, as the behavior is always wrong, so we propse blocking
+this usage to remove this footgun. We use a separated paper, so it's easier to
+merge this even if the new tools require more discussions and take longer to be
+merged.
+
+
+Current usage of `counted_iterator` with input iterators
+--------------------------------------------------------
+
+While investigating possible solutions to this problem, we found a bug in
+range-v3 implementation of `counted_iterator` when used on input iterators (see
+the details in [[range-v3-PR1664]]). We believe that the fact this bug was there
+for so long, suggests there is no much usage of input iterators, at least not
+with `counted_iterator`, so the potential break is minimal (besides our claim
+that the behavior is already wrong and broken).
+
+
+Current behavior is what the standard mandates
+==============================================
+
+Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
+`operator++` for `counted_iteraor` as:
+
+Effects: Equivalent to:<br/>
+`++current;`<br/>
+`--length;`<br/>
+`return *this;`<br/>
+
+It means that even when `length` becomes 0, the internal iterator is
+incremented, thus consuming an additional item from the range, causing the
+mentioned issue.
+
+
+Some input iterators are different
+==================================
+
+`istreambuf_iterator` behaves differently than `istream_iterator`. While the
+latter removes the element from the underlying source on `++`, the former
+removes it only on the next `++` (the read on dereference done directly from the
+underlying `streambuf`). It means that `counted_iterator` works flawlessly with
+`istreambuf_iterator`.
+
+For example, we can adapt the previous example to use `istreambuf_iterator` and
+get the expected behavior [[CE-ISTREAMBUF]]:
+
+```
+    auto iss = std::istringstream("012");
+    auto ibuf_it = std::istreambuf_iterator<char>(iss);
+    for (auto c : rn::subrange(ibuf_it, std::default_sentinel)
+                  | rv::take(1))
+    {
+        std::cout << c << '\n';
+    }
+    auto c = '\0';
+    iss >> c;
+    std::cout << c << std::endl; // flush it in case the assert fails
+    assert(c == '1'); // SUCCEEDS
+```
+
+The conclusion is that we have to differentiate between "eager" and "lazy"
+types.
+
+Side note: the differences in `istreambuf_iterator` behavior vs. other input
+iterators was the source of other issues in the past, e.g. see [[P0541]] and
+[[LWG2471]]
+
+
+Propagating the laziness
+========================
+
+Similarly to what was done with `borrowed_range` and similar traits, the trait
+of being lazy must be propagated by adaptors like `move_iterator` and
+`common_iterator`.
+
+
+Being lazy is not just for iterators
+====================================
+
+One of the adaptors that needs to propagated laziness through is
+`iota_view::iterator`. As `iota_view` works on any `weakly_incrementable`, not
+only on iterators, the lazy trait must be defined on `weakly_incrementable`, not
+just `input_iterator`.
+
+Please notice that `weakly_incrementable` (unlike `incrementable`) is similar to
+`input_iterator` being single-pass, as its `++` operator isn't
+equality-preserving.
+
+
+Open design questions
+=====================
+
+`output_iterator`
+-----------------
+
+The suggested wording below allows constructing `counted_iterator` from
+`output_iterator`, because typically its `++` doesn't have any side effect. An
+iterator is not `forward_iterator` if (a) its `++` affects its source (and
+invalidates all other copies) or (b) it isn't even `input_iterator`. As a
+result, an `input_iterator` that it isn't `forward_iterator` is a signal that
+its `++` has side effects, and this is problematic for `counted_iterator`, as
+described above, so we block them. But for iterators that don't model
+`input_iterator` in first place, we simply don't know if their `++` might be
+problematic. Still, we don't expect to find such iterators in the wild. Adding
+the requirement to enable explicitly each type of `output_iterator`, when we
+expect most or all of them to be enabled, seemed redundant.
+
+As we are not 100% sure about it, we seek for additional feedback here.
+
+
+`filter_view`
+-------------
+
+Let's consider the next example [[CE-ISTREAMBUF-FILTER]]:
+
+```
+    auto buf = std::stringbuf("a1x2d3f455gh6a");
+    for (auto c : rn::subrange(std::istreambuf_iterator(&buf), std::default_sentinel)
+                | rv::filter(static_cast<int(&)(int)>(std::isdigit))
+                | rv::take(3))
+    {
+        std::cout << c << " ";
+    }
+    char c = buf.sgetc();
+    std::cout << c << std::endl; // flush before the assert
+    assert(c == 'f'); // FAILS, c == '4'
+```
+
+As we can see, `filter` makes things more complex, as in some sense `filter` is
+by nature always eager. It takes the non-matching elements from the range even
+if the next matching element will never be used.
+
+Even with the planned `lazy_take`, that stops doing `++` after the last item has
+already taken, with `istreambuf_iterator` it still does the wrong thing, because
+then the last item (`3`) is left in the `stringbuf`. While this is the intended
+behavior for `lazy_take` when used on things like `istreambuf_iterator`, usually
+the user can decide between (1) using `lazy_take` and remembering to add a call
+to `++` on the underlying iterator at the end to continue working with it, and
+(2) using `take` and everything works as expected. `filter` + `take` removes too
+many elements even from lazy input iterator, making option 2 unviable, so the
+user is forced to use option 1, which is error prone due to the manual advancing
+required at the end.
+
+The bottom line is that the wording below doesn't change `filter_view`, which
+effectively means that `counted_iterator` or `take` can't be used on a
+`filter`ed `input_iterator`, even on lazy ones. The open question is if we want
+to allow this and give the user the option to use `filter` + `take` on lazy
+input iterator.
+
+Side note: While discussing this, we noticed that there is no easy way to
+continue using a range after using `filter` on it, even if it's a
+`forward_range`, because even while the filtered-out elements aren't lost, there
+is no easy way to find the element next to the last one taken from the range.
+For `bidirectional_range` it's possible to move back with the negation of the
+filter, but with `forward_range` we must go over it again to find first the `n`
+matching element and then go to the next one. Probably the design of
+`std::ranges` assumed the whole range is used only in the current pipeline and
+whatever left in it will not be reused later. But such reasoning doesn't work
+for `input_range`, where elements from the underlying source (e.g. `std::cin`)
+are lost forever.
+
+
+`join_view`
+-----------
+
+`join_view` is in some way a kind of `filter` that filters out empty elements
+(see the definition of `join_view::iterator::operator++`). It means those empty
+elements are lost forever when using `input_iterator`. Similarly to `filter`, we
+don't propose any change to `join_view`, which means it's blocked from `take`
+even for lazy input iterators.
+
+
+`lazy_split_view`
+-----------------
+
+Similarly to `join_view`, `lazy_split_view::outer_iterator` filters out the
+separators (pattern), and those will lost forever when using `input_iterator`.
+Again, we don't propose changes to this iterator.
+
+OTOH, `lazy_split_view::inner_iterator` can be lazy, so users can write:
+
+```
+    auto iss = std::istringstream("0;1;2");
+    auto ibuf_it = std::istreambuf_iterator<char>(iss);
+    for (auto c : rn::subrange(ibuf_it, std::default_sentinel)
+                  | rv::lazy_split(rv::single(';')))
+    {
+        std::cout << c << '\n';
+    }
+```
+We think it should be considered lazy unconditionally, because users shouldn't
+touch the original source while iterating the view that reads from it, and after
+the read is over, there are no assumptions on the source state. (REVISIT RATIONAL!)
+
+
+(Unlike `lazy_split_view`, `split_view` works on `forward_range` only, is
+`forward_range` itself and so is its inner range, so no need to touch it here.)
+
+
+Implementation experience
+=========================
+
+There is (partial) implementation of this proposal on a fork of MSFT STL
+[[MSFT-STL-FORK]]
+
+
+Proposed Wording
+================
+
+Under 25.2 [**iterator.synopsis**], right after `weakly_­incrementable` paragraph, add:
+
+<ins>
+// [iterator.concept.lazywinc], concept lazy_weakly_incrementable
+
+`template<class>`<br />
+`    inline constexpr bool enable_lazy_weakly_incrementable = false;   // freestanding`
+
+`template<class I>`<br />
+`    concept lazy_weakly_incrementable = see below;        // freestanding`
+</ins>
+
+
+`// [iterators.counted], counted iterators`<br />
+`  template<input_­or_­output_­iterator I>`<br />
+<span class="ins">`    requires forward_iterator<I> || lazy_weakly_incrementable<I> || (!input_iterator<I>)`</span><br />
+`class counted_iterator;       // freestanding`
+
+Right before `ostreambuf_iterator` paragraph add:
+
+<ins>
+`template<class CharT, class Traits>`<br />
+`    inline constexpr bool enable_lazy_weakly_incrementable<istreambuf_iterator<CharT, Traits>> = true;    // freestanding`
+</ins>
+
+
+Under 25.3.4 [**iterator.concepts**], between 25.3.4.4 [**iterator.concept.winc**]
+and 25.3.4.5 [**iterator.concept.inc**] add:
+
+<ins>
+25.3.4.x Concept lazy_weakly_incrementable [**iterator.concept.lazywinc**]
+
+The `lazy_weakly_incrementable` concept defines requirements for a type that is
+an `weakly_incrementable` and, if it models `iterator` too, doesn't remove the
+current element from the underlying source.
+
+`template<class I>`<br />
+`    concept lazy_weakly_incrementable =`<br />
+`        weakly_incrementable<I> && enable_lazy_weakly_incrementable<remove_cvref_t<I>>;`
+
+`template<class>`<br />
+`    inline constexpr bool enable_lazy_weakly_incrementable = false;`
+
+Remarks: Pursuant to [namespace.std], users may specialize `enable_lazy_weakly_incrementable`
+for cv-unqualified program-defined types. Such specializations shall be usable
+in constant expressions ([expr.const]) and have type `const bool`.
+
+[Example 1: Each specialization `S` of class template `istreambuf_iterator`<br />
+([istreambuf.iterator]) models `lazy_weakly_incrementable` because<br />
+`-` `enable_lazy_weakly_incrementable<S>` is specialized to have the value `true`, and<br />
+`-` `istreambuf_iterator` doesn't remove the current element from the underlying<br />
+  `basic_streambuf` until moving to the next element.
+— end example] 
+</ins>
+
+Under 25.5.6.1 [**counted.iterator**]:
+
+`template<input_­or_­output_­iterator I>`<br />
+<span class="ins">`    requires forward_iterator<I> || lazy_weakly_incrementable<I> || (!input_iterator<I>)`</span><br />
+`class counted_iterator`
+
+Under 26.2 [**ranges.syn**], 
+
+`template <view V>`
+<span class="ins">`    requires forward_range<V> || lazy_weakly_incrementable<iterator_t<V>> || (!input_range<V>)`</span><br />
+`class take_view           // freestanding`
+
+
+Under 26.7.10.2 [**range.take.view**]:
+
+`template<view V>`
+<span class="ins">`    requires forward_range<V> || lazy_weakly_incrementable<iterator_t<V>> || (!input_range<V>)`</span><br />
+`class take_view : public view_interface<take_view<V>> {`
+
+
+Effect on current state
+=======================
+This breaks existing code that uses `counted_iteraor` or anything based on it
+with (non-lazy) input iterator, if there is any.
+
+We believe this is Good Thing as we showed that `counted_iteraor` always does
+the wrong thing for (non-lazy) `input_iterator`s.
+
+At the very least, if this change isn't accepted, we have to warn users against
+using `counted_iterator` (and its consumers) with `input_iterator`. We might
+want to encourage implementations to produce diagnostic on such a usage.
+
+We think this is a good candidate to be applied as a Defect Report.
+
+
+TODO
+====
+
+Besides going over the C++23 new ranges (e.g. zip), here are the rest of the
+changes that aren't in the wording above yet, about how to specialize
+`enable_lazy_weakly_incrementable` for various adaptors:
+
+- `move_iterator<I>`               - `lazy<I>`
+- `common_iterator<I, S>`          - `lazy<I>`
+- `counted_iterator<I>`            - `lazy<I>`
+- `istreambuf_iterator<C, T>`      - `true`
+- `iota_view<W, B>::iterator`      - `lazy<W>`
+- `elements_view<V, N>::iterator`  - `lazy<iterator<V>>`
+- `transform_view<V, F>::iterator` - `lazy<iterator<V>>`
+
+
+Acknowledgements
+================
+
+Many thanks to the Israeli NB members for their feedback and support, in
+particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
+for their [[reddit-cpp|feedback]] on P2406R0.
