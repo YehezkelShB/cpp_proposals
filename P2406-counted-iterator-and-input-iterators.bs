@@ -346,6 +346,9 @@ iterator when `count()` becomes 0 to simplify the definition of other operators
 `lazy_counted_iterator`s, we return the `prev` of the underlying iterator in
 this case. As a result, `lazy_counted_iterator::base()` returns by value. As
 mentioned in [[LWG3391]], this prevents using it with move-only iterators.
+Please note that it's OK to call `prev` on the underlying iterator, as
+`lazy_counted_iterator` can't be created with `count() == 0`, so we are sure
+there is a prev.
 
 To rectify this, tools built on `lazy_counted_iterator` (e.g. `lazy_take`) must
 access the underlying iterator directly, instead of using `base()`. Users who
@@ -361,29 +364,54 @@ ranges, it's available already from what `lazy_take` returns in the current
 iteration.
 
 
+Constructor with count
+----------------------
+
+Following the discussion above about the c-tor that takes count, we disallow
+creating `lazy_counted_iterator` with `n == 0`. To make it easier to use it with
+pipelines, we might want to explicitly allow it, but disallow any operation on
+such an iterator that access the underlying iterator or comparing to another
+iterator (effectively allowing only `count()` and comparing to sentinel).
+
+
 Proposed Wording
 ================
 
-Note: the current wording is against `counted_iterator` but will be changed to
-refer to `lazy_counted_iterator`
+Duplicate "Counted iterators" section (25.5.6 [**iterators.counted**]), renaming it to
+"Lazy counted iterators" (adding 25.5.x [**iterators.lazy.counted**]), with the
+following differences (the wording here is done against the suggested changes in
+P2578R0):
 
+Every occurence of `counted_iterator` becomes `lazy_counted_iterator`
 
-Under 23.5.6.3 [**counted.iter.access**]:
+Every stable reference is prefixed with "lazy."
 
-<ins> `constexpr I base() const &;`<br/>
-Effects: Equivalent to: `return length ? current : next(current);`<br/>
-Note: calling `base()` twice isn't safe when `I` isn't `forward_iterator` </ins>
+Under 25.5.x.1 [**lazy.counted.iterator**]:
 
-`constexpr const I& base() const &;`<br/>
-<span class="ins">`  requires random_­access_­iterator<I>;`</span><br/>
+`template<input_­or_­output_­iterator I>`<br />
+<span class="del">`    requires forward_iterator<I> || lazy_weakly_incrementable<I> || (!input_iterator<I>)`</span><br />
+`class lazy_counted_iterator`
+
+Under 25.5.x.2 [**lazy.counted.iter.const**]:
+
+`constexpr counted_iterator(I i, iter_difference_t<I> n);`<br />
+Preconditions: <span class="del">`n >= 0`</span><span class="ins">`n > 0`</span>.
+
+Under 25.5.x.3 [**lazy.counted.iter.access**]:
+
+`constexpr `<span class="del">`const`</span>` I`<span class="del">`&`</span>` base() const &;`<br/>
 Effects: Equivalent to: `return current;`
 
-<ins> `constexpr I base() &&;`<br/>
-Returns: `std​::​move(length ? current : next(current))`. </ins>
+<ins>`constexpr I base() const &;`<br/>
+<span class="ins">`  requires random_­access_­iterator<I>;`</span><br/>
+Effects: Equivalent to: `return length ? current : std::ranges::prev(current);`</ins>
 
 `constexpr I base() &&;`<br/>
-<span class="ins">`  requires random_­access_­iterator<I>;`</span><br/>
 Returns: `std​::​move(current)`.
+
+<ins>`constexpr I base() &&;`<br/>
+`  requires random_­access_­iterator<I>;`<br/>
+Returns: `length ? std​::​move(current) : std::ranges::prev(current)`.</ins>
 
 
 Under 23.5.6.5 [**counted.iter.nav**]:
@@ -435,10 +463,25 @@ Effects: Equivalent to:<br/>
 `return *this;`<br/>
 
 
-Appendix
-========
+TODO
+====
+
+Missing wording for `lazy_take` and `views::lazy_counted` and adding more
+descriptions to `lazy_counted_iterator` (e.g. behavior of `base()`).
+
+
+Note about optimization
+=======================
 It's interesting to note that with any level of optimization enabled (including
 `-Og`!), gcc is able to "fix the issue" [[CE-OPT]] for the filter+take case (but
 not for `input_iterator`, of course). It's maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn't change the behavior [[CE-OPT2]].
+
+
+Acknowledgements
+================
+
+Many thanks to the Israeli NB members for their feedback and support, in
+particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
+for their [[reddit-cpp|feedback]] on P2406R0.
