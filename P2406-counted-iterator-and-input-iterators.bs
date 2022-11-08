@@ -63,6 +63,10 @@ ED: https://wg21.link/P2406
     "range-v3-issue57": {
         "href": "https://github.com/ericniebler/range-v3/issues/57",
         "title": "range-v3 - istream_range filtered with take(N) should stop reading at N"
+    },
+    "reddit-cpp": {
+        "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
+        "title": "r/cpp comments on P2406R0"
     }
 }
 </pre>
