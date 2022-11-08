@@ -44,10 +44,6 @@ ED: https://wg21.link/P2406
         "href": "https://gcc.godbolt.org/z/Eb8rdWYbP",
         "title": "istream problem example, Compiler Explorer"
     },
-    "CE-ISTREAMBUF": {
-        "href": "https://gcc.godbolt.org/z/ofeY74xoc",
-        "title": "istreambuf behavior example, Compiler Explorer"
-    },
     "CE-OPT": {
         "href": "https://gcc.godbolt.org/z/4dahzG8Gz",
         "title": "Optimizer magic solves filter+take issue, Compiler Explorer"
@@ -355,13 +351,14 @@ To rectify this, tools built on `lazy_counted_iterator` (e.g. `lazy_take`) must
 access the underlying iterator directly, instead of using `base()`. Users who
 need to access `base()`, can choose between using `take` with their move-only
 iterators (if the behavior is right, i.e. they know there is an additional
-avaialble element at the end and they are willing to throw away the rest of the
-range anyway) or creating another iterator from the same source they gave to
-`lazy_take` (as the internal state has changed to point to the last item used by
-`lazy_take`). Please note that creating such an iterator in the middle is
-impossible (it would invalidate the underlying iterator of `lazy_take`), but as
-only the current element is available in such ranges, it's available already
-from what `lazy_take` returns in the current iteration.
+avaialble element at the end, they are willing to throw away the rest of the
+range anyway and the iterator is lazy) or creating another iterator from the
+same source they gave to `lazy_take` (as the internal state has changed to point
+to the last item used by `lazy_take`). Please note that creating such an
+iterator in the middle is impossible (it would invalidate the underlying
+iterator of `lazy_take`), but as only the current element is available in such
+ranges, it's available already from what `lazy_take` returns in the current
+iteration.
 
 
 Proposed Wording

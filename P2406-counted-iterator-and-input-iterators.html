@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="658a8418f83a83f17af6ad2f636561b0d5232ede" name="document-revision">
+  <meta content="6a322ee999e799dec71d7e9f6ca658ff6cf52e86" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2339,11 +2339,14 @@ mentioned in <a data-link-type="biblio" href="#biblio-lwg3391">[LWG3391]</a>, th
 access the underlying iterator directly, instead of using <code class="highlight"><c- n>base</c-><c- p>()</c-></code>. Users who
 need to access <code class="highlight"><c- n>base</c-><c- p>()</c-></code>, can choose between using <code class="highlight"><c- n>take</c-></code> with their move-only
 iterators (if the behavior is right, i.e. they know there is an additional
-avaialble element at the end and they are willing to throw away the rest of the
-range anyway) or creating another iterator from the same source they gave to <code class="highlight"><c- n>lazy_take</c-></code> (as the internal state has changed to point to the last item used by <code class="highlight"><c- n>lazy_take</c-></code>). Please note that creating such an iterator in the middle is
-impossible (it would invalidate the underlying iterator of <code class="highlight"><c- n>lazy_take</c-></code>), but as
-only the current element is available in such ranges, it’s available already
-from what <code class="highlight"><c- n>lazy_take</c-></code> returns in the current iteration.</p>
+avaialble element at the end, they are willing to throw away the rest of the
+range anyway and the iterator is lazy) or creating another iterator from the
+same source they gave to <code class="highlight"><c- n>lazy_take</c-></code> (as the internal state has changed to point
+to the last item used by <code class="highlight"><c- n>lazy_take</c-></code>). Please note that creating such an
+iterator in the middle is impossible (it would invalidate the underlying
+iterator of <code class="highlight"><c- n>lazy_take</c-></code>), but as only the current element is available in such
+ranges, it’s available already from what <code class="highlight"><c- n>lazy_take</c-></code> returns in the current
+iteration.</p>
    <h2 class="heading settled" data-level="10" id="proposed-wording"><span class="secno">10. </span><span class="content">Proposed Wording</span><a class="self-link" href="#proposed-wording"></a></h2>
    <p class="note" role="note"><span>Note:</span> the current wording is against <code class="highlight"><c- n>counted_iterator</c-></code> but will be changed to
 refer to <code class="highlight"><c- n>lazy_counted_iterator</c-></code></p>
