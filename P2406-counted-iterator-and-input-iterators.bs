@@ -1,15 +1,15 @@
 <pre class='metadata'>
-Title: Fix `counted_iterator` interaction with input iterators
+Title: Add `lazy_counted_iterator`
 Status: D
 Audience: SG9 (Ranges)
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Editor: Yehuda Bernat, YehudaMBer@gmail.com
 Shortname: P2406
-Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggests new tools to improve the situation
+Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggests adding `lazy_counted_iterator` alternative to be used in such cases
 Group: WG21
-Date: 2021-07-25
+Date: 2022-12-28
 Markup Shorthands: markdown yes
-Revision: 1
+Revision: 2
 Default Highlight: CPP
 ED: https://wg21.link/P2406
 !Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2406-counted-iterator-and-input-iterators.bs">GitHub</a>
@@ -32,10 +32,6 @@ ED: https://wg21.link/P2406
 
 <pre class="biblio">
 {
-    "EULER": {
-        "href": "https://projecteuler.net/problem=37",
-        "title": "Truncatable primes, problem 37, Project Euler"
-    },
     "CE-FILTER": {
         "href": "https://gcc.godbolt.org/z/9TjbdMn3d",
         "title": "filter+take problem example, Compiler Explorer"
@@ -51,10 +47,6 @@ ED: https://wg21.link/P2406
     "CE-OPT2": {
         "href": "https://gcc.godbolt.org/z/PvMY8WeaT",
         "title": "Optimizer is right when filter really never returns, Compiler Explorer"
-    },
-    "P2578": {
-        "href": "https://wg21.link/p2578",
-        "title": "Block eager input (non-forward) iterators from counted_iterator"
     },
     "LWG3391": {
         "href": "https://cplusplus.github.io/LWG/issue3391",
@@ -73,28 +65,22 @@ ED: https://wg21.link/P2406
 
 <meta http-equiv="refresh" content="5">
 
-Revision History
-================
+# Revision History
+
+r2: Integrating SG9 feedback:
+- Removing references to p2578, after SG9 vote against it
+- Fix design suggested
+- Add design alternatives
 
 r1: Improving many parts, following feedback from Inbal Levi and from Reddit
-users
+users - [https://isocpp.org/files/papers/D2406R1.html]
 
-r0: initial revision
-
-
-Intro
-=====
-Project Euler is a project with many mathematical-related questions that are
-intended to encourage the reader to write a small program to compute the result.
-In this case, one of the problems there, no. 37 [[EULER]], helped reveal a
-pitfall coming from the definition of `std::counted_iterator`.
+r0: initial revision - [https://wg21.link/p2406r0]
 
 
-Problem description
-===================
+# Problem description
 
-Range with the exact number of items
-------------------------------------
+## Range with the exact number of items
 
 Look at this example code [[CE-FILTER]]:
 ```
@@ -124,19 +110,15 @@ it isn't clear for the user how many items the filter is expected to return, so
 limiting the output count with `take` becomes dangerous and results in
 unexpected behavior.
 
-The problem mentioned in the intro is one that actually describes a filter that
-return exactly 11 elements, so trying to use `take(11)` on it means the program
-never ends even while it got 11 elements already.
-
-It means `take` isn't usable on ranges that have the exact count of items (and
-so is `counted_iterator` when wrapping around an iterator for such a range).
+It means `take` isn't usable on ranges if we don't know in advance that there is
+an extra element in the range.
 
 
-`input_iterator` case
----------------------
+## `input_iterator` case
+
 Even more common problem is when using input ranges, e.g. `basic_istream_view`.
-In these cases, advancing the internal iterator when reaching the count means
-eating an additional input that can't be retrieved again later, or hanging
+In most of these cases, advancing the internal iterator when reaching the count
+means eating an additional input that can't be retrieved again later, or hanging
 forever if no additional input exists and the stream isn't closed. For example
 [[CE-ISTREAM]]:
 
@@ -162,14 +144,15 @@ int main()
 }
 ```
 
-It means that one can't use ranges when parsing input, for example.
+It makes it harder to use ranges for things like parsing input, if the rest of
+the stream is still to be used or we aren't sure there is any additional element
+in the stream.
 
 Seems like this was discussed in [[range-v3-issue57]], and there was no decision
 what is the right solution.
 
 
-Current behavior is what the standard mandates
-==============================================
+# Current behavior is what the standard mandates
 
 Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
 `operator++` for `counted_iterator` as:
@@ -185,8 +168,7 @@ effects mentioned above for input iterator case or when `++` on the internal
 iterator is costly (or never returns).
 
 
-Desired behavior
-================
+# Desired behavior
 
 As long as `counted_iterator` is valid (not equal to `default_sentinel`), it
 must never try to access more than `n` items (when `n` is the given count). If
@@ -195,49 +177,56 @@ defined (`operator++` might hang forever or access things that shouldn't be
 accessed etc.).
 
 
-Naive design of the solution
-============================
+# Design of the solution
 
-Basically, what is required to implement the desired behavior is changing the
-behavior of `counted_iterator` operators around 0 length so it doesn't increment
-the internal iterator when reaching 0 length.
+for reasons described below, instead of changing `counted_iterator`, we
+introduce a new type, `lazy_counted_iterator`, to implement the desired
+behavior, i.e. behaving almost like `counted_iterator` except being careful
+around 0 length so it doesn't increment the internal iterator when reaching 0
+length.
 
 
-Designs that were considered (and rejected)
-===========================================
+# Alternative designs
 
-Don't increment the underlying iterator until really required
--------------------------------------------------------------
+## Don't increment the underlying iterator until really required
 
 We could change `counted_iterator` internal behavior to increment the underlying
-iterator only on first dereference. This can't work as copying
-`counted_iterator` of non-forward iterator (that wasn't dereferenced yet for the
-current item) and then dereferencing one of them resulted with invalidation of
-the other one. Even if we are willing to make `counted_iterator` non-copyable,
-making the dereference operator non-const only or making the internal iterator
-`mutable` brings with it various other usability and correctness issues.
+iterator only on first dereference. This makes dereferencing a non-`const`
+operation. Additionally, copying `counted_iterator` of non-forward iterator
+(that wasn't dereferenced yet for the current item) and then dereferencing one
+of them resulted with invalidation of the other one. We can make
+`counted_iterator` non-copyable, but making the dereference operator non-`const`
+only or making the internal iterator `mutable` brings with it various other
+usability and correctness issues.
 
 
-Fix `counted_iterator` behavior around 0
-----------------------------------------
+## Fix `counted_iterator` "in place"
 
-Instead of introducing new type, `lazy_counted_iterator`, which is almost like
-`counted_iterator` but with some changes, we tried to apply similar changes to
-`counted_iterator` itself. This has been proven to be impossible, even if the
-changes can be done in ABI compatible way. For example, there is no sane way to
-fix the c-tor that takes iterator and count, when the count is 0. Here are the
-details:
+Instead of introducing new type, `lazy_counted_iterator`, we tried to apply
+similar changes to `counted_iterator` itself. We believe this has been proven to
+be impossible, even if the changes could have been done in ABI compatible way
+(or we decide we don't care about ABI in this case). Besides other design
+questions discussed in this paper, that are easier to fix for a new type without
+breaking existing code, the main issue we see is that we can't decide for the
+user which behavior is desired:
+
+### Option 1: Use always the lazy behavior
+
+This is problematic 
+
+
+## Dealing with consructing with 0
 
 `counted_iterator` allows constructing with `0` as argument for length. If we
 change `counted_iterator` operators to behave similarly to what we propose for
 `lazy_counted_iterator`, this constructor puts the iterator in an inconsistent
 internal state, as the underlying iterator is expected to be "one step back".
 
-Please note that `base()` and `--` are the only operations involving the state
-of the internal iterator and still legal for `counted_iterator` constructed with
-`n==0`.
+Please note that `base()` and decrementing are the only operations involving the
+state of the internal iterator and still legal for `counted_iterator`
+constructed with `n==0`.
 
-The options we considered and rejected are:
+The options we see:
 
 Option 1: Require that if `n == 0`, `i` must be decrementable, and actually
 decrement it in the c-tor. Please note that this obviously works only for
@@ -273,26 +262,9 @@ iterators [[LWG3391]].
 Our conclusion is that `counted_iterator` can't be fixed to handle all cases.
 
 
-P2578 and this paper
-====================
+# Design of the proposed solution
 
-We propose a fix constructed from 2 parts:
-1. Block the obviously wrong usages from `counted_iterator` (most usages with
-   input iterators)
-2. Create new tools that behave better in these cases
-
-To make it easier to discuss and adopt each part by itself, if needed, we
-separated them to 2 papers. [[P2578]] introduces `lazy_weakly_incrementable`
-concept and blocks usage of `counted_iterator` with input (non-forward)
-iterators that aren't `lazy_weakly_incrementable`. This paper is about the
-second part of the solution and builds on the concept introduced with P2578.
-
-
-Design of the proposed solution
-===============================
-
-The main changes
-----------------
+## The main changes
 
 We propose adding a new iterator type, `lazy_counted_iterator`. This type
 behaves similarly to `counted_iterator`, with changes to its operator definition
@@ -304,8 +276,7 @@ Additionally, this requires adding `lazy_take` and `views::lazy_counted` that
 uses the new iterator instead of `counted_iterator`.
 
 
-Why `lazy_take` instead of fixing `take`?
------------------------------------------
+## Why `lazy_take` instead of fixing `take`?
 
 We could have change `take` to use `lazy_counted_iterator` when constructed with
 input (non lazy) range. Besides ABI considerations, we find it wrong if `take`
@@ -321,11 +292,12 @@ the differences in behavior both for lazy input iterators and forward iterators
 We aren't happy with the additional burden on teachability, but we believe in
 most cases users can just use `lazy_take` and it does The Right Thing. The only
 point where users must be aware of it is when they use `base()` method, which we
-expect to be quite advance usage in general.
+expect to be quite advance usage in general. Users who care about absolute
+performance, can choose using `take` when they know it works correctly for their
+case.
 
 
-`random_access_iterator` case kept as-is
-----------------------------------------
+## `random_access_iterator` case kept as-is
 
 To reduce the amount of changes required, we keep the current behavior for
 `random_access_iterator` case, so we don't have to touch the additional
@@ -335,8 +307,7 @@ items ready or able to compute all of them efficiently, so it doesn't suffer
 from an issue similar to the one `forward_iterator` might have.
 
 
-Discussing `base()` changes
----------------------------
+## Discussing `base()` changes
 
 To keep `lazy_counted_iterator::base()` as `const` member, its behavior is
 defined such when `count() == 0` it returns the "one before" iterator. If we
@@ -369,37 +340,28 @@ ranges, it's available already from what `lazy_take` returns in the current
 iteration.
 
 
-Constructor with count
-----------------------
+## Constructor with count
 
-Following the discussion above about the c-tor that takes count, we disallow
-creating `lazy_counted_iterator` with `n == 0`. To make it easier to use it with
-pipelines, we might want to explicitly allow it, but disallow any operation on
-such an iterator that access the underlying iterator or comparing to another
-iterator (effectively allowing only `count()` and comparing to sentinel).
+Following the discussion above about the c-tor that takes count, if
+`lazy_counted_iterator` is created with `n == 0` (which might happens naturally
+with pipelines), we allow it, but disallow any operation on such an iterator
+that access the underlying iterator or comparing to another iterator
+(effectively allowing only `count()` and comparing to sentinel).
 
 
-Proposed Wording
-================
+# Proposed Wording
 
 Duplicate "Counted iterators" section (25.5.6 [**iterators.counted**]), renaming it to
 "Lazy counted iterators" (adding 25.5.x [**iterators.lazy.counted**]), with the
-following differences (the wording here is done against the suggested changes in
-P2578R0):
+following differences:
 
 Every occurence of `counted_iterator` becomes `lazy_counted_iterator`
 
 Every stable reference is prefixed with "lazy."
 
-Under 25.5.x.1 [**lazy.counted.iterator**]:
-
-`template<input_­or_­output_­iterator I>`<br />
-<span class="del">`    requires forward_iterator<I> || lazy_weakly_incrementable<I> || (!input_iterator<I>)`</span><br />
-`class lazy_counted_iterator`
-
 Under 25.5.x.2 [**lazy.counted.iter.const**]:
 
-`constexpr counted_iterator(I i, iter_difference_t<I> n);`<br />
+`constexpr lazy_counted_iterator(I i, iter_difference_t<I> n);`<br />
 Preconditions: <span class="del">`n >= 0`</span><span class="ins">`n > 0`</span>.
 
 Under 25.5.x.3 [**lazy.counted.iter.access**]:
@@ -468,15 +430,14 @@ Effects: Equivalent to:<br/>
 `return *this;`<br/>
 
 
-TODO
-====
+# TODO
 
 Missing wording for `lazy_take` and `views::lazy_counted` and adding more
 descriptions to `lazy_counted_iterator` (e.g. behavior of `base()`).
 
 
-Note about optimization
-=======================
+# Note about optimization
+
 It's interesting to note that with any level of optimization enabled (including
 `-Og`!), gcc is able to "fix the issue" [[CE-OPT]] for the filter+take case (but
 not for `input_iterator`, of course). It's maybe even more interesting to see
@@ -484,9 +445,9 @@ the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn't change the behavior [[CE-OPT2]].
 
 
-Acknowledgements
-================
+# Acknowledgements
 
 Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
-for their [[reddit-cpp|feedback]] on P2406R0.
+for their [[reddit-cpp|feedback]] on P2406R0. Thanks SG9 members for their
+feedback and guidance.
