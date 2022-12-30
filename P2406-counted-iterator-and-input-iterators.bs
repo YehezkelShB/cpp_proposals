@@ -71,6 +71,7 @@ ED: https://wg21.link/P2406
 }
 </pre>
 
+<meta http-equiv="refresh" content="5">
 
 Revision History
 ================
