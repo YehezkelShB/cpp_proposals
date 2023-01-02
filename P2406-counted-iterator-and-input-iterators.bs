@@ -59,6 +59,14 @@ ED: https://wg21.link/P2406
     "reddit-cpp": {
         "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
         "title": "r/cpp comments on P2406R0"
+    },
+    "P2406R0": {
+        "href": "https://wg21.link/p2406r0",
+        "title": "P2406R0"
+    },
+    "D2406R1": {
+        "href": "https://isocpp.org/files/papers/D2406R1.html",
+        "title": "D2406R1"
     }
 }
 </pre>
@@ -73,9 +81,9 @@ r2: Integrating SG9 feedback:
 - Add design alternatives
 
 r1: Improving many parts, following feedback from Inbal Levi and from Reddit
-users - [https://isocpp.org/files/papers/D2406R1.html]
+users - [[D2406R1]]
 
-r0: initial revision - [https://wg21.link/p2406r0]
+r0: initial revision - [[P2406R0]]
 
 
 # Problem description
@@ -177,50 +185,37 @@ defined (`operator++` might hang forever or access things that shouldn't be
 accessed etc.).
 
 
-# Design of the solution
+# High-level design of the proposed solution
 
-for reasons described below, instead of changing `counted_iterator`, we
-introduce a new type, `lazy_counted_iterator`, to implement the desired
-behavior, i.e. behaving almost like `counted_iterator` except being careful
-around 0 length so it doesn't increment the internal iterator when reaching 0
-length.
+We propose adding a new iterator type, `lazy_counted_iterator`. This type
+behaves similarly to `counted_iterator`, with changes to its operator definition
+around 0 count so it doesn't increment the internal iterator when reaching 0
+count.
 
+Additionally, this requires adding `lazy_take` and `views::lazy_counted` that
+uses the new iterator instead of `counted_iterator`.
 
-# Alternative designs
-
-## Don't increment the underlying iterator until really required
-
-We could change `counted_iterator` internal behavior to increment the underlying
-iterator only on first dereference. This makes dereferencing a non-`const`
-operation. Additionally, copying `counted_iterator` of non-forward iterator
-(that wasn't dereferenced yet for the current item) and then dereferencing one
-of them resulted with invalidation of the other one. We can make
-`counted_iterator` non-copyable, but making the dereference operator non-`const`
-only or making the internal iterator `mutable` brings with it various other
-usability and correctness issues.
+See below ([[#design-alternatives]]) for more details.
 
 
-## Fix `counted_iterator` "in place"
+# Design points for discussion
 
-Instead of introducing new type, `lazy_counted_iterator`, we tried to apply
-similar changes to `counted_iterator` itself. We believe this has been proven to
-be impossible, even if the changes could have been done in ABI compatible way
-(or we decide we don't care about ABI in this case). Besides other design
-questions discussed in this paper, that are easier to fix for a new type without
-breaking existing code, the main issue we see is that we can't decide for the
-user which behavior is desired:
+## `random_access_iterator` case
 
-### Option 1: Use always the lazy behavior
-
-This is problematic 
+To reduce the amount of changes required, we kept the current behavior for
+`random_access_iterator` case, so we don't have to touch the additional
+operators defined only for this category. The rational behind it is that for
+`random_access_iterator` case we can expect the view to either have all the
+items ready or able to compute all of them efficiently, so it doesn't suffer
+from an issue similar to the one `forward_iterator` might have.
 
 
-## Dealing with consructing with 0
+## Consructing with 0 count
 
-`counted_iterator` allows constructing with `0` as argument for length. If we
-change `counted_iterator` operators to behave similarly to what we propose for
-`lazy_counted_iterator`, this constructor puts the iterator in an inconsistent
-internal state, as the underlying iterator is expected to be "one step back".
+Similarly to `counted_iterator`, `lazy_counted_iterator` must allow constructing
+with 0 count. In most design alternatives, this puts the iterator in an
+inconsistent internal state, as the underlying iterator is expected to be "one
+step back".
 
 Please note that `base()` and decrementing are the only operations involving the
 state of the internal iterator and still legal for `counted_iterator`
@@ -237,7 +232,8 @@ doesn't sound correct, blocking a basic operation like `base()`).
 This option assumes the only reason to create such an `counted_iterator` is to
 decrement it later, so we always expect the given iterator to be decrementable.
 Obviously, we can't really assume it. The next operation could be to test for
-the value of `n` before doing anything else and do nothing in the `0` case.
+`count()` before doing anything else and do nothing in the `0` case. This
+happens naturally in a pipeline if the passed range becomes empty, for example.
 
 Option 2: Require that if `n==0`, `i` must be "the one before" the actual
 iterator (leaving it to the user to decide how to handle, and if neither `--`
@@ -246,34 +242,28 @@ option changes behavior of existing code so it's isn't relevant either.
 
 Option 3: Mark this case internally (e.g. with `length=-1` or a boolean flag)
 and handle specially when decrementing (`length` "jumps" to `1` after
-decrementing the internal iterator). Please note that both the counter/flag and
-the internal iterator must be mutable (to be changed on first access to
-`base()`). Also, if -1 is used, instead of a separated flag, comparison
-operators have to consider this case too. Using a flag, OTOH, will probably push
-for separated specialization of the whole class, so for random-access iterators
-this member will not exist. This still doesn't solve the problem of invalidation
-of one copy when `base()` is called on the other one. It also breaks ABI.
-
-Another problem is that keeping the current behavior of `base()` requires
-`base()` to be non-const (obviously undesired for read-only method) or to start
-returning by-value, preventing the usage of `counted_iterator` on move-only
-iterators [[LWG3391]].
-
-Our conclusion is that `counted_iterator` can't be fixed to handle all cases.
+decrementing the internal iterator). Implementation must be careful if -1 is
+used, instead of a separated flag, as comparison operators have to consider this
+case too. Using a flag, OTOH, will probably push for separated specialization of
+the whole class, so for random-access iterators this member will not exist.
 
 
-# Design of the proposed solution
+## `base()`
 
-## The main changes
+When reaching 0 count, if `base()` still simply returns the underlying iterator,
+it returns the "one before" iterator in most cases.
 
-We propose adding a new iterator type, `lazy_counted_iterator`. This type
-behaves similarly to `counted_iterator`, with changes to its operator definition
-around 0 length so it doesn't increment the internal iterator when reaching 0
-length, and as a result doesn't decrement it when getting back from 0 to 1
-length. This requires changing `base()` behavior too.
+If we want it to return the actual end (as users expect) and make the behavior
+consistent, it means we must advance the underlying iterator first. This doesn't
+allow `base()` to be `const` (at least logically) and invalidates other copies
+of the iterator (in case of non-forward iterator). As this option seems the most
+reasonable one, we based out [[#alternatives-for-base]] suggestions on it.
 
-Additionally, this requires adding `lazy_take` and `views::lazy_counted` that
-uses the new iterator instead of `counted_iterator`.
+Another option is to return by value, so this increment only a copy of the
+underlying operator and keeps `base()` as `const` member. Besides having the
+invlidation problem here (maybe worse than before, as it invalidated the current
+object too, so calling `base()` twich isn't allowed!), this prevents using it
+with move-only iterators, as mentioned in [[LWG3391]].
 
 
 ## Why `lazy_take` instead of fixing `take`?
@@ -297,56 +287,116 @@ performance, can choose using `take` when they know it works correctly for their
 case.
 
 
-## `random_access_iterator` case kept as-is
+### Improve discoverability and teachability
 
-To reduce the amount of changes required, we keep the current behavior for
-`random_access_iterator` case, so we don't have to touch the additional
-operators defined only for this category. The rational behind it is that for
-`random_access_iterator` case we can expect the view to either have all the
-items ready or able to compute all of them efficiently, so it doesn't suffer
-from an issue similar to the one `forward_iterator` might have.
+An option mentioned in the discussions was to improve discoverability by
+renaming `counted_iterator` and `take` to `eager_counted_iterator` and
+`eager_take` and calling the new tools `counted_iterator` and `take`.
 
+Another variation was to call the new tools `lazy_counted_iterator` and
+`lazy_take` as suggested here, rename the existing one to have `eager_` prefix
+and add new versions of `counted_iterator` and `take` that alias the `lazy_`
+version for `input_iterator` case and keep aliasing the `eager_` version for
+the rest of the cases.
 
-## Discussing `base()` changes
+While leaving the user the option to choose the option that fits their specific
+use-case, it still provides a safer default.
 
-To keep `lazy_counted_iterator::base()` as `const` member, its behavior is
-defined such when `count() == 0` it returns the "one before" iterator. If we
-want it to return the actual end, it means we must advance the underlying
-iterator first. This doesn't allow `base()` to be `const`, invalidates other
-copies of the iterator and (depending on the way it's defined) might even make
-calling `base()` twice UB. This is why we propose the behavior just described.
-
-As mentioned, for `random_access_iterator` we do increment the underlying
-iterator when `count()` becomes 0 to simplify the definition of other operators
-(e.g. `+=`). To keep `base()` functionality consistent for all
-`lazy_counted_iterator`s, we return the `prev` of the underlying iterator in
-this case. As a result, `lazy_counted_iterator::base()` returns by value. As
-mentioned in [[LWG3391]], this prevents using it with move-only iterators.
-Please note that it's OK to call `prev` on the underlying iterator, as
-`lazy_counted_iterator` can't be created with `count() == 0`, so we are sure
-there is a prev.
-
-To rectify this, tools built on `lazy_counted_iterator` (e.g. `lazy_take`) must
-access the underlying iterator directly, instead of using `base()`. Users who
-need to access `base()`, can choose between using `take` with their move-only
-iterators (if the behavior is right, i.e. they know there is an additional
-avaialble element at the end, they are willing to throw away the rest of the
-range anyway and the iterator is lazy) or creating another iterator from the
-same source they gave to `lazy_take` (as the internal state has changed to point
-to the last item used by `lazy_take`). Please note that creating such an
-iterator in the middle is impossible (it would invalidate the underlying
-iterator of `lazy_take`), but as only the current element is available in such
-ranges, it's available already from what `lazy_take` returns in the current
-iteration.
+We believe this option is problematic as it might be source breaking (e.g.
+`counted_iterator ci = take(i, 4).begin();` for the second variation, or any
+usage of interface that isn't provided by the new tools in any variation), but
+still wanted to mention this option for discussion.
 
 
-## Constructor with count
+# Design alternatives
 
-Following the discussion above about the c-tor that takes count, if
-`lazy_counted_iterator` is created with `n == 0` (which might happens naturally
-with pipelines), we allow it, but disallow any operation on such an iterator
-that access the underlying iterator or comparing to another iterator
-(effectively allowing only `count()` and comparing to sentinel).
+Following are the design alternatives we came up with, after the discussions
+happend over the previous revisions:
+
+
+## Option 1 - As closer to `counted_iterator` as possible
+
+With this option, `lazy_counted_iterator` is almost identical to
+`counted_iterator` with the following changes:
+1. For `random_access_iterator`, the behavior is the same. <br />
+   Reason: If an iterator is random access, we expect it to know when we reach
+   the end. (Question: maybe we actually want `sized_iterator` here?)
+1. Incrementing `lazy_counted_iterator` doesn't increment the underlying
+   iterator when reaching 0 count.
+1. Decrementing `lazy_counted_iterator` doesn't decrement the underlying
+   iterator when current count is 0.
+1. Implementation must handle correctly `lazy_counted_iterator` constructed with
+   0 count (e.g. marking it differently so it knows to decrement the underlying
+   iterator despite the previous point).
+
+
+## Option 2 - Capped to `forward_iterator`
+
+With this option, `lazy_counted_iterator` provides `forward_iterator` interface
+(at max). This removes the need to handle decrementing correctly. (Implementations
+might still choose to track the case of `lazy_counted_iterator` constructed with 0
+count for validating the precondition of iterator comparison.)
+
+
+## Option 3 - Don't read it if created with 0 count
+
+This option is similar to option 1, but to simplify the handling of an iterator
+constructed with 0 count, disallows using such an iterator with any operation
+that access the underlying iterator (no `--` or `base()`) or comparing to
+another iterator (effectively allowing only calling `count()` and comparing to
+sentinel). Please note that if we choose option III below, it means that after
+calling `base()`, same restrictions apply on that iterator, including diallowing
+another call to `base()`.
+
+
+## Option 4 - Don't increment the underlying iterator until really required
+
+Increment the underlying iterator only on first dereference. This makes
+dereferencing a non-`const` operation. Additionally, copying
+`lazy_counted_iterator` of non-forward iterator (that wasn't dereferenced yet
+for the current item) and then dereferencing one of them resulted with
+invalidation of the other one. To improve the situation we can make
+`lazy_counted_iterator` non-copyable.
+
+
+## Alternatives for `base()`
+
+### Option I - Don't provide `base()`
+
+In this option, we just don't provide `base()`. Returning the underlying
+iterator when count is 0 can be confusing (it depends if `lazy_counted_iterator`
+was created with 0 count or reached this state by incrementing it) or invoking
+the same issue we try to solve here (if we increment the iterator here).
+Additionally, if we increment the underlying iterator on first access to
+`base()`, it can't be `const` (at least not logically), it invalidates other
+copies of the iterator in case of `input_iterator` and (even if we go with
+option 2 above) adds back the complexity of tracking if the iterator was
+incremented already (e.g. constructed with 0 count).
+
+If we go with option 1 above, it means that for `random_access_iterator` we keep
+providing `base()`, like `counted_iterator` does, as there is no reason not to.
+
+Wording must be adjustment when other functionality is defined in terms of
+calling `base()` and implementation can access the underlying iterator directly
+when needed.
+
+
+### Option II - Make `lazy_counted_iterator` non-copyable
+
+Provide `base()` function which increments the underlying iterator if needed.
+Users are warned that calling `base()` means non-lazy behavior. Implementation
+must not invoke it if not explicitly requested (same wording adjustment is
+required as in the previous option). We make `lazy_counted_iterator`
+non-copyable even if the underlying iterator is copyable. If it's non-copyable,
+we don't have to worry about invalidation (at least not directly; it still
+invalidates copies of the underlying iterator).
+
+
+### Option III - Provide `base()` and mention it invalidates other copies
+
+Provide `base()` and specify it as invalidating other copies, leaving it to the
+users to use it correctly. Implementation must increment the underlying iterator
+if needed (reached 0 count and this is the first time `base()` is called).
 
 
 # Note about optimization
@@ -361,6 +411,6 @@ never return another number, it doesn't change the behavior [[CE-OPT2]].
 # Acknowledgements
 
 Many thanks to the Israeli NB members for their feedback and support, in
-particular Inbal Levi, Dvir Yitzchaki and Dan Raviv. Thanks r/cpp Reddit users
-for their [[reddit-cpp|feedback]] on P2406R0. Thanks SG9 members for their
-feedback and guidance.
+particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
+Reddit users for their feedback on P2406R0 [[reddit-cpp]]. Thanks SG9 members
+for their feedback and guidance.
