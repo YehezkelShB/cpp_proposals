@@ -223,7 +223,7 @@ The options we see:
 
 Option 1: Require that if `n == 0`, `i` must be decrementable, and actually
 decrement it in the c-tor. Please note that this obviously works only for
-`bidirectional_­iterator`. Other kind of iterators can be left as UB, or just
+`bidirectional_iterator`. Other kind of iterators can be left as UB, or just
 advice against calling `base()` on the resulted `counted_iterator` (which
 doesn't sound correct, blocking a basic operation like `base()`).
 
@@ -395,6 +395,663 @@ invalidates copies of the underlying iterator).
 Provide `base()` and specify it as invalidating other copies, leaving it to the
 users to use it correctly. Implementation must increment the underlying iterator
 if needed (reached 0 count and this is the first time `base()` is called).
+
+
+# Wording
+
+Wording is for the design recommended by SG9, Option 2 + I.
+
+
+ ```c++
+ // [iterators.counted], counted iterators
+  template<input_or_output_iterator I> class counted_iterator;             // freestanding
+
+  template<input_iterator I>
+    requires see below
+    struct iterator_traits<counted_iterator<I>>;            // freestanding
+  ```
+
+
+25 Iterators library                                [iterators]
+
+25.5 Iterator adaptors                              [predef.iterators]
+
+25.5.7 Counted iterators                            [iterators.counted]
+
+25.5.7.1 Class template `counted_iterator`          [counted.iterator]
+
+Class template `counted_iterator` is an iterator adaptor with the same behavior
+as the underlying iterator except that it keeps track of the distance to the end
+of its range. It can be used together with `default_sentinel` in calls to generic
+algorithms to operate on a range of N elements starting at a given position
+without needing to know the end position a priori.
+
+[Example 1:
+```c++
+list<string> s;
+// populate the list s with at least 10 strings
+vector<string> v;
+// copies 10 strings into v:
+ranges::copy(counted_iterator(s.begin(), 10), default_sentinel, back_inserter(v));
+```
+— end example]
+
+Two values `i1` and `i2` of types `counted_iterator<I1>` and `counted_iterator<I2>`
+refer to elements of the same sequence if and only if there exists some integer
+n such that `next(i1.base(), i1.count() + n)` and `next(i2.base(), i2.count() + n)`
+refer to the same (possibly past-the-end) element.
+
+```c++
+namespace std {
+  template<input_or_output_iterator I>
+  class counted_iterator {
+  public:
+    using iterator_type = I;
+    using value_type = iter_value_t<I>;                         // present only
+                        // if I models indirectly_readable
+    using difference_type = iter_difference_t<I>;
+    using iterator_concept = typename I::iterator_concept;      // present only
+                        // if the qualified-id I::iterator_concept is valid and denotes a type
+    using iterator_category = typename I::iterator_category;    // present only
+                        // if the qualified-id I::iterator_category is valid and denotes a type
+    constexpr counted_iterator() requires default_initializable<I> = default;
+    constexpr counted_iterator(I x, iter_difference_t<I> n);
+    template<class I2>
+      requires convertible_to<const I2&, I>
+        constexpr counted_iterator(const counted_iterator<I2>& x);
+
+    template<class I2>
+      requires assignable_from<I&, const I2&>
+        constexpr counted_iterator& operator=(const counted_iterator<I2>& x);
+
+    constexpr const I& base() const & noexcept;
+    constexpr I base() &&;
+    constexpr iter_difference_t<I> count() const noexcept;
+    constexpr decltype(auto) operator*();
+    constexpr decltype(auto) operator*() const
+      requires dereferenceable<const I>;
+
+    constexpr auto operator->() const noexcept
+      requires contiguous_iterator<I>;
+
+    constexpr counted_iterator& operator++();
+    constexpr decltype(auto) operator++(int);
+    constexpr counted_iterator operator++(int)
+      requires forward_iterator<I>;
+    constexpr counted_iterator& operator--()
+      requires bidirectional_iterator<I>;
+    constexpr counted_iterator operator--(int)
+      requires bidirectional_iterator<I>;
+
+    constexpr counted_iterator operator+(iter_difference_t<I> n) const
+      requires random_access_iterator<I>;
+    friend constexpr counted_iterator operator+(
+      iter_difference_t<I> n, const counted_iterator& x)
+        requires random_access_iterator<I>;
+    constexpr counted_iterator& operator+=(iter_difference_t<I> n)
+      requires random_access_iterator<I>;
+
+    constexpr counted_iterator operator-(iter_difference_t<I> n) const
+      requires random_access_iterator<I>;
+    template<common_with<I> I2>
+      friend constexpr iter_difference_t<I2> operator-(
+        const counted_iterator& x, const counted_iterator<I2>& y);
+    friend constexpr iter_difference_t<I> operator-(
+      const counted_iterator& x, default_sentinel_t);
+    friend constexpr iter_difference_t<I> operator-(
+      default_sentinel_t, const counted_iterator& y);
+    constexpr counted_iterator& operator-=(iter_difference_t<I> n)
+      requires random_access_iterator<I>;
+
+    constexpr decltype(auto) operator[](iter_difference_t<I> n) const
+      requires random_access_iterator<I>;
+
+    template<common_with<I> I2>
+      friend constexpr bool operator==(
+        const counted_iterator& x, const counted_iterator<I2>& y);
+    friend constexpr bool operator==(
+      const counted_iterator& x, default_sentinel_t);
+
+    template<common_with<I> I2>
+      friend constexpr strong_ordering operator<=>(
+        const counted_iterator& x, const counted_iterator<I2>& y);
+
+    friend constexpr iter_rvalue_reference_t<I> iter_move(const counted_iterator& i)
+      noexcept(noexcept(ranges::iter_move(i.current)))
+        requires input_iterator<I>;
+    template<indirectly_swappable<I> I2>
+      friend constexpr void iter_swap(const counted_iterator& x, const counted_iterator<I2>& y)
+        noexcept(noexcept(ranges::iter_swap(x.current, y.current)));
+
+  private:
+    I current = I();                    // exposition only
+    iter_difference_t<I> length = 0;    // exposition only
+  };
+
+  template<input_iterator I>
+    requires same_as<ITER_TRAITS(I), iterator_traits<I>>   // see [iterator.concepts.general]
+  struct iterator_traits<counted_iterator<I>> : iterator_traits<I> {
+    using pointer = conditional_t<contiguous_iterator<I>,
+                                  add_pointer_t<iter_reference_t<I>>, void>;
+  };
+}
+```
+
+
+25.5.7.2 Constructors and conversions          [counted.iter.const]
+
+`constexpr counted_iterator(I i, iter_difference_t<I> n);`
+
+*Preconditions*: n >= 0.
+
+*Effects*: Initializes `current` with `std::move(i)` and `length` with `n`.
+
+
+```c++
+template<class I2>
+  requires convertible_to<const I2&, I>
+    constexpr counted_iterator(const counted_iterator<I2>& x);
+```
+
+*Effects*: Initializes `current` with `x.current` and `length` with `x.length`.
+
+
+```c++
+template<class I2>
+  requires assignable_from<I&, const I2&>
+    constexpr counted_iterator& operator=(const counted_iterator<I2>& x);
+```
+
+*Effects*: Assigns `x.current` to `current` and `x.length` to `length`.
+
+*Returns*: `*this`.
+
+
+25.5.7.3 Accessors              [counted.iter.access]
+
+`constexpr const I& base() const & noexcept;`
+
+*Effects*: Equivalent to: return `current`;
+
+
+`constexpr I base() &&;`
+
+*Returns*: `std::move(current)`.
+
+
+`constexpr iter_difference_t<I> count() const noexcept;`
+
+*Effects*: Equivalent to: `return length;`
+
+
+25.5.7.4 Element access         [counted.iter.elem]
+
+```c++
+constexpr decltype(auto) operator*();
+constexpr decltype(auto) operator*() const
+  requires dereferenceable<const I>;
+```
+
+*Preconditions*: `length > 0` is `true`.
+
+*Effects*: Equivalent to: `return *current;`
+
+
+```c++
+constexpr auto operator->() const noexcept
+  requires contiguous_iterator<I>;
+```
+
+*Effects*: Equivalent to: `return to_address(current);`
+
+
+```c++
+constexpr decltype(auto) operator[](iter_difference_t<I> n) const
+  requires random_access_iterator<I>;
+```
+*Preconditions*: `n < length`.
+
+*Effects*: Equivalent to: `return current[n];`
+
+
+25.5.7.5 Navigation            [counted.iter.nav]
+
+`constexpr counted_iterator& operator++();`
+
+*Preconditions*: `length > 0`.
+
+*Effects*: Equivalent to:
+```c++
+++current;
+--length;
+return *this;
+```
+
+
+`constexpr decltype(auto) operator++(int);`
+
+*Preconditions*: `length > 0`.
+
+*Effects*: Equivalent to:
+```c++
+--length;
+try { return current++; }
+catch(...) { ++length; throw; }
+```
+
+
+```c++
+constexpr counted_iterator operator++(int)
+  requires forward_iterator<I>;
+```
+*Effects*: Equivalent to:
+```c++
+counted_iterator tmp = *this;
+++*this;
+return tmp;
+```
+
+
+```c++
+constexpr counted_iterator& operator--()
+  requires bidirectional_iterator<I>;
+```
+*Effects*: Equivalent to:
+```c++
+--current;
+++length;
+return *this;
+```
+
+
+```c++
+constexpr counted_iterator operator--(int)
+  requires bidirectional_iterator<I>;
+```
+*Effects*: Equivalent to:
+```c++
+counted_iterator tmp = *this;
+--*this;
+return tmp;
+```
+
+
+```c++
+constexpr counted_iterator operator+(iter_difference_t<I> n) const
+  requires random_access_iterator<I>;
+```
+*Effects*: Equivalent to: `return counted_iterator(current + n, length - n);`
+
+
+```c++
+friend constexpr counted_iterator operator+(
+  iter_difference_t<I> n, const counted_iterator& x)
+    requires random_access_iterator<I>;
+```
+*Effects*: Equivalent to: `return x + n;`
+
+
+```c++
+constexpr counted_iterator& operator+=(iter_difference_t<I> n)
+  requires random_access_iterator<I>;
+```
+*Preconditions*: `n <= length`.
+
+*Effects*: Equivalent to:
+```c++
+current += n;
+length -= n;
+return *this;
+```
+
+
+```c++
+constexpr counted_iterator operator-(iter_difference_t<I> n) const
+  requires random_access_iterator<I>;
+```
+*Effects*: Equivalent to: `return counted_iterator(current - n, length + n);`
+
+
+```c++
+template<common_with<I> I2>
+  friend constexpr iter_difference_t<I2> operator-(
+    const counted_iterator& x, const counted_iterator<I2>& y);
+```
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+
+*Effects*: Equivalent to: `return y.length - x.length;`
+
+
+```c++
+friend constexpr iter_difference_t<I> operator-(
+  const counted_iterator& x, default_sentinel_t);
+```
+*Effects*: Equivalent to: `return -x.length;`
+
+
+```c++
+friend constexpr iter_difference_t<I> operator-(
+  default_sentinel_t, const counted_iterator& y);
+```
+*Effects*: Equivalent to: `return y.length;`
+
+
+```c++
+constexpr counted_iterator& operator-=(iter_difference_t<I> n)
+  requires random_access_iterator<I>;
+```
+*Preconditions*: `-n <= length`.
+
+*Effects*: Equivalent to:
+
+
+```c++
+current -= n;
+length += n;
+return *this;
+```
+
+
+25.5.7.6 Comparisons           [counted.iter.cmp]
+
+```c++
+template<common_with<I> I2>
+  friend constexpr bool operator==(
+    const counted_iterator& x, const counted_iterator<I2>& y);
+```
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+
+*Effects*: Equivalent to: `return x.length == y.length;`
+
+
+```c++
+friend constexpr bool operator==(
+  const counted_iterator& x, default_sentinel_t);
+```
+*Effects*: Equivalent to: `return x.length == 0;`
+
+
+```c++
+template<common_with<I> I2>
+  friend constexpr strong_ordering operator<=>(
+    const counted_iterator& x, const counted_iterator<I2>& y);
+```
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+
+*Effects*: Equivalent to: `return y.length <=> x.length;`
+
+[Note 1: The argument order in the Effects: element is reversed because `length` counts down, not up. — end note]
+
+
+25.5.7.7 Customizations       [counted.iter.cust]
+
+```c++
+friend constexpr iter_rvalue_reference_t<I>
+  iter_move(const counted_iterator& i)
+    noexcept(noexcept(ranges::iter_move(i.current)))
+    requires input_iterator<I>;
+```
+*Preconditions*: `i.length > 0` is `true`.
+
+*Effects*: Equivalent to: `return ranges::iter_move(i.current);`
+
+
+```c++
+template<indirectly_swappable<I> I2>
+  friend constexpr void
+    iter_swap(const counted_iterator& x, const counted_iterator<I2>& y)
+      noexcept(noexcept(ranges::iter_swap(x.current, y.current)));
+```
+*Preconditions*: Both `x.length > 0` and `y.length > 0` are `true`.
+
+*Effects*: Equivalent to `ranges::iter_swap(x.current, y.current)`.
+
+
+```c++
+  // [range.counted], counted view
+  namespace views { inline constexpr unspecified counted = unspecified; }     // freestanding
+
+   // [range.take], take view
+  template<view> class take_view;        // freestanding
+
+  template<class T>
+    constexpr bool enable_borrowed_range<take_view<T>> =      // freestanding
+      enable_borrowed_range<T>;
+
+  namespace views { inline constexpr unspecified take = unspecified; }        // freestanding
+```
+
+
+26.7.18 Counted view        [range.counted]
+
+A counted view presents a view of the elements of the counted range
+([iterator.requirements.general]) `i + [0, n)` for an iterator `i` and
+non-negative integer `n`.
+
+The name `views::counted` denotes a customization point object
+([customization.point.object]). Let `E` and `F` be expressions, let `T` be
+`decay_t<decltype((E))>`, and let `D` be `iter_difference_t<T>`. If `decltype((F))`
+does not model `convertible_to<D>`, `views::counted(E, F)` is ill-formed.
+
+[Note 1: This case can result in substitution failure when `views::counted(E,
+F)` appears in the immediate context of a template instantiation. — end note]
+
+Otherwise, `views::counted(E, F)` is expression-equivalent to:
+- If `T` models `contiguous_iterator`, then `span(to_address(E),
+  static_cast<size_t>(static_-cast<D>(F)))`.
+- Otherwise, if `T` models `random_access_iterator`, then `subrange(E, E +
+  static_cast<D>(F))`, except that `E` is evaluated only once.
+- Otherwise, `subrange(counted_iterator(E, F), default_sentinel)`.
+
+
+26.7.10 Take view               [range.take]
+
+26.7.10.1 Overview              [range.take.overview]
+
+`take_view` produces a view of the first N elements from another view, or all
+the elements if the adapted view contains fewer than N.
+
+The name `views::take` denotes a range adaptor object
+([range.adaptor.object]). Let `E` and `F` be expressions, let `T` be
+`remove_cvref_t<decltype((E))>`, and let `D` be
+`range_difference_t<decltype((E))>`. If `decltype((F))` does not model
+`convertible_to<D>`, `views::take(E, F)` is ill-formed. Otherwise, the
+expression `views::take(E, F)` is expression-equivalent to:
+- If `T` is a specialization of `ranges::empty_view` ([range.empty.view]),
+  then `((void)F, decay-copy(E))`, except that the evaluations of `E` and `F`
+  are indeterminately sequenced.
+- Otherwise, if `T` models `random_access_range` and `sized_range` and is a
+  specialization of `span` ([views.span]), `basic_string_view`
+  ([string.view]), or `ranges::subrange` ([range.subrange]), then
+  `U(ranges::begin(E), ranges::begin(E) +
+  std::min<D>(ranges::distance(E), F))`, except that `E` is evaluated only
+  once, where `U` is a type determined as follows:
+    - if `T` is a specialization of span, then `U` is `span<typename T::element_type>`;
+    - otherwise, if `T` is a specialization of `basic_string_view`, then `U` is `T`;
+    - otherwise, `T` is a specialization of `ranges::subrange`, and `U` is `ranges::subrange<iterator_t<T>>`;
+    - otherwise, if `T` is a specialization of `ranges::iota_view`
+      ([range.iota.view]) that models `random_access_range` and
+      `sized_range`, then `ranges::iota_view(*ranges::begin(E),
+      *(ranges::begin(E) + std:: min<D>(ranges::distance(E), F)))`, except
+      that `E` is evaluated only once.
+- Otherwise, if `T` is a specialization of `ranges::repeat_view` ([range.repeat.view]):
+    - if `T` models `sized_range`, then `views::repeat(*E.value_,
+      std::min<D>(ranges::distance(E), F))` except that `E` is evaluated only
+      once;
+    - otherwise, `views::repeat(*E.value_, static_cast<D>(F))`.
+- Otherwise, `ranges::take_view(E, F)`.
+
+[Example 1:
+```c++
+vector<int> is{0,1,2,3,4,5,6,7,8,9};
+for (int i : is | views::take(5))
+  cout << i << ' '; // prints 0 1 2 3 4
+```
+— end example]
+
+
+26.7.10.2 Class template `take_view`     [range.take.view]
+
+```c++
+namespace std::ranges {
+  template<view V>
+  class take_view : public view_interface<take_view<V>> {
+  private:
+    V base_ = V();                                      // exposition only
+    range_difference_t<V> count_ = 0;                   // exposition only
+
+    // [range.take.sentinel], class template take_view::sentinel
+    template<bool> class sentinel;                      // exposition only
+
+  public:
+    take_view() requires default_initializable<V> = default;
+    constexpr take_view(V base, range_difference_t<V> count);
+
+    constexpr V base() const & requires copy_constructible<V> { return base_; }
+    constexpr V base() && { return std::move(base_); }
+
+    constexpr auto begin() requires (!simple-view<V>) {
+      if constexpr (sized_range<V>) {
+        if constexpr (random_access_range<V>) {
+          return ranges::begin(base_);
+        } else {
+          auto sz = range_difference_t<V>(size());
+          return counted_iterator(ranges::begin(base_), sz);
+        }
+      } else if constexpr (sized_sentinel_for<sentinel_t<V>, iterator_t<V>>) {
+        auto it = ranges::begin(base_);
+        auto sz = std::min(count_, ranges::end(base_) - it);
+        return counted_iterator(std::move(it), sz);
+      } else {
+        return counted_iterator(ranges::begin(base_), count_);
+      }
+    }
+
+    constexpr auto begin() const requires range<const V> {
+      if constexpr (sized_range<const V>) {
+        if constexpr (random_access_range<const V>) {
+          return ranges::begin(base_);
+        } else {
+          auto sz = range_difference_t<const V>(size());
+          return counted_iterator(ranges::begin(base_), sz);
+        }
+      } else if constexpr (sized_sentinel_for<sentinel_t<const V>, iterator_t<const V>>) {
+        auto it = ranges::begin(base_);
+        auto sz = std::min(count_, ranges::end(base_) - it);
+        return counted_iterator(std::move(it), sz);
+      } else {
+        return counted_iterator(ranges::begin(base_), count_);
+      }
+    }
+
+    constexpr auto end() requires (!simple-view<V>) {
+      if constexpr (sized_range<V>) {
+        if constexpr (random_access_range<V>)
+          return ranges::begin(base_) + range_difference_t<V>(size());
+        else
+          return default_sentinel;
+      } else if constexpr (sized_sentinel_for<sentinel_t<V>, iterator_t<V>>) {
+        return default_sentinel;
+      } else {
+        return sentinel<false>{ranges::end(base_)};
+      }
+    }
+
+    constexpr auto end() const requires range<const V> {
+      if constexpr (sized_range<const V>) {
+        if constexpr (random_access_range<const V>)
+          return ranges::begin(base_) + range_difference_t<const V>(size());
+        else
+          return default_sentinel;
+      } else if constexpr (sized_sentinel_for<sentinel_t<const V>, iterator_t<const V>>) {
+        return default_sentinel;
+      } else {
+        return sentinel<true>{ranges::end(base_)};
+      }
+    }
+
+    constexpr auto size() requires sized_range<V> {
+      auto n = ranges::size(base_);
+      return ranges::min(n, static_cast<decltype(n)>(count_));
+    }
+
+    constexpr auto size() const requires sized_range<const V> {
+      auto n = ranges::size(base_);
+      return ranges::min(n, static_cast<decltype(n)>(count_));
+    }
+  };
+
+  template<class R>
+    take_view(R&&, range_difference_t<R>)
+      -> take_view<views::all_t<R>>;
+}
+```
+
+
+`constexpr take_view(V base, range_difference_t<V> count);`
+
+*Preconditions*: `count >= 0` is `true`.
+
+*Effects*: Initializes `base_` with `std::move(base)` and `count_` with `count`.
+
+
+26.7.10.3 Class template `take_view::sentinel`    [range.take.sentinel]
+
+```c++
+namespace std::ranges {
+  template<view V>
+  template<bool Const>
+  class take_view<V>::sentinel {
+  private:
+    using Base = maybe-const<Const, V>;                                     // exposition only
+    template<bool OtherConst>
+      using CI = counted_iterator<iterator_t<maybe-const<OtherConst, V>>>;  // exposition only
+    sentinel_t<Base> end_ = sentinel_t<Base>();                             // exposition only
+
+  public:
+    sentinel() = default;
+    constexpr explicit sentinel(sentinel_t<Base> end);
+    constexpr sentinel(sentinel<!Const> s)
+      requires Const && convertible_to<sentinel_t<V>, sentinel_t<Base>>;
+
+    constexpr sentinel_t<Base> base() const;
+
+    friend constexpr bool operator==(const CI<Const>& y, const sentinel& x);
+
+    template<bool OtherConst = !Const>
+      requires sentinel_for<sentinel_t<Base>, iterator_t<maybe-const<OtherConst, V>>>
+    friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
+  };
+}
+```
+
+`constexpr explicit sentinel(sentinel_t<Base> end);`
+
+*Effects*: Initializes `end_` with `end`.
+
+
+```c++
+constexpr sentinel(sentinel<!Const> s)
+  requires Const && convertible_to<sentinel_t<V>, sentinel_t<Base>>;
+```
+
+*Effects*: Initializes `end_` with `std::move(s.end_)`.
+
+
+`constexpr sentinel_t<Base> base() const;`
+
+*Effects*: Equivalent to: `return end_;`
+
+
+```c++
+friend constexpr bool operator==(const CI<Const>& y, const sentinel& x);
+
+template<bool OtherConst = !Const>
+  requires sentinel_for<sentinel_t<Base>, iterator_t<maybe-const<OtherConst, V>>>
+friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
+```
+
+*Effects*: Equivalent to: `return y.count() == 0 || y.base() == x.end_;`
 
 
 # Note about optimization

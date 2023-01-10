@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="9ff522685fe3462bf19ac044899138e2ec284879" name="document-revision">
+  <meta content="654d8d948dbf4c22c8656f4d783d94e443cd3261" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2160,8 +2160,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#option-iii---provide-base-and-mention-it-invalidates-other-copies"><span class="secno">7.5.3</span> <span class="content">Option III - Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and mention it invalidates other copies</span></a>
        </ol>
      </ol>
-    <li><a href="#note-about-optimization"><span class="secno">8</span> <span class="content">Note about optimization</span></a>
-    <li><a href="#acknowledgements"><span class="secno">9</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#wording"><span class="secno">8</span> <span class="content">Wording</span></a>
+    <li><a href="#note-about-optimization"><span class="secno">9</span> <span class="content">Note about optimization</span></a>
+    <li><a href="#acknowledgements"><span class="secno">10</span> <span class="content">Acknowledgements</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2275,7 +2276,7 @@ step back".</p>
 state of the internal iterator and still legal for <code class="highlight"><c- n>counted_iterator</c-></code> constructed with <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>.</p>
    <p>The options we see:</p>
    <p>Option 1: Require that if <code class="highlight"><c- n>n</c-> <c- o>==</c-> <c- mi>0</c-></code>, <code class="highlight"><c- n>i</c-></code> must be decrementable, and actually
-decrement it in the c-tor. Please note that this obviously works only for <code class="highlight"><c- n>bidirectional_</c->­<c- n>iterator</c-></code>. Other kind of iterators can be left as UB, or just
+decrement it in the c-tor. Please note that this obviously works only for <code class="highlight"><c- n>bidirectional_iterator</c-></code>. Other kind of iterators can be left as UB, or just
 advice against calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> on the resulted <code class="highlight"><c- n>counted_iterator</c-></code> (which
 doesn’t sound correct, blocking a basic operation like <code class="highlight"><c- n>base</c-><c- p>()</c-></code>).</p>
    <p>This option assumes the only reason to create such an <code class="highlight"><c- n>counted_iterator</c-></code> is to
@@ -2393,12 +2394,500 @@ invalidates copies of the underlying iterator).</p>
    <p>Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and specify it as invalidating other copies, leaving it to the
 users to use it correctly. Implementation must increment the underlying iterator
 if needed (reached 0 count and this is the first time <code class="highlight"><c- n>base</c-><c- p>()</c-></code> is called).</p>
-   <h2 class="heading settled" data-level="8" id="note-about-optimization"><span class="secno">8. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
+   <h2 class="heading settled" data-level="8" id="wording"><span class="secno">8. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
+   <p>Wording is for the design recommended by SG9, Option 2 + I.</p>
+<pre class="language-c++ highlight"><c- c1>// [iterators.counted], counted iterators</c->
+ <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
+
+ <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c->
+   <c- n>requires</c-> <c- n>see</c-> <c- n>below</c->
+   <c- k>struct</c-> <c- nc>iterator_traits</c-><c- o>&lt;</c-><c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>>></c-><c- p>;</c->            <c- c1>// freestanding</c->
+</pre>
+   <p>25 Iterators library                                [iterators]</p>
+   <p>25.5 Iterator adaptors                              [predef.iterators]</p>
+   <p>25.5.7 Counted iterators                            [iterators.counted]</p>
+   <p>25.5.7.1 Class template <code class="highlight"><c- n>counted_iterator</c-></code> [counted.iterator]</p>
+   <p>Class template <code class="highlight"><c- n>counted_iterator</c-></code> is an iterator adaptor with the same behavior
+as the underlying iterator except that it keeps track of the distance to the end
+of its range. It can be used together with <code class="highlight"><c- n>default_sentinel</c-></code> in calls to generic
+algorithms to operate on a range of N elements starting at a given position
+without needing to know the end position a priori.</p>
+   <p>[Example 1:</p>
+<pre class="language-c++ highlight"><c- n>list</c-><c- o>&lt;</c-><c- n>string</c-><c- o>></c-> <c- n>s</c-><c- p>;</c->
+<c- c1>// populate the list s with at least 10 strings</c->
+<c- n>vector</c-><c- o>&lt;</c-><c- n>string</c-><c- o>></c-> <c- n>v</c-><c- p>;</c->
+<c- c1>// copies 10 strings into v:</c->
+<c- n>ranges</c-><c- o>::</c-><c- n>copy</c-><c- p>(</c-><c- n>counted_iterator</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><c- n>begin</c-><c- p>(),</c-> <c- mi>10</c-><c- p>),</c-> <c- n>default_sentinel</c-><c- p>,</c-> <c- n>back_inserter</c-><c- p>(</c-><c- n>v</c-><c- p>));</c->
+</pre>
+   — end example] 
+   <p>Two values <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2</c-></code> of types <code class="highlight"><c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I1</c-><c- o>></c-></code> and <code class="highlight"><c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>></c-></code> refer to elements of the same sequence if and only if there exists some integer
+n such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1</c-><c- p>.</c-><c- n>base</c-><c- p>(),</c-> <c- n>i1</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> and <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i2</c-><c- p>.</c-><c- n>base</c-><c- p>(),</c-> <c- n>i2</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> refer to the same (possibly past-the-end) element.</p>
+<pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-> <c- p>{</c->
+  <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c->
+  <c- n>class</c-> <c- n>counted_iterator</c-> <c- p>{</c->
+  <c- n>public</c-><c- o>:</c->
+    <c- n>using</c-> <c- n>iterator_type</c-> <c- o>=</c-> <c- n>I</c-><c- p>;</c->
+    <c- n>using</c-> <c- n>value_type</c-> <c- o>=</c-> <c- n>iter_value_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->                         <c- c1>// present only</c->
+                        <c- c1>// if I models indirectly_readable</c->
+    <c- n>using</c-> <c- n>difference_type</c-> <c- o>=</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>using</c-> <c- n>iterator_concept</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-><c- p>;</c->      <c- c1>// present only</c->
+                        <c- c1>// if the qualified-id I::iterator_concept is valid and denotes a type</c->
+    <c- n>using</c-> <c- n>iterator_category</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>I</c-><c- o>::</c-><c- n>iterator_category</c-><c- p>;</c->    <c- c1>// present only</c->
+                        <c- c1>// if the qualified-id I::iterator_category is valid and denotes a type</c->
+    <c- n>constexpr</c-> <c- nf>counted_iterator</c-><c- p>()</c-> <c- n>requires</c-> <c- n>default_initializable</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- nf>counted_iterator</c-><c- p>(</c-><c- n>I</c-> <c- n>x</c-><c- p>,</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>);</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>I2</c-><c- o>></c->
+      <c- n>requires</c-> <c- n>convertible_to</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I2</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>I</c-><c- o>></c->
+        <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>x</c-><c- p>);</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>I2</c-><c- o>></c->
+      <c- n>requires</c-> <c- n>assignable_from</c-><c- o>&lt;</c-><c- n>I</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>I2</c-><c- o>&amp;></c->
+        <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>=</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>x</c-><c- p>);</c->
+
+    <c- n>constexpr</c-> <c- k>const</c-> <c- n>I</c-><c- o>&amp;</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-> <c- n>noexcept</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>I</c-> <c- n>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>count</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>();</c->
+    <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>requires</c-> <c- n>dereferenceable</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>operator</c-><c- o>-></c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c->
+      <c- n>requires</c-> <c- n>contiguous_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>++</c-><c- p>();</c->
+    <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>);</c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c->
+      <c- n>requires</c-> <c- n>forward_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>--</c-><c- p>()</c->
+      <c- n>requires</c-> <c- n>bidirectional_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>--</c-><c- p>(</c-><c- b>int</c-><c- p>)</c->
+      <c- n>requires</c-> <c- n>bidirectional_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>+</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+      <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>+</c-><c- p>(</c->
+      <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>)</c->
+        <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>+=</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c->
+      <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+      <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+        <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+      <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- n>default_sentinel_t</c-><c- p>);</c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+      <c- n>default_sentinel_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>);</c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>-=</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c->
+      <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- p>[](</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+      <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
+        <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
+      <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- n>default_sentinel_t</c-><c- p>);</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- n>strong_ordering</c-> <c- n>operator</c-><c- o>&lt;=></c-><c- p>(</c->
+        <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_rvalue_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>iter_move</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>i</c-><c- p>)</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)))</c->
+        <c- n>requires</c-> <c- n>input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- n>indirectly_swappable</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>void</c-> <c- n>iter_swap</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>)</c->
+        <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
+
+  <c- n>private</c-><c- o>:</c->
+    <c- n>I</c-> <c- n>current</c-> <c- o>=</c-> <c- n>I</c-><c- p>();</c->                    <c- c1>// exposition only</c->
+    <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>length</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->    <c- c1>// exposition only</c->
+  <c- p>};</c->
+
+  <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c->
+    <c- n>requires</c-> <c- n>same_as</c-><c- o>&lt;</c-><c- n>ITER_TRAITS</c-><c- p>(</c-><c- n>I</c-><c- p>),</c-> <c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>I</c-><c- o>>></c->   <c- c1>// see [iterator.concepts.general]</c->
+  <c- k>struct</c-> <c- nc>iterator_traits</c-><c- o>&lt;</c-><c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>>></c-> <c- o>:</c-> <c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- p>{</c->
+    <c- n>using</c-> <c- n>pointer</c-> <c- o>=</c-> <c- n>conditional_t</c-><c- o>&lt;</c-><c- n>contiguous_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>,</c->
+                                  <c- n>add_pointer_t</c-><c- o>&lt;</c-><c- n>iter_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>>></c-><c- p>,</c-> <c- b>void</c-><c- o>></c-><c- p>;</c->
+  <c- p>};</c->
+<c- p>}</c->
+</pre>
+   <p>25.5.7.2 Constructors and conversions          [counted.iter.const]</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>I</c-> <c- n>i</c-><c- p>,</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>);</c-></code></p>
+   <p><em>Preconditions</em>: n >= 0.</p>
+   <p><em>Effects</em>: Initializes <code class="highlight"><c- n>current</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> and <code class="highlight"><c- n>length</c-></code> with <code class="highlight"><c- n>n</c-></code>.</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>I2</c-><c- o>></c->
+  <c- n>requires</c-> <c- n>convertible_to</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I2</c-><c- o>&amp;</c-><c- p>,</c-> <c- n>I</c-><c- o>></c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>x</c-><c- p>);</c->
+</pre>
+   <p><em>Effects</em>: Initializes <code class="highlight"><c- n>current</c-></code> with <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>current</c-></code> and <code class="highlight"><c- n>length</c-></code> with <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-></code>.</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>I2</c-><c- o>></c->
+  <c- n>requires</c-> <c- n>assignable_from</c-><c- o>&lt;</c-><c- n>I</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>I2</c-><c- o>&amp;></c->
+    <c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>=</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>x</c-><c- p>);</c->
+</pre>
+   <p><em>Effects</em>: Assigns <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>current</c-></code> to <code class="highlight"><c- n>current</c-></code> and <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-></code> to <code class="highlight"><c- n>length</c-></code>.</p>
+   <p><em>Returns</em>: <code class="highlight"><c- o>*</c-><c- k>this</c-></code>.</p>
+   <p>25.5.7.3 Accessors              [counted.iter.access]</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- k>const</c-> <c- n>I</c-><c- o>&amp;</c-> <c- nf>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-> <c- k>noexcept</c-><c- p>;</c-></code></p>
+   <p><em>Effects</em>: Equivalent to: return <code class="highlight"><c- n>current</c-></code>;</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>I</c-> <c- nf>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-><c- p>;</c-></code></p>
+   <p><em>Returns</em>: <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>current</c-><c- p>)</c-></code>.</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>count</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c-></code></p>
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-><c- p>;</c-></code></p>
+   <p>25.5.7.4 Element access         [counted.iter.elem]</p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>();</c->
+<c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>()</c-> <c- k>const</c->
+  <c- n>requires</c-> <c- n>dereferenceable</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- n>current</c-><c- p>;</c-></code></p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- k>auto</c-> <c- n>operator</c-><c- o>-></c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c->
+  <c- n>requires</c-> <c- n>contiguous_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>to_address</c-><c- p>(</c-><c- n>current</c-><c- p>);</c-></code></p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- p>[](</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>n</c-> <c- o>&lt;</c-> <c- n>length</c-></code>. 
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>current</c-><c- p>[</c-><c- n>n</c-><c- p>];</c-></code></p>
+   <p>25.5.7.5 Navigation            [counted.iter.nav]</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>++</c-><c- p>();</c-></code></p>
+   <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.</p>
+   <p><em>Effects</em>: Equivalent to:</p>
+<pre class="language-c++ highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c->
+<c- o>--</c-><c- n>length</c-><c- p>;</c->
+<c- k>return</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+</pre>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>);</c-></code></p>
+   <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.</p>
+   <p><em>Effects</em>: Equivalent to:</p>
+<pre class="language-c++ highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c->
+<c- n>try</c-> <c- p>{</c-> <c- k>return</c-> <c- n>current</c-><c- o>++</c-><c- p>;</c-> <c- p>}</c->
+<c- n>catch</c-><c- p>(...)</c-> <c- p>{</c-> <c- o>++</c-><c- n>length</c-><c- p>;</c-> <c- n>throw</c-><c- p>;</c-> <c- p>}</c->
+</pre>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c->
+  <c- n>requires</c-> <c- n>forward_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: 
+<pre class="language-c++ highlight"><c- n>counted_iterator</c-> <c- n>tmp</c-> <c- o>=</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+<c- o>++*</c-><c- n>this</c-><c- p>;</c->
+<c- k>return</c-> <c- n>tmp</c-><c- p>;</c->
+</pre>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>--</c-><c- p>()</c->
+  <c- n>requires</c-> <c- n>bidirectional_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: 
+<pre class="language-c++ highlight"><c- o>--</c-><c- n>current</c-><c- p>;</c->
+<c- o>++</c-><c- n>length</c-><c- p>;</c->
+<c- k>return</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+</pre>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>--</c-><c- p>(</c-><c- b>int</c-><c- p>)</c->
+  <c- n>requires</c-> <c- n>bidirectional_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: 
+<pre class="language-c++ highlight"><c- n>counted_iterator</c-> <c- n>tmp</c-> <c- o>=</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+<c- o>--*</c-><c- n>this</c-><c- p>;</c->
+<c- k>return</c-> <c- n>tmp</c-><c- p>;</c->
+</pre>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>+</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>current</c-> <c- o>+</c-> <c- n>n</c-><c- p>,</c-> <c- n>length</c-> <c- o>-</c-> <c- n>n</c-><c- p>);</c-></code> 
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>+</c-><c- p>(</c->
+  <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>)</c->
+    <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>x</c-> <c- o>+</c-> <c- n>n</c-><c- p>;</c-></code> 
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>+=</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c->
+  <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>n</c-> <c- o>&lt;=</c-> <c- n>length</c-></code>. 
+   <p><em>Effects</em>: Equivalent to:</p>
+<pre class="language-c++ highlight"><c- n>current</c-> <c- o>+=</c-> <c- n>n</c-><c- p>;</c->
+<c- n>length</c-> <c- o>-=</c-> <c- n>n</c-><c- p>;</c->
+<c- k>return</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+</pre>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>current</c-> <c- o>-</c-> <c- n>n</c-><c- p>,</c-> <c- n>length</c-> <c- o>+</c-> <c- n>n</c-><c- p>);</c-></code> 
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+    <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code> refer to elements of the same sequence ([counted.iterator]). 
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>-</c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code></p>
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+  <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- n>default_sentinel_t</c-><c- p>);</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- o>-</c-><c- n>x</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code> 
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>operator</c-><c- o>-</c-><c- p>(</c->
+  <c- n>default_sentinel_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>);</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code> 
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>operator</c-><c- o>-=</c-><c- p>(</c-><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>)</c->
+  <c- n>requires</c-> <c- n>random_access_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- o>-</c-><c- n>n</c-> <c- o>&lt;=</c-> <c- n>length</c-></code>. 
+   <p><em>Effects</em>: Equivalent to:</p>
+<pre class="language-c++ highlight"><c- n>current</c-> <c- o>-=</c-> <c- n>n</c-><c- p>;</c->
+<c- n>length</c-> <c- o>+=</c-> <c- n>n</c-><c- p>;</c->
+<c- k>return</c-> <c- o>*</c-><c- n>this</c-><c- p>;</c->
+</pre>
+   <p>25.5.7.6 Comparisons           [counted.iter.cmp]</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
+    <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code> refer to elements of the same sequence ([counted.iterator]). 
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-> <c- o>==</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code></p>
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
+  <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- n>default_sentinel_t</c-><c- p>);</c->
+</pre>
+   <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-> <c- o>==</c-> <c- mi>0</c-><c- p>;</c-></code> 
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- n>strong_ordering</c-> <c- n>operator</c-><c- o>&lt;=></c-><c- p>(</c->
+    <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code> refer to elements of the same sequence ([counted.iterator]). 
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>&lt;=></c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code></p>
+   <p>[Note 1: The argument order in the Effects: element is reversed because <code class="highlight"><c- n>length</c-></code> counts down, not up. — end note]</p>
+   <p>25.5.7.7 Customizations       [counted.iter.cust]</p>
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_rvalue_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c->
+  <c- n>iter_move</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>i</c-><c- p>)</c->
+    <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)))</c->
+    <c- n>requires</c-> <c- n>input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+</pre>
+   <em>Preconditions</em>: <code class="highlight"><c- n>i</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>. 
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>);</c-></code></p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>indirectly_swappable</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>void</c->
+    <c- n>iter_swap</c-><c- p>(</c-><c- k>const</c-> <c- n>counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>)</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
+</pre>
+   <em>Preconditions</em>: Both <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> and <code class="highlight"><c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> are <code class="highlight">true</code>. 
+   <p><em>Effects</em>: Equivalent to <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)</c-></code>.</p>
+<pre class="language-c++ highlight"><c- c1>// [range.counted], counted view</c->
+<c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>counted</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->     <c- c1>// freestanding</c->
+
+ <c- c1>// [range.take], take view</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>view</c-><c- o>></c-> <c- n>class</c-> <c- n>take_view</c-><c- p>;</c->        <c- c1>// freestanding</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
+  <c- n>constexpr</c-> <c- b>bool</c-> <c- n>enable_borrowed_range</c-><c- o>&lt;</c-><c- n>take_view</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-> <c- o>=</c->      <c- c1>// freestanding</c->
+    <c- n>enable_borrowed_range</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-><c- p>;</c->
+
+<c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>take</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->        <c- c1>// freestanding</c->
+</pre>
+   <p>26.7.18 Counted view        [range.counted]</p>
+   <p>A counted view presents a view of the elements of the counted range
+([iterator.requirements.general]) <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- p>[</c-><c- mi>0</c-><c- p>,</c-> <c- n>n</c-><c- p>)</c-></code> for an iterator <code class="highlight"><c- n>i</c-></code> and
+non-negative integer <code class="highlight"><c- n>n</c-></code>.</p>
+   <p>The name <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-></code> denotes a customization point object
+([customization.point.object]). Let <code class="highlight"><c- n>E</c-></code> and <code class="highlight"><c- n>F</c-></code> be expressions, let <code class="highlight"><c- n>T</c-></code> be <code class="highlight"><c- n>decay_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>E</c-><c- p>))</c-><c- o>></c-></code>, and let <code class="highlight"><c- n>D</c-></code> be <code class="highlight"><c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>F</c-><c- p>))</c-></code> does not model <code class="highlight"><c- n>convertible_to</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is ill-formed.</p>
+   <p>[Note 1: This case can result in substitution failure when <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> appears in the immediate context of a template instantiation. — end note]</p>
+   <p>Otherwise, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>contiguous_iterator</c-></code>, then <code class="highlight"><c- n>span</c-><c- p>(</c-><c- n>to_address</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- b>size_t</c-><c- o>></c-><c- p>(</c-><c- n>static_</c-><c- o>-</c-><c- n>cast</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>F</c-><c- p>)))</c-></code>.</p>
+    <li data-md>
+     <p>Otherwise, if <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>random_access_iterator</c-></code>, then <code class="highlight"><c- n>subrange</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>E</c-> <c- o>+</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>F</c-><c- p>))</c-></code>, except that <code class="highlight"><c- n>E</c-></code> is evaluated only once.</p>
+    <li data-md>
+     <p>Otherwise, <code class="highlight"><c- n>subrange</c-><c- p>(</c-><c- n>counted_iterator</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>),</c-> <c- n>default_sentinel</c-><c- p>)</c-></code>.</p>
+   </ul>
+   <p>26.7.10 Take view               [range.take]</p>
+   <p>26.7.10.1 Overview              [range.take.overview]</p>
+   <p><code class="highlight"><c- n>take_view</c-></code> produces a view of the first N elements from another view, or all
+the elements if the adapted view contains fewer than N.</p>
+   <p>The name <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>take</c-></code> denotes a range adaptor object
+([range.adaptor.object]). Let <code class="highlight"><c- n>E</c-></code> and <code class="highlight"><c- n>F</c-></code> be expressions, let <code class="highlight"><c- n>T</c-></code> be <code class="highlight"><c- n>remove_cvref_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>E</c-><c- p>))</c-><c- o>></c-></code>, and let <code class="highlight"><c- n>D</c-></code> be <code class="highlight"><c- n>range_difference_t</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>((</c-><c- n>E</c-><c- p>))</c-><c- o>></c-></code>. If <code class="highlight"><c- k>decltype</c-><c- p>((</c-><c- n>F</c-><c- p>))</c-></code> does not model <code class="highlight"><c- n>convertible_to</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is ill-formed. Otherwise, the
+expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code> is expression-equivalent to:</p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>empty_view</c-></code> ([range.empty.view]),
+  then <code class="highlight"><c- p>((</c-><c- b>void</c-><c- p>)</c-><c- n>F</c-><c- p>,</c-> <c- n>decay</c-><c- o>-</c-><c- n>copy</c-><c- p>(</c-><c- n>E</c-><c- p>))</c-></code>, except that the evaluations of <code class="highlight"><c- n>E</c-></code> and <code class="highlight"><c- n>F</c-></code> are indeterminately sequenced.</p>
+    <li data-md>
+     <p>Otherwise, if <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>random_access_range</c-></code> and <code class="highlight"><c- n>sized_range</c-></code> and is a
+  specialization of <code class="highlight"><c- n>span</c-></code> ([views.span]), <code class="highlight"><c- n>basic_string_view</c-></code> ([string.view]), or <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>subrange</c-></code> ([range.subrange]), then <code class="highlight"><c- n>U</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-> <c- o>+</c-> <c- n>std</c-><c- o>::</c-><c- n>min</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>F</c-><c- p>))</c-></code>, except that <code class="highlight"><c- n>E</c-></code> is evaluated only
+  once, where <code class="highlight"><c- n>U</c-></code> is a type determined as follows:</p>
+     <ul>
+      <li data-md>
+       <p>if <code class="highlight"><c- n>T</c-></code> is a specialization of span, then <code class="highlight"><c- n>U</c-></code> is <code class="highlight"><c- n>span</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>T</c-><c- o>::</c-><c- n>element_type</c-><c- o>></c-></code>;</p>
+      <li data-md>
+       <p>otherwise, if <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>basic_string_view</c-></code>, then <code class="highlight"><c- n>U</c-></code> is <code class="highlight"><c- n>T</c-></code>;</p>
+      <li data-md>
+       <p>otherwise, <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>subrange</c-></code>, and <code class="highlight"><c- n>U</c-></code> is <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>subrange</c-><c- o>&lt;</c-><c- n>iterator_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-></code>;</p>
+      <li data-md>
+       <p>otherwise, if <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-></code> ([range.iota.view]) that models <code class="highlight"><c- n>random_access_range</c-></code> and <code class="highlight"><c- n>sized_range</c-></code>, then <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-><c- p>(</c-><c- o>*</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- o>*</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-> <c- o>+</c-> <c- n>std</c-><c- o>::</c-> <c- n>min</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>F</c-><c- p>)))</c-></code>, except
+  that <code class="highlight"><c- n>E</c-></code> is evaluated only once.</p>
+     </ul>
+    <li data-md>
+     <p>Otherwise, if <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>repeat_view</c-></code> ([range.repeat.view]):</p>
+     <ul>
+      <li data-md>
+       <p>if <code class="highlight"><c- n>T</c-></code> models <code class="highlight"><c- n>sized_range</c-></code>, then <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>repeat</c-><c- p>(</c-><c- o>*</c-><c- n>E</c-><c- p>.</c-><c- n>value_</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>min</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>F</c-><c- p>))</c-></code> except that <code class="highlight"><c- n>E</c-></code> is evaluated only
+  once;</p>
+      <li data-md>
+       <p>otherwise, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>repeat</c-><c- p>(</c-><c- o>*</c-><c- n>E</c-><c- p>.</c-><c- n>value_</c-><c- p>,</c-> <c- k>static_cast</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>F</c-><c- p>))</c-></code>.</p>
+     </ul>
+    <li data-md>
+     <p>Otherwise, <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>take_view</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>)</c-></code>.</p>
+   </ul>
+   <p>[Example 1:</p>
+<pre class="language-c++ highlight"><c- n>vector</c-><c- o>&lt;</c-><c- b>int</c-><c- o>></c-> <c- n>is</c-><c- p>{</c-><c- mi>0</c-><c- p>,</c-><c- mi>1</c-><c- p>,</c-><c- mi>2</c-><c- p>,</c-><c- mi>3</c-><c- p>,</c-><c- mi>4</c-><c- p>,</c-><c- mi>5</c-><c- p>,</c-><c- mi>6</c-><c- p>,</c-><c- mi>7</c-><c- p>,</c-><c- mi>8</c-><c- p>,</c-><c- mi>9</c-><c- p>};</c->
+<c- k>for</c-> <c- p>(</c-><c- b>int</c-> <c- n>i</c-> <c- o>:</c-> <c- n>is</c-> <c- o>|</c-> <c- n>views</c-><c- o>::</c-><c- n>take</c-><c- p>(</c-><c- mi>5</c-><c- p>))</c->
+  <c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>' '</c-><c- p>;</c-> <c- c1>// prints 0 1 2 3 4</c->
+</pre>
+   — end example] 
+   <p>26.7.10.2 Class template <code class="highlight"><c- n>take_view</c-></code> [range.take.view]</p>
+<pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
+  <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
+  <c- n>class</c-> <c- n>take_view</c-> <c- o>:</c-> <c- n>public</c-> <c- n>view_interface</c-><c- o>&lt;</c-><c- n>take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-> <c- p>{</c->
+  <c- n>private</c-><c- o>:</c->
+    <c- n>V</c-> <c- n>base_</c-> <c- o>=</c-> <c- n>V</c-><c- p>();</c->                                      <c- c1>// exposition only</c->
+    <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count_</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->                   <c- c1>// exposition only</c->
+
+    <c- c1>// [range.take.sentinel], class template take_view::sentinel</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-><c- o>></c-> <c- n>class</c-> <c- n>sentinel</c-><c- p>;</c->                      <c- c1>// exposition only</c->
+
+  <c- n>public</c-><c- o>:</c->
+    <c- n>take_view</c-><c- p>()</c-> <c- n>requires</c-> <c- n>default_initializable</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- nf>take_view</c-><c- p>(</c-><c- n>V</c-> <c- n>base</c-><c- p>,</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count</c-><c- p>);</c->
+
+    <c- n>constexpr</c-> <c- n>V</c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-> <c- o>&amp;</c-> <c- n>requires</c-> <c- n>copy_constructible</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- p>{</c-> <c- k>return</c-> <c- n>base_</c-><c- p>;</c-> <c- p>}</c->
+    <c- n>constexpr</c-> <c- n>V</c-> <c- n>base</c-><c- p>()</c-> <c- o>&amp;&amp;</c-> <c- p>{</c-> <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c-> <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>begin</c-><c- p>()</c-> <c- n>requires</c-> <c- p>(</c-><c- o>!</c-><c- n>simple</c-><c- o>-</c-><c- n>view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+      <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_range</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>random_access_range</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+          <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+        <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+          <c- k>auto</c-> <c- n>sz</c-> <c- o>=</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>(</c-><c- n>size</c-><c- p>());</c->
+          <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>),</c-> <c- n>sz</c-><c- p>);</c->
+        <c- p>}</c->
+      <c- p>}</c-> <c- k>else</c-> <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>auto</c-> <c- n>it</c-> <c- o>=</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+        <c- k>auto</c-> <c- n>sz</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>min</c-><c- p>(</c-><c- n>count_</c-><c- p>,</c-> <c- n>ranges</c-><c- o>::</c-><c- n>end</c-><c- p>(</c-><c- n>base_</c-><c- p>)</c-> <c- o>-</c-> <c- n>it</c-><c- p>);</c->
+        <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>it</c-><c- p>),</c-> <c- n>sz</c-><c- p>);</c->
+      <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>),</c-> <c- n>count_</c-><c- p>);</c->
+      <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>begin</c-><c- p>()</c-> <c- k>const</c-> <c- n>requires</c-> <c- n>range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-> <c- p>{</c->
+      <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>random_access_range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+          <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+        <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+          <c- k>auto</c-> <c- n>sz</c-> <c- o>=</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>(</c-><c- n>size</c-><c- p>());</c->
+          <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>),</c-> <c- n>sz</c-><c- p>);</c->
+        <c- p>}</c->
+      <c- p>}</c-> <c- k>else</c-> <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>auto</c-> <c- n>it</c-> <c- o>=</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+        <c- k>auto</c-> <c- n>sz</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>min</c-><c- p>(</c-><c- n>count_</c-><c- p>,</c-> <c- n>ranges</c-><c- o>::</c-><c- n>end</c-><c- p>(</c-><c- n>base_</c-><c- p>)</c-> <c- o>-</c-> <c- n>it</c-><c- p>);</c->
+        <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>it</c-><c- p>),</c-> <c- n>sz</c-><c- p>);</c->
+      <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>counted_iterator</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>),</c-> <c- n>count_</c-><c- p>);</c->
+      <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>end</c-><c- p>()</c-> <c- n>requires</c-> <c- p>(</c-><c- o>!</c-><c- n>simple</c-><c- o>-</c-><c- n>view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+      <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_range</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>random_access_range</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>)</c->
+          <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>)</c-> <c- o>+</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>(</c-><c- n>size</c-><c- p>());</c->
+        <c- k>else</c->
+          <c- k>return</c-> <c- n>default_sentinel</c-><c- p>;</c->
+      <c- p>}</c-> <c- k>else</c-> <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>default_sentinel</c-><c- p>;</c->
+      <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>sentinel</c-><c- o>&lt;</c->false<c- o>></c-><c- p>{</c-><c- n>ranges</c-><c- o>::</c-><c- n>end</c-><c- p>(</c-><c- n>base_</c-><c- p>)};</c->
+      <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>end</c-><c- p>()</c-> <c- k>const</c-> <c- n>requires</c-> <c- n>range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-> <c- p>{</c->
+      <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>random_access_range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>)</c->
+          <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>base_</c-><c- p>)</c-> <c- o>+</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>(</c-><c- n>size</c-><c- p>());</c->
+        <c- k>else</c->
+          <c- k>return</c-> <c- n>default_sentinel</c-><c- p>;</c->
+      <c- p>}</c-> <c- k>else</c-> <c- k>if</c-> <c- n>constexpr</c-> <c- p>(</c-><c- n>sized_sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>>></c-><c- p>)</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>default_sentinel</c-><c- p>;</c->
+      <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+        <c- k>return</c-> <c- n>sentinel</c-><c- o>&lt;</c->true<c- o>></c-><c- p>{</c-><c- n>ranges</c-><c- o>::</c-><c- n>end</c-><c- p>(</c-><c- n>base_</c-><c- p>)};</c->
+      <c- p>}</c->
+    <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>size</c-><c- p>()</c-> <c- n>requires</c-> <c- n>sized_range</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- p>{</c->
+      <c- k>auto</c-> <c- n>n</c-> <c- o>=</c-> <c- n>ranges</c-><c- o>::</c-><c- n>size</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+      <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>min</c-><c- p>(</c-><c- n>n</c-><c- p>,</c-> <c- n>static_cast</c-><c- o>&lt;</c-><c- n>decltype</c-><c- p>(</c-><c- n>n</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>count_</c-><c- p>));</c->
+    <c- p>}</c->
+
+    <c- n>constexpr</c-> <c- k>auto</c-> <c- n>size</c-><c- p>()</c-> <c- k>const</c-> <c- n>requires</c-> <c- n>sized_range</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>V</c-><c- o>></c-> <c- p>{</c->
+      <c- k>auto</c-> <c- n>n</c-> <c- o>=</c-> <c- n>ranges</c-><c- o>::</c-><c- n>size</c-><c- p>(</c-><c- n>base_</c-><c- p>);</c->
+      <c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>min</c-><c- p>(</c-><c- n>n</c-><c- p>,</c-> <c- n>static_cast</c-><c- o>&lt;</c-><c- n>decltype</c-><c- p>(</c-><c- n>n</c-><c- p>)</c-><c- o>></c-><c- p>(</c-><c- n>count_</c-><c- p>));</c->
+    <c- p>}</c->
+  <c- p>};</c->
+
+  <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>R</c-><c- o>></c->
+    <c- n>take_view</c-><c- p>(</c-><c- n>R</c-><c- o>&amp;&amp;</c-><c- p>,</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-><c- p>)</c->
+      <c- o>-></c-> <c- n>take_view</c-><c- o>&lt;</c-><c- n>views</c-><c- o>::</c-><c- n>all_t</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>></c-><c- p>;</c->
+<c- p>}</c->
+</pre>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>take_view</c-><c- p>(</c-><c- n>V</c-> <c- n>base</c-><c- p>,</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count</c-><c- p>);</c-></code></p>
+   <p><em>Preconditions</em>: <code class="highlight"><c- n>count</c-> <c- o>>=</c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Effects</em>: Initializes <code class="highlight"><c- n>base_</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>base</c-><c- p>)</c-></code> and <code class="highlight"><c- n>count_</c-></code> with <code class="highlight"><c- n>count</c-></code>.</p>
+   <p>26.7.10.3 Class template <code class="highlight"><c- n>take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.take.sentinel]</p>
+<pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
+  <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
+  <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>Const</c-><c- o>></c->
+  <c- n>class</c-> <c- n>take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>::</c-><c- n>sentinel</c-> <c- p>{</c->
+  <c- n>private</c-><c- o>:</c->
+    <c- n>using</c-> <c- n>Base</c-> <c- o>=</c-> <c- n>maybe</c-><c- o>-</c-><c- k>const</c-><c- o>&lt;</c-><c- n>Const</c-><c- p>,</c-> <c- n>V</c-><c- o>></c-><c- p>;</c->                                     <c- c1>// exposition only</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>OtherConst</c-><c- o>></c->
+      <c- n>using</c-> <c- n>CI</c-> <c- o>=</c-> <c- n>counted_iterator</c-><c- o>&lt;</c-><c- n>iterator_t</c-><c- o>&lt;</c-><c- n>maybe</c-><c- o>-</c-><c- k>const</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- p>,</c-> <c- n>V</c-><c- o>>>></c-><c- p>;</c->  <c- c1>// exposition only</c->
+    <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-> <c- n>end_</c-> <c- o>=</c-> <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-><c- p>();</c->                             <c- c1>// exposition only</c->
+
+  <c- n>public</c-><c- o>:</c->
+    <c- n>sentinel</c-><c- p>()</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>explicit</c-> <c- n>sentinel</c-><c- p>(</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-> <c- n>end</c-><c- p>);</c->
+    <c- n>constexpr</c-> <c- nf>sentinel</c-><c- p>(</c-><c- n>sentinel</c-><c- o>&lt;!</c-><c- n>Const</c-><c- o>></c-> <c- n>s</c-><c- p>)</c->
+      <c- n>requires</c-> <c- n>Const</c-> <c- o>&amp;&amp;</c-> <c- n>convertible_to</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>>></c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
+
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>Const</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>OtherConst</c-> <c- o>=</c-> <c- o>!</c-><c- n>Const</c-><c- o>></c->
+      <c- n>requires</c-> <c- n>sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- n>maybe</c-><c- o>-</c-><c- k>const</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- p>,</c-> <c- n>V</c-><c- o>>>></c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
+  <c- p>};</c->
+<c- p>}</c->
+</pre>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- k>explicit</c-> <c- n>sentinel</c-><c- p>(</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-> <c- n>end</c-><c- p>);</c-></code></p>
+   <p><em>Effects</em>: Initializes <code class="highlight"><c- n>end_</c-></code> with <code class="highlight"><c- n>end</c-></code>.</p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>sentinel</c-><c- p>(</c-><c- n>sentinel</c-><c- o>&lt;!</c-><c- n>Const</c-><c- o>></c-> <c- n>s</c-><c- p>)</c->
+  <c- n>requires</c-> <c- n>Const</c-> <c- o>&amp;&amp;</c-> <c- n>convertible_to</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-><c- p>,</c-> <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>>></c-><c- p>;</c->
+</pre>
+   <p><em>Effects</em>: Initializes <code class="highlight"><c- n>end_</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><c- n>end_</c-><c- p>)</c-></code>.</p>
+   <p><code class="highlight"><c- k>constexpr</c-> <c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-> <c- n>base</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c-></code></p>
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>end_</c-><c- p>;</c-></code></p>
+<pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>Const</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>OtherConst</c-> <c- o>=</c-> <c- o>!</c-><c- n>Const</c-><c- o>></c->
+  <c- n>requires</c-> <c- n>sentinel_for</c-><c- o>&lt;</c-><c- n>sentinel_t</c-><c- o>&lt;</c-><c- n>Base</c-><c- o>></c-><c- p>,</c-> <c- n>iterator_t</c-><c- o>&lt;</c-><c- n>maybe</c-><c- o>-</c-><c- k>const</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- p>,</c-> <c- n>V</c-><c- o>>>></c->
+<c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
+</pre>
+   <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>==</c-> <c- mi>0</c-> <c- o>||</c-> <c- n>y</c-><c- p>.</c-><c- n>base</c-><c- p>()</c-> <c- o>==</c-> <c- n>x</c-><c- p>.</c-><c- n>end_</c-><c- p>;</c-></code></p>
+   <h2 class="heading settled" data-level="9" id="note-about-optimization"><span class="secno">9. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
    <p>It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>.</p>
-   <h2 class="heading settled" data-level="9" id="acknowledgements"><span class="secno">9. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="10" id="acknowledgements"><span class="secno">10. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
    <p>Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 <a data-link-type="biblio" href="#biblio-reddit-cpp">[reddit-cpp]</a>. Thanks SG9 members
