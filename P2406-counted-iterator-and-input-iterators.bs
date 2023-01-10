@@ -264,6 +264,17 @@ object too, so calling `base()` twich isn't allowed!), this prevents using it
 with move-only iterators, as mentioned in [[LWG3391]].
 
 
+## Return type of `operator++(int)`
+
+For non-forward iterators, today counted_iterator::operator++(int) is defined
+with `return current++;` and `decltype(auto)`, as such an iterator might return
+a different type or not return anything at all (e.g. if it's move only
+iterator). `input_or_output_iterator` is `weakly_incrementable`, not
+`incrementable`. As in this change we don't always increment the iterator, there
+is no consistent type to return. As a result, for non-forward iterators, we
+define `operator++(int) as returning `void`.
+
+
 ## Why `lazy_take` instead of fixing `take`?
 
 We could have change `take` to use `lazy_counted_iterator` when constructed with
@@ -483,7 +494,7 @@ namespace std {
       requires dereferenceable<const I>;
 
     constexpr lazy_counted_iterator& operator++();
-    constexpr decltype(auto) operator++(int);
+    constexpr void operator++(int);
     constexpr lazy_counted_iterator operator++(int)
       requires forward_iterator<I>;
 
@@ -595,14 +606,14 @@ return *this;
 ```
 
 
-`constexpr decltype(auto) operator++(int);`
+`constexpr void operator++(int);`
 
 *Preconditions*: `length > 0`.
 
 *Effects*: Equivalent to:
 ```c++
 --length;
-try { if (length) return current++; }
+try { if (length) current++; }
 catch(...) { ++length; throw; }
 ```
 
