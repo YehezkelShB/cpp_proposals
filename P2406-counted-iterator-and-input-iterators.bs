@@ -401,6 +401,9 @@ if needed (reached 0 count and this is the first time `base()` is called).
 
 Wording is for the design recommended by SG9, Option 2 + I.
 
+## Wording for `lazy_counted_iterator`
+
+Under Header `<iterator>` synopsis [**iterator.syn**] add the new type:
 
  ```c++
  // [iterators.counted], counted iterators
@@ -410,17 +413,28 @@ Wording is for the design recommended by SG9, Option 2 + I.
     requires see below
     struct iterator_traits<counted_iterator<I>>;            // freestanding
   ```
+<ins>
+ ```c++
+ // [iterators.lazy.counted], lazy counted iterators
+  template<input_or_output_iterator I> class lazy_counted_iterator;             // freestanding
 
+  template<input_iterator I>
+    requires see below
+    struct iterator_traits<lazy_counted_iterator<I>>;            // freestanding
+  ```
+</ins>
 
-25 Iterators library                                [iterators]
+In Iterator adaptors [**predef.iterators**], after 25.5.7 Counted iterators [**iterators.counted**] add new section:
 
-25.5 Iterator adaptors                              [predef.iterators]
+<ins>
+25.5.x Lazy counted iterators     [iterators.lazy.counted]
+</ins>
 
-25.5.7 Counted iterators                            [iterators.counted]
+Under this section add:
 
-25.5.7.1 Class template `counted_iterator`          [counted.iterator]
+### x.1 Class template `lazy_counted_iterator`          [lazy.counted.iterator]
 
-Class template `counted_iterator` is an iterator adaptor with the same behavior
+Class template `lazy_counted_iterator` is an iterator adaptor with the same behavior
 as the underlying iterator except that it keeps track of the distance to the end
 of its range. It can be used together with `default_sentinel` in calls to generic
 algorithms to operate on a range of N elements starting at a given position
@@ -432,115 +446,95 @@ list<string> s;
 // populate the list s with at least 10 strings
 vector<string> v;
 // copies 10 strings into v:
-ranges::copy(counted_iterator(s.begin(), 10), default_sentinel, back_inserter(v));
+ranges::copy(lazy_counted_iterator(s.begin(), 10), default_sentinel, back_inserter(v));
 ```
 — end example]
 
-Two values `i1` and `i2` of types `counted_iterator<I1>` and `counted_iterator<I2>`
-refer to elements of the same sequence if and only if there exists some integer
-n such that `next(i1.base(), i1.count() + n)` and `next(i2.base(), i2.count() + n)`
+Given two values `i1` and `i2` of types `lazy_counted_iterator<I1>` and `lazy_counted_iterator<I2>`,
+let `i1base` denote the underlying iterator of `i1` and `i2base` denote the underlying iterator of `i2`.
+`i1` and `i2` refer to elements of the same sequence if and only if there exists some integer
+n such that `next(i1base, i1.count() + n)` and `next(i2base, i2.count() + n)`
 refer to the same (possibly past-the-end) element.
 
 ```c++
 namespace std {
   template<input_or_output_iterator I>
-  class counted_iterator {
+  class lazy_counted_iterator {
   public:
     using iterator_type = I;
     using value_type = iter_value_t<I>;                         // present only
                         // if I models indirectly_readable
     using difference_type = iter_difference_t<I>;
-    using iterator_concept = typename I::iterator_concept;      // present only
-                        // if the qualified-id I::iterator_concept is valid and denotes a type
-    using iterator_category = typename I::iterator_category;    // present only
-                        // if the qualified-id I::iterator_category is valid and denotes a type
-    constexpr counted_iterator() requires default_initializable<I> = default;
-    constexpr counted_iterator(I x, iter_difference_t<I> n);
+    using iterator_concept  = see below;                      // not always present
+    using iterator_category = see below;                      // not always present
+    constexpr lazy_counted_iterator() requires default_initializable<I> = default;
+    constexpr lazy_counted_iterator(I x, iter_difference_t<I> n);
     template<class I2>
       requires convertible_to<const I2&, I>
-        constexpr counted_iterator(const counted_iterator<I2>& x);
+        constexpr lazy_counted_iterator(const lazy_counted_iterator<I2>& x);
 
     template<class I2>
       requires assignable_from<I&, const I2&>
-        constexpr counted_iterator& operator=(const counted_iterator<I2>& x);
+        constexpr lazy_counted_iterator& operator=(const lazy_counted_iterator<I2>& x);
 
-    constexpr const I& base() const & noexcept;
-    constexpr I base() &&;
     constexpr iter_difference_t<I> count() const noexcept;
     constexpr decltype(auto) operator*();
     constexpr decltype(auto) operator*() const
       requires dereferenceable<const I>;
 
-    constexpr auto operator->() const noexcept
-      requires contiguous_iterator<I>;
-
-    constexpr counted_iterator& operator++();
+    constexpr lazy_counted_iterator& operator++();
     constexpr decltype(auto) operator++(int);
-    constexpr counted_iterator operator++(int)
+    constexpr lazy_counted_iterator operator++(int)
       requires forward_iterator<I>;
-    constexpr counted_iterator& operator--()
-      requires bidirectional_iterator<I>;
-    constexpr counted_iterator operator--(int)
-      requires bidirectional_iterator<I>;
 
-    constexpr counted_iterator operator+(iter_difference_t<I> n) const
-      requires random_access_iterator<I>;
-    friend constexpr counted_iterator operator+(
-      iter_difference_t<I> n, const counted_iterator& x)
-        requires random_access_iterator<I>;
-    constexpr counted_iterator& operator+=(iter_difference_t<I> n)
-      requires random_access_iterator<I>;
-
-    constexpr counted_iterator operator-(iter_difference_t<I> n) const
-      requires random_access_iterator<I>;
     template<common_with<I> I2>
       friend constexpr iter_difference_t<I2> operator-(
-        const counted_iterator& x, const counted_iterator<I2>& y);
+        const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
     friend constexpr iter_difference_t<I> operator-(
-      const counted_iterator& x, default_sentinel_t);
+      const lazy_counted_iterator& x, default_sentinel_t);
     friend constexpr iter_difference_t<I> operator-(
-      default_sentinel_t, const counted_iterator& y);
-    constexpr counted_iterator& operator-=(iter_difference_t<I> n)
-      requires random_access_iterator<I>;
-
-    constexpr decltype(auto) operator[](iter_difference_t<I> n) const
-      requires random_access_iterator<I>;
+      default_sentinel_t, const lazy_counted_iterator& y);
 
     template<common_with<I> I2>
       friend constexpr bool operator==(
-        const counted_iterator& x, const counted_iterator<I2>& y);
+        const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
     friend constexpr bool operator==(
-      const counted_iterator& x, default_sentinel_t);
+      const lazy_counted_iterator& x, default_sentinel_t);
 
     template<common_with<I> I2>
       friend constexpr strong_ordering operator<=>(
-        const counted_iterator& x, const counted_iterator<I2>& y);
+        const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
 
-    friend constexpr iter_rvalue_reference_t<I> iter_move(const counted_iterator& i)
+    friend constexpr iter_rvalue_reference_t<I> iter_move(const lazy_counted_iterator& i)
       noexcept(noexcept(ranges::iter_move(i.current)))
         requires input_iterator<I>;
     template<indirectly_swappable<I> I2>
-      friend constexpr void iter_swap(const counted_iterator& x, const counted_iterator<I2>& y)
+      friend constexpr void iter_swap(const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y)
         noexcept(noexcept(ranges::iter_swap(x.current, y.current)));
 
   private:
     I current = I();                    // exposition only
     iter_difference_t<I> length = 0;    // exposition only
   };
-
-  template<input_iterator I>
-    requires same_as<ITER_TRAITS(I), iterator_traits<I>>   // see [iterator.concepts.general]
-  struct iterator_traits<counted_iterator<I>> : iterator_traits<I> {
-    using pointer = conditional_t<contiguous_iterator<I>,
-                                  add_pointer_t<iter_reference_t<I>>, void>;
-  };
 }
 ```
 
+The member typedef-name `iterator_concept` is defined if and only if the
+qualified-id `I::iterator_concept` is valid and denotes a type. In that case,
+`iterator_concept` denotes
+- `forward_iterator_tag` if the type `I::iterator_concept` models `derived_from<forward_iterator_tag>`, and
+- `I::iterator_concept` otherwise.
 
-25.5.7.2 Constructors and conversions          [counted.iter.const]
+The member typedef-name `iterator_category` is defined if and only if the
+qualified-id `I::iterator_category` is valid and denotes a type. In that case,
+`iterator_category` denotes
+- `forward_iterator_tag` if the type `I::iterator_category` models `derived_from<forward_iterator_tag>`, and
+- `I::iterator_category` otherwise.
 
-`constexpr counted_iterator(I i, iter_difference_t<I> n);`
+
+### x.2 Constructors and conversions          [lazy.counted.iter.const]
+
+`constexpr lazy_counted_iterator(I i, iter_difference_t<I> n);`
 
 *Preconditions*: n >= 0.
 
@@ -550,7 +544,7 @@ namespace std {
 ```c++
 template<class I2>
   requires convertible_to<const I2&, I>
-    constexpr counted_iterator(const counted_iterator<I2>& x);
+    constexpr lazy_counted_iterator(const lazy_counted_iterator<I2>& x);
 ```
 
 *Effects*: Initializes `current` with `x.current` and `length` with `x.length`.
@@ -559,7 +553,7 @@ template<class I2>
 ```c++
 template<class I2>
   requires assignable_from<I&, const I2&>
-    constexpr counted_iterator& operator=(const counted_iterator<I2>& x);
+    constexpr lazy_counted_iterator& operator=(const lazy_counted_iterator<I2>& x);
 ```
 
 *Effects*: Assigns `x.current` to `current` and `x.length` to `length`.
@@ -567,24 +561,14 @@ template<class I2>
 *Returns*: `*this`.
 
 
-25.5.7.3 Accessors              [counted.iter.access]
-
-`constexpr const I& base() const & noexcept;`
-
-*Effects*: Equivalent to: return `current`;
-
-
-`constexpr I base() &&;`
-
-*Returns*: `std::move(current)`.
-
+### x.3 Accessors              [lazy.counted.iter.access]
 
 `constexpr iter_difference_t<I> count() const noexcept;`
 
 *Effects*: Equivalent to: `return length;`
 
 
-25.5.7.4 Element access         [counted.iter.elem]
+### x.4 Element access         [lazy.counted.iter.elem]
 
 ```c++
 constexpr decltype(auto) operator*();
@@ -597,32 +581,15 @@ constexpr decltype(auto) operator*() const
 *Effects*: Equivalent to: `return *current;`
 
 
-```c++
-constexpr auto operator->() const noexcept
-  requires contiguous_iterator<I>;
-```
+### x.5 Navigation            [lazy.counted.iter.nav]
 
-*Effects*: Equivalent to: `return to_address(current);`
-
-
-```c++
-constexpr decltype(auto) operator[](iter_difference_t<I> n) const
-  requires random_access_iterator<I>;
-```
-*Preconditions*: `n < length`.
-
-*Effects*: Equivalent to: `return current[n];`
-
-
-25.5.7.5 Navigation            [counted.iter.nav]
-
-`constexpr counted_iterator& operator++();`
+`constexpr lazy_counted_iterator& operator++();`
 
 *Preconditions*: `length > 0`.
 
 *Effects*: Equivalent to:
 ```c++
-++current;
+if (length > 1) ++current;
 --length;
 return *this;
 ```
@@ -635,138 +602,62 @@ return *this;
 *Effects*: Equivalent to:
 ```c++
 --length;
-try { return current++; }
+try { if (length) return current++; }
 catch(...) { ++length; throw; }
 ```
 
 
 ```c++
-constexpr counted_iterator operator++(int)
+constexpr lazy_counted_iterator operator++(int)
   requires forward_iterator<I>;
 ```
 *Effects*: Equivalent to:
 ```c++
-counted_iterator tmp = *this;
+lazy_counted_iterator tmp = *this;
 ++*this;
 return tmp;
 ```
 
 
 ```c++
-constexpr counted_iterator& operator--()
-  requires bidirectional_iterator<I>;
-```
-*Effects*: Equivalent to:
-```c++
---current;
-++length;
-return *this;
-```
-
-
-```c++
-constexpr counted_iterator operator--(int)
-  requires bidirectional_iterator<I>;
-```
-*Effects*: Equivalent to:
-```c++
-counted_iterator tmp = *this;
---*this;
-return tmp;
-```
-
-
-```c++
-constexpr counted_iterator operator+(iter_difference_t<I> n) const
-  requires random_access_iterator<I>;
-```
-*Effects*: Equivalent to: `return counted_iterator(current + n, length - n);`
-
-
-```c++
-friend constexpr counted_iterator operator+(
-  iter_difference_t<I> n, const counted_iterator& x)
-    requires random_access_iterator<I>;
-```
-*Effects*: Equivalent to: `return x + n;`
-
-
-```c++
-constexpr counted_iterator& operator+=(iter_difference_t<I> n)
-  requires random_access_iterator<I>;
-```
-*Preconditions*: `n <= length`.
-
-*Effects*: Equivalent to:
-```c++
-current += n;
-length -= n;
-return *this;
-```
-
-
-```c++
-constexpr counted_iterator operator-(iter_difference_t<I> n) const
-  requires random_access_iterator<I>;
-```
-*Effects*: Equivalent to: `return counted_iterator(current - n, length + n);`
-
-
-```c++
 template<common_with<I> I2>
   friend constexpr iter_difference_t<I2> operator-(
-    const counted_iterator& x, const counted_iterator<I2>& y);
+    const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
 ```
-*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([lazy.counted.iterator]).
 
 *Effects*: Equivalent to: `return y.length - x.length;`
 
 
 ```c++
 friend constexpr iter_difference_t<I> operator-(
-  const counted_iterator& x, default_sentinel_t);
+  const lazy_counted_iterator& x, default_sentinel_t);
 ```
 *Effects*: Equivalent to: `return -x.length;`
 
 
 ```c++
 friend constexpr iter_difference_t<I> operator-(
-  default_sentinel_t, const counted_iterator& y);
+  default_sentinel_t, const lazy_counted_iterator& y);
 ```
 *Effects*: Equivalent to: `return y.length;`
 
 
-```c++
-constexpr counted_iterator& operator-=(iter_difference_t<I> n)
-  requires random_access_iterator<I>;
-```
-*Preconditions*: `-n <= length`.
-
-*Effects*: Equivalent to:
-
-
-```c++
-current -= n;
-length += n;
-return *this;
-```
-
-
-25.5.7.6 Comparisons           [counted.iter.cmp]
+### x.6 Comparisons           [lazy.counted.iter.cmp]
 
 ```c++
 template<common_with<I> I2>
   friend constexpr bool operator==(
-    const counted_iterator& x, const counted_iterator<I2>& y);
+    const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
 ```
-*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([lazy.counted.iterator]).
 
 *Effects*: Equivalent to: `return x.length == y.length;`
 
 
 ```c++
 friend constexpr bool operator==(
-  const counted_iterator& x, default_sentinel_t);
+  const lazy_counted_iterator& x, default_sentinel_t);
 ```
 *Effects*: Equivalent to: `return x.length == 0;`
 
@@ -774,20 +665,20 @@ friend constexpr bool operator==(
 ```c++
 template<common_with<I> I2>
   friend constexpr strong_ordering operator<=>(
-    const counted_iterator& x, const counted_iterator<I2>& y);
+    const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
 ```
-*Preconditions*: `x` and `y` refer to elements of the same sequence ([counted.iterator]).
+*Preconditions*: `x` and `y` refer to elements of the same sequence ([lazy.counted.iterator]).
 
 *Effects*: Equivalent to: `return y.length <=> x.length;`
 
 [Note 1: The argument order in the Effects: element is reversed because `length` counts down, not up. — end note]
 
 
-25.5.7.7 Customizations       [counted.iter.cust]
+### x.7 Customizations       [lazy.counted.iter.cust]
 
 ```c++
 friend constexpr iter_rvalue_reference_t<I>
-  iter_move(const counted_iterator& i)
+  iter_move(const lazy_counted_iterator& i)
     noexcept(noexcept(ranges::iter_move(i.current)))
     requires input_iterator<I>;
 ```
@@ -799,7 +690,7 @@ friend constexpr iter_rvalue_reference_t<I>
 ```c++
 template<indirectly_swappable<I> I2>
   friend constexpr void
-    iter_swap(const counted_iterator& x, const counted_iterator<I2>& y)
+    iter_swap(const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y)
       noexcept(noexcept(ranges::iter_swap(x.current, y.current)));
 ```
 *Preconditions*: Both `x.length > 0` and `y.length > 0` are `true`.
@@ -807,10 +698,21 @@ template<indirectly_swappable<I> I2>
 *Effects*: Equivalent to `ranges::iter_swap(x.current, y.current)`.
 
 
+## Wording for `views::lazy_counted` and `lazy_take_view`
+
+Under Header `<ranges>` synopsis [**ranges.syn**] add the new types:
+
 ```c++
   // [range.counted], counted view
   namespace views { inline constexpr unspecified counted = unspecified; }     // freestanding
-
+```
+<ins>
+```c++
+  // [range.lazy.counted], lazy counted view
+  namespace views { inline constexpr unspecified lazy_counted = unspecified; }     // freestanding
+```
+</ins>
+```c++
    // [range.take], take view
   template<view> class take_view;        // freestanding
 
@@ -820,43 +722,67 @@ template<indirectly_swappable<I> I2>
 
   namespace views { inline constexpr unspecified take = unspecified; }        // freestanding
 ```
+<ins>
+```c++
+   // [range.lazy.take], lazy take view
+  template<view> class lazy_take_view;        // freestanding
+
+  template<class T>
+    constexpr bool enable_borrowed_range<lazy_take_view<T>> =      // freestanding
+      enable_borrowed_range<T>;
+
+  namespace views { inline constexpr unspecified lazy_take = unspecified; }        // freestanding
+```
+</ins>
 
 
-26.7.18 Counted view        [range.counted]
+## Wording for `views::lazy_counted`
+
+In Range adaptors [**range.adaptors**], after 26.7.18 Counted view [**range.counted**] add new section:
+
+### 26.7.x Lazy counted view        [range.lazy.counted]
 
 A counted view presents a view of the elements of the counted range
 ([iterator.requirements.general]) `i + [0, n)` for an iterator `i` and
 non-negative integer `n`.
 
-The name `views::counted` denotes a customization point object
+The name `views::lazy_counted` denotes a customization point object
 ([customization.point.object]). Let `E` and `F` be expressions, let `T` be
 `decay_t<decltype((E))>`, and let `D` be `iter_difference_t<T>`. If `decltype((F))`
-does not model `convertible_to<D>`, `views::counted(E, F)` is ill-formed.
+does not model `convertible_to<D>`, `views::lazy_counted(E, F)` is ill-formed.
 
-[Note 1: This case can result in substitution failure when `views::counted(E,
+[Note 1: This case can result in substitution failure when `views::lazy_counted(E,
 F)` appears in the immediate context of a template instantiation. — end note]
 
-Otherwise, `views::counted(E, F)` is expression-equivalent to:
+Otherwise, `views::lazy_counted(E, F)` is expression-equivalent to:
 - If `T` models `contiguous_iterator`, then `span(to_address(E),
   static_cast<size_t>(static_-cast<D>(F)))`.
 - Otherwise, if `T` models `random_access_iterator`, then `subrange(E, E +
   static_cast<D>(F))`, except that `E` is evaluated only once.
-- Otherwise, `subrange(counted_iterator(E, F), default_sentinel)`.
+- Otherwise, `subrange(lazy_counted_iterator(E, F), default_sentinel)`.
 
 
-26.7.10 Take view               [range.take]
+## Wording for `lazy_take_view`
 
-26.7.10.1 Overview              [range.take.overview]
+After 26.7.10 Take view [**range.take**] add new section:
 
-`take_view` produces a view of the first N elements from another view, or all
+<ins>
+26.7.x Lazy take view               [range.lazy.take]
+</ins>
+
+Under this section add:
+
+### x.1 Overview              [range.lazy.take.overview]
+
+`lazy_take_view` produces a view of the first N elements from another view, or all
 the elements if the adapted view contains fewer than N.
 
-The name `views::take` denotes a range adaptor object
+The name `views::lazy_take` denotes a range adaptor object
 ([range.adaptor.object]). Let `E` and `F` be expressions, let `T` be
 `remove_cvref_t<decltype((E))>`, and let `D` be
 `range_difference_t<decltype((E))>`. If `decltype((F))` does not model
-`convertible_to<D>`, `views::take(E, F)` is ill-formed. Otherwise, the
-expression `views::take(E, F)` is expression-equivalent to:
+`convertible_to<D>`, `views::lazy_take(E, F)` is ill-formed. Otherwise, the
+expression `views::lazy_take(E, F)` is expression-equivalent to:
 - If `T` is a specialization of `ranges::empty_view` ([range.empty.view]),
   then `((void)F, decay-copy(E))`, except that the evaluations of `E` and `F`
   are indeterminately sequenced.
@@ -879,33 +805,33 @@ expression `views::take(E, F)` is expression-equivalent to:
       std::min<D>(ranges::distance(E), F))` except that `E` is evaluated only
       once;
     - otherwise, `views::repeat(*E.value_, static_cast<D>(F))`.
-- Otherwise, `ranges::take_view(E, F)`.
+- Otherwise, `ranges::lazy_take_view(E, F)`.
 
 [Example 1:
 ```c++
 vector<int> is{0,1,2,3,4,5,6,7,8,9};
-for (int i : is | views::take(5))
+for (int i : is | views::lazy_take(5))
   cout << i << ' '; // prints 0 1 2 3 4
 ```
 — end example]
 
 
-26.7.10.2 Class template `take_view`     [range.take.view]
+### x.2 Class template `lazy_take_view`     [range.lazy.take.view]
 
 ```c++
 namespace std::ranges {
   template<view V>
-  class take_view : public view_interface<take_view<V>> {
+  class lazy_take_view : public view_interface<take_view<V>> {
   private:
     V base_ = V();                                      // exposition only
     range_difference_t<V> count_ = 0;                   // exposition only
 
-    // [range.take.sentinel], class template take_view::sentinel
+    // [range.lazy.take.sentinel], class template lazy_take_view::sentinel
     template<bool> class sentinel;                      // exposition only
 
   public:
-    take_view() requires default_initializable<V> = default;
-    constexpr take_view(V base, range_difference_t<V> count);
+    lazy_take_view() requires default_initializable<V> = default;
+    constexpr lazy_take_view(V base, range_difference_t<V> count);
 
     constexpr V base() const & requires copy_constructible<V> { return base_; }
     constexpr V base() && { return std::move(base_); }
@@ -916,14 +842,14 @@ namespace std::ranges {
           return ranges::begin(base_);
         } else {
           auto sz = range_difference_t<V>(size());
-          return counted_iterator(ranges::begin(base_), sz);
+          return lazy_counted_iterator(ranges::begin(base_), sz);
         }
       } else if constexpr (sized_sentinel_for<sentinel_t<V>, iterator_t<V>>) {
         auto it = ranges::begin(base_);
         auto sz = std::min(count_, ranges::end(base_) - it);
-        return counted_iterator(std::move(it), sz);
+        return lazy_counted_iterator(std::move(it), sz);
       } else {
-        return counted_iterator(ranges::begin(base_), count_);
+        return lazy_counted_iterator(ranges::begin(base_), count_);
       }
     }
 
@@ -933,14 +859,14 @@ namespace std::ranges {
           return ranges::begin(base_);
         } else {
           auto sz = range_difference_t<const V>(size());
-          return counted_iterator(ranges::begin(base_), sz);
+          return lazy_counted_iterator(ranges::begin(base_), sz);
         }
       } else if constexpr (sized_sentinel_for<sentinel_t<const V>, iterator_t<const V>>) {
         auto it = ranges::begin(base_);
         auto sz = std::min(count_, ranges::end(base_) - it);
-        return counted_iterator(std::move(it), sz);
+        return lazy_counted_iterator(std::move(it), sz);
       } else {
-        return counted_iterator(ranges::begin(base_), count_);
+        return lazy_counted_iterator(ranges::begin(base_), count_);
       }
     }
 
@@ -982,30 +908,30 @@ namespace std::ranges {
   };
 
   template<class R>
-    take_view(R&&, range_difference_t<R>)
-      -> take_view<views::all_t<R>>;
+    lazy_take_view(R&&, range_difference_t<R>)
+      -> lazy_take_view<views::all_t<R>>;
 }
 ```
 
 
-`constexpr take_view(V base, range_difference_t<V> count);`
+`constexpr lazy_take_view(V base, range_difference_t<V> count);`
 
 *Preconditions*: `count >= 0` is `true`.
 
 *Effects*: Initializes `base_` with `std::move(base)` and `count_` with `count`.
 
 
-26.7.10.3 Class template `take_view::sentinel`    [range.take.sentinel]
+### x.3 Class template `lazy_take_view::sentinel`    [range.lazy.take.sentinel]
 
 ```c++
 namespace std::ranges {
   template<view V>
   template<bool Const>
-  class take_view<V>::sentinel {
+  class lazy_take_view<V>::sentinel {
   private:
     using Base = maybe-const<Const, V>;                                     // exposition only
     template<bool OtherConst>
-      using CI = counted_iterator<iterator_t<maybe-const<OtherConst, V>>>;  // exposition only
+      using CI = lazy_counted_iterator<iterator_t<maybe-const<OtherConst, V>>>;  // exposition only
     sentinel_t<Base> end_ = sentinel_t<Base>();                             // exposition only
 
   public:
@@ -1052,6 +978,17 @@ friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
 ```
 
 *Effects*: Equivalent to: `return y.count() == 0 || y.base() == x.end_;`
+
+
+## Opens
+
+### `iterator_concept` depends on `I::iterator_concept`
+
+We followed `counted_iterator` defintion, which defines `iterator_concept` as
+equal to `I::iterator_concept` and only if it's found. As other iterators always
+define `iterator_concept` depending on what `I` models (only `iterator_category`
+depends on `I::iterator_category`), maybe `{lazy_,}counted_iterator` should
+follow this for consistency?
 
 
 # Note about optimization
