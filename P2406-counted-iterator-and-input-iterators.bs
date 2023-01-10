@@ -89,7 +89,7 @@ r0: initial revision - [[P2406R0]]
 ## Range with the exact number of items
 
 Look at this example code [[CE-FILTER]]:
-```
+```c++
 #include <ranges>
 #include <iostream>
  
@@ -128,7 +128,7 @@ means eating an additional input that can't be retrieved again later, or hanging
 forever if no additional input exists and the stream isn't closed. For example
 [[CE-ISTREAM]]:
 
-```
+```c++
 #include <ranges>
 #include <iostream>
 #include <sstream>
@@ -163,7 +163,7 @@ what is the right solution.
 Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of
 `operator++` for `counted_iterator` as:
 
-Effects: Equivalent to:<br/>
+*Effects*: Equivalent to:<br/>
 `++current;`<br/>
 `--length;`<br/>
 `return *this;`<br/>

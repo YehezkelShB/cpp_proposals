@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="654d8d948dbf4c22c8656f4d783d94e443cd3261" name="document-revision">
+  <meta content="6a98cdc64e0c15255829a608b254b710840d4060" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2187,10 +2187,10 @@ users - <a data-link-type="biblio" href="#biblio-d2406r1">[D2406R1]</a></p>
    <h2 class="heading settled" data-level="2" id="problem-description"><span class="secno">2. </span><span class="content">Problem description</span><a class="self-link" href="#problem-description"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="range-with-the-exact-number-of-items"><span class="secno">2.1. </span><span class="content">Range with the exact number of items</span><a class="self-link" href="#range-with-the-exact-number-of-items"></a></h3>
    <p>Look at this example code <a data-link-type="biblio" href="#biblio-ce-filter">[CE-FILTER]</a>:</p>
-<pre class="highlight"><c- cp>#include</c-> &lt;ranges>
+<pre class="language-c++ highlight"><c- cp>#include</c-> &lt;ranges>
 <c- cp>#include</c-> &lt;iostream>
  
-<c- k>namespace</c-> <c- nn>rv</c-> <c- o>=</c-> <c- nn>std</c-><c- o>::</c-><c- nn>views</c-><c- p>;</c->
+<c- n>namespace</c-> <c- n>rv</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>views</c-><c- p>;</c->
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c-> <c- p>{</c->
     <c- k>for</c-> <c- p>(</c-><c- k>auto</c-> <c- n>i</c->  <c- o>:</c-> <c- n>rv</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c->
@@ -2215,13 +2215,13 @@ an extra element in the range.</p>
 In most of these cases, advancing the internal iterator when reaching the count
 means eating an additional input that can’t be retrieved again later, or hanging
 forever if no additional input exists and the stream isn’t closed. For example <a data-link-type="biblio" href="#biblio-ce-istream">[CE-ISTREAM]</a>:</p>
-<pre class="highlight"><c- cp>#include</c-> &lt;ranges>
+<pre class="language-c++ highlight"><c- cp>#include</c-> &lt;ranges>
 <c- cp>#include</c-> &lt;iostream>
 <c- cp>#include</c-> &lt;sstream>
 <c- cp>#include</c-> &lt;cassert>
  
-<c- k>namespace</c-> <c- nn>rn</c-> <c- o>=</c-> <c- nn>std</c-><c- o>::</c-><c- nn>ranges</c-><c- p>;</c->
-<c- k>namespace</c-> <c- nn>rv</c-> <c- o>=</c-> <c- nn>rn</c-><c- o>::</c-><c- nn>views</c-><c- p>;</c->
+<c- n>namespace</c-> <c- n>rn</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-><c- p>;</c->
+<c- n>namespace</c-> <c- n>rv</c-> <c- o>=</c-> <c- n>rn</c-><c- o>::</c-><c- n>views</c-><c- p>;</c->
  
 <c- b>int</c-> <c- nf>main</c-><c- p>()</c->
 <c- p>{</c->
@@ -2242,7 +2242,7 @@ in the stream.</p>
 what is the right solution.</p>
    <h2 class="heading settled" data-level="3" id="current-behavior-is-what-the-standard-mandates"><span class="secno">3. </span><span class="content">Current behavior is what the standard mandates</span><a class="self-link" href="#current-behavior-is-what-the-standard-mandates"></a></h2>
    <p>Under 23.5.6.5 [counted.iter.nav], the standard defines the behavior of <code class="highlight"><c- k>operator</c-><c- o>++</c-></code> for <code class="highlight"><c- n>counted_iterator</c-></code> as:</p>
-   <p>Effects: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
+   <p><em>Effects</em>: Equivalent to:<br> <code class="highlight"><c- o>++</c-><c- n>current</c-><c- p>;</c-></code><br> <code class="highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c-></code><br> <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- k>this</c-><c- p>;</c-></code><br></p>
    <p>It means that even when <code class="highlight"><c- n>length</c-></code> becomes 0, the internal iterator is
 incremented, thus consuming an additional item from the range, and causing the
 effects mentioned above for input iterator case or when <code class="highlight"><c- o>++</c-></code> on the internal
