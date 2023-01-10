@@ -1,6 +1,6 @@
 <pre class='metadata'>
 Title: Add `lazy_counted_iterator`
-Status: D
+Status: P
 Audience: SG9 (Ranges)
 Editor: Yehezkel Bernat, YehezkelShB@gmail.com
 Editor: Yehuda Bernat, YehudaMBer@gmail.com
