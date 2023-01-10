@@ -272,7 +272,7 @@ a different type or not return anything at all (e.g. if it's move only
 iterator). `input_or_output_iterator` is `weakly_incrementable`, not
 `incrementable`. As in this change we don't always increment the iterator, there
 is no consistent type to return. As a result, for non-forward iterators, we
-define `operator++(int) as returning `void`.
+define `operator++(int)` as returning `void`.
 
 
 ## Why `lazy_take` instead of fixing `take`?
