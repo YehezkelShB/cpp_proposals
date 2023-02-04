@@ -262,10 +262,6 @@ Under Header `<iterator>` synopsis [**iterator.syn**] add the new type:
  ```c++
  // [iterators.lazy.counted], lazy counted iterators
   template<input_or_output_iterator I> class lazy_counted_iterator;             // freestanding
-
-  template<input_iterator I>
-    requires see below
-    struct iterator_traits<lazy_counted_iterator<I>>;            // freestanding
   ```
 </ins>
 
@@ -303,14 +299,13 @@ refer to the same (possibly past-the-end) element.
 
 ```c++
 namespace std {
-  template<input_or_output_iterator I>
+  template<input_iterator I>
   class lazy_counted_iterator {
   public:
     using iterator_type = I;
-    using value_type = iter_value_t<I>;                         // present only
-                        // if I models indirectly_readable
+    using value_type = iter_value_t<I>;
     using difference_type = iter_difference_t<I>;
-    using iterator_concept  = see below;                      // not always present
+    using iterator_concept  = see below;
     using iterator_category = see below;                      // not always present
     constexpr lazy_counted_iterator() requires default_initializable<I> = default;
     constexpr lazy_counted_iterator(I x, iter_difference_t<I> n);
@@ -351,8 +346,7 @@ namespace std {
         const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y);
 
     friend constexpr iter_rvalue_reference_t<I> iter_move(const lazy_counted_iterator& i)
-      noexcept(noexcept(ranges::iter_move(i.current)))
-        requires input_iterator<I>;
+      noexcept(noexcept(ranges::iter_move(i.current)));
     template<indirectly_swappable<I> I2>
       friend constexpr void iter_swap(const lazy_counted_iterator& x, const lazy_counted_iterator<I2>& y)
         noexcept(noexcept(ranges::iter_swap(x.current, y.current)));
@@ -364,18 +358,18 @@ namespace std {
 }
 ```
 
-The member typedef-name `iterator_concept` is defined if and only if the
-qualified-id `I::iterator_concept` is valid and denotes a type. In that case,
-`iterator_concept` denotes
-- `forward_iterator_tag` if the type `I::iterator_concept` models `derived_from<forward_iterator_tag>`, and
-- `I::iterator_concept` otherwise.
+
+The member typedef-name `iterator_concept` denotes
+- `forward_iterator_tag` if `Iterator` models `forward_iterator`, and
+- `input_iterator_tag` otherwise.
 
 The member typedef-name `iterator_category` is defined if and only if the
-qualified-id `I::iterator_category` is valid and denotes a type. In that case,
-`iterator_category` denotes
-- `forward_iterator_tag` if the type `I::iterator_category` models `derived_from<forward_iterator_tag>`, and
-- `I::iterator_category` otherwise.
-
+qualified-id `iterator_traits<Iterator>::iterator_category` is valid and denotes
+a type. In that case, `iterator_category` denotes
+- `forward_iterator_tag` if the type
+  `iterator_traits<Iterator>::iterator_category` models
+  `derived_from<forward_iterator_tag>`, and
+- `iterator_traits<Iterator>::iterator_category` otherwise.
 
 ### x.2 Constructors and conversions          [lazy.counted.iter.const]
 
@@ -524,8 +518,7 @@ template<common_with<I> I2>
 ```c++
 friend constexpr iter_rvalue_reference_t<I>
   iter_move(const lazy_counted_iterator& i)
-    noexcept(noexcept(ranges::iter_move(i.current)))
-    requires input_iterator<I>;
+    noexcept(noexcept(ranges::iter_move(i.current)));
 ```
 *Preconditions*: `i.length > 0` is `true`.
 
