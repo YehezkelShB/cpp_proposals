@@ -580,7 +580,7 @@ In Range adaptors [**range.adaptors**], after 26.7.18 Counted view [**range.coun
 
 ### 26.7.x Lazy counted view        [range.lazy.counted]
 
-A counted view presents a view of the elements of the counted range
+A lazy counted view presents a view of the elements of the counted range
 ([iterator.requirements.general]) `i + [0, n)` for an iterator `i` and
 non-negative integer `n`.
 
