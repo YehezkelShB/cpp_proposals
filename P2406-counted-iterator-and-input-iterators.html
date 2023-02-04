@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2406R2: Add `lazy_counted_iterator`</title>
+  <title>P2406R3: Add `lazy_counted_iterator`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="9f563c18fcb515b643e9fe0fd56a45d9b98dcdc6" name="document-revision">
+  <meta content="ca197aaebb14bf6d455eb21c5c2ec3aed26a01c6" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2096,8 +2096,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2406R2<br>Add `lazy_counted_iterator`</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-01-10">2023-01-10</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P2406R3<br>Add `lazy_counted_iterator`</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-04">2023-02-04</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2106,7 +2106,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:YehezkelShB@gmail.com">Yehezkel Bernat</a>
      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:YehudaMBer@gmail.com">Yehuda Bernat</a>
      <dt>Audience:
-     <dd>SG9 (RANGES)
+     <dd>SG9 (RANGES), LEWG
      <dt>Project:
      <dd>ISO/IEC JTC1/SC22/WG21 14882: Programming Language — C++
      <dt>Source:
@@ -2136,66 +2136,40 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
     <li>
      <a href="#design-points-for-discussion"><span class="secno">6</span> <span class="content">Design points for discussion</span></a>
      <ol class="toc">
-      <li><a href="#random_access_iterator-case"><span class="secno">6.1</span> <span class="content"><code class="highlight"><c- n>random_access_iterator</c-></code> case</span></a>
-      <li><a href="#consructing-with-0-count"><span class="secno">6.2</span> <span class="content">Consructing with 0 count</span></a>
-      <li><a href="#base"><span class="secno">6.3</span> <span class="content"><code class="highlight"><c- n>base</c-><c- p>()</c-></code></span></a>
-      <li><a href="#return-type-of-operator-int"><span class="secno">6.4</span> <span class="content">Return type of <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></span></a>
-      <li>
-       <a href="#why-lazy_take-instead-of-fixing-take"><span class="secno">6.5</span> <span class="content">Why <code class="highlight"><c- n>lazy_take</c-></code> instead of fixing <code class="highlight"><c- n>take</c-></code>?</span></a>
-       <ol class="toc">
-        <li><a href="#improve-discoverability-and-teachability"><span class="secno">6.5.1</span> <span class="content">Improve discoverability and teachability</span></a>
-       </ol>
+      <li><a href="#consructing-with-0-count"><span class="secno">6.1</span> <span class="content">Consructing with 0 count</span></a>
+      <li><a href="#return-type-of-operator-int"><span class="secno">6.2</span> <span class="content">Return type of <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></span></a>
+      <li><a href="#why-lazy_take-instead-of-fixing-take"><span class="secno">6.3</span> <span class="content">Why <code class="highlight"><c- n>lazy_take</c-></code> instead of fixing <code class="highlight"><c- n>take</c-></code>?</span></a>
      </ol>
     <li>
-     <a href="#design-alternatives"><span class="secno">7</span> <span class="content">Design alternatives</span></a>
-     <ol class="toc">
-      <li><a href="#option-1---as-closer-to-counted_iterator-as-possible"><span class="secno">7.1</span> <span class="content">Option 1 - As closer to <code class="highlight"><c- n>counted_iterator</c-></code> as possible</span></a>
-      <li><a href="#option-2---capped-to-forward_iterator"><span class="secno">7.2</span> <span class="content">Option 2 - Capped to <code class="highlight"><c- n>forward_iterator</c-></code></span></a>
-      <li><a href="#option-3---dont-read-it-if-created-with-0-count"><span class="secno">7.3</span> <span class="content">Option 3 - Don’t read it if created with 0 count</span></a>
-      <li><a href="#option-4---dont-increment-the-underlying-iterator-until-really-required"><span class="secno">7.4</span> <span class="content">Option 4 - Don’t increment the underlying iterator until really required</span></a>
-      <li>
-       <a href="#alternatives-for-base"><span class="secno">7.5</span> <span class="content">Alternatives for <code class="highlight"><c- n>base</c-><c- p>()</c-></code></span></a>
-       <ol class="toc">
-        <li><a href="#option-i---dont-provide-base"><span class="secno">7.5.1</span> <span class="content">Option I - Don’t provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code></span></a>
-        <li><a href="#option-ii---make-lazy_counted_iterator-non-copyable"><span class="secno">7.5.2</span> <span class="content">Option II - Make <code class="highlight"><c- n>lazy_counted_iterator</c-></code> non-copyable</span></a>
-        <li><a href="#option-iii---provide-base-and-mention-it-invalidates-other-copies"><span class="secno">7.5.3</span> <span class="content">Option III - Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and mention it invalidates other copies</span></a>
-       </ol>
-     </ol>
-    <li>
-     <a href="#wording"><span class="secno">8</span> <span class="content">Wording</span></a>
+     <a href="#wording"><span class="secno">7</span> <span class="content">Wording</span></a>
      <ol class="toc">
       <li>
-       <a href="#wording-for-lazy_counted_iterator"><span class="secno">8.1</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
+       <a href="#wording-for-lazy_counted_iterator"><span class="secno">7.1</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
        <ol class="toc">
-        <li><a href="#x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">8.1.1</span> <span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span></a>
-        <li><a href="#x2-constructors-and-conversions-lazycountediterconst"><span class="secno">8.1.2</span> <span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span></a>
-        <li><a href="#x3-accessors-lazycountediteraccess"><span class="secno">8.1.3</span> <span class="content">x.3 Accessors              [lazy.counted.iter.access]</span></a>
-        <li><a href="#x4-element-access-lazycountediterelem"><span class="secno">8.1.4</span> <span class="content">x.4 Element access         [lazy.counted.iter.elem]</span></a>
-        <li><a href="#x5-navigation-lazycountediternav"><span class="secno">8.1.5</span> <span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span></a>
-        <li><a href="#x6-comparisons-lazycounteditercmp"><span class="secno">8.1.6</span> <span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span></a>
-        <li><a href="#x7-customizations-lazycounteditercust"><span class="secno">8.1.7</span> <span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span></a>
+        <li><a href="#x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">7.1.1</span> <span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span></a>
+        <li><a href="#x2-constructors-and-conversions-lazycountediterconst"><span class="secno">7.1.2</span> <span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span></a>
+        <li><a href="#x3-accessors-lazycountediteraccess"><span class="secno">7.1.3</span> <span class="content">x.3 Accessors              [lazy.counted.iter.access]</span></a>
+        <li><a href="#x4-element-access-lazycountediterelem"><span class="secno">7.1.4</span> <span class="content">x.4 Element access         [lazy.counted.iter.elem]</span></a>
+        <li><a href="#x5-navigation-lazycountediternav"><span class="secno">7.1.5</span> <span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span></a>
+        <li><a href="#x6-comparisons-lazycounteditercmp"><span class="secno">7.1.6</span> <span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span></a>
+        <li><a href="#x7-customizations-lazycounteditercust"><span class="secno">7.1.7</span> <span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span></a>
        </ol>
-      <li><a href="#wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">8.2</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
+      <li><a href="#wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">7.2</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
       <li>
-       <a href="#wording-for-viewslazy_counted"><span class="secno">8.3</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span></a>
+       <a href="#wording-for-viewslazy_counted"><span class="secno">7.3</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span></a>
        <ol class="toc">
-        <li><a href="#267x-lazy-counted-view-rangelazycounted"><span class="secno">8.3.1</span> <span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span></a>
-       </ol>
-      <li>
-       <a href="#wording-for-lazy_take_view"><span class="secno">8.4</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
-       <ol class="toc">
-        <li><a href="#x1-overview-rangelazytakeoverview"><span class="secno">8.4.1</span> <span class="content">x.1 Overview              [range.lazy.take.overview]</span></a>
-        <li><a href="#x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">8.4.2</span> <span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span></a>
-        <li><a href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">8.4.3</span> <span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span></a>
+        <li><a href="#267x-lazy-counted-view-rangelazycounted"><span class="secno">7.3.1</span> <span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span></a>
        </ol>
       <li>
-       <a href="#opens"><span class="secno">8.5</span> <span class="content">Opens</span></a>
+       <a href="#wording-for-lazy_take_view"><span class="secno">7.4</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
        <ol class="toc">
-        <li><a href="#iterator_concept-depends-on-iiterator_concept"><span class="secno">8.5.1</span> <span class="content"><code class="highlight"><c- n>iterator_concept</c-></code> depends on <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code></span></a>
+        <li><a href="#x1-overview-rangelazytakeoverview"><span class="secno">7.4.1</span> <span class="content">x.1 Overview              [range.lazy.take.overview]</span></a>
+        <li><a href="#x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">7.4.2</span> <span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span></a>
+        <li><a href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">7.4.3</span> <span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span></a>
        </ol>
      </ol>
-    <li><a href="#note-about-optimization"><span class="secno">9</span> <span class="content">Note about optimization</span></a>
-    <li><a href="#acknowledgements"><span class="secno">10</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#note-about-optimization"><span class="secno">8</span> <span class="content">Note about optimization</span></a>
+    <li><a href="#acknowledgements"><span class="secno">9</span> <span class="content">Acknowledgements</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2205,6 +2179,16 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="revision-history"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#revision-history"></a></h2>
+   <p>r3: Itegreating LEWG feedback:</p>
+   <ul>
+    <li data-md>
+     <p>Define <code class="highlight"><c- n>iterator_concept</c-></code> and <code class="highlight"><c- n>iterator_category</c-></code> like other iterator adaptors
+  do, unlike <code class="highlight"><c- n>counted_iterator</c-></code> which is special</p>
+    <li data-md>
+     <p>Require <code class="highlight"><c- n>input_iterator</c-></code> as <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code> definition doens’t match <code class="highlight"><c- n>output_iterator</c-></code> requirements</p>
+    <li data-md>
+     <p>General cleanup</p>
+   </ul>
    <p>r2: Integrating SG9 feedback:</p>
    <ul>
     <li data-md>
@@ -2215,8 +2199,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>Add design alternatives</p>
    </ul>
    <p>r1: Improving many parts, following feedback from Inbal Levi and from Reddit
-users - <a data-link-type="biblio" href="#biblio-d2406r1">[D2406R1]</a></p>
-   <p>r0: initial revision - <a data-link-type="biblio" href="#biblio-p2406r0">[P2406R0]</a></p>
+users</p>
+   <p>r0: initial revision</p>
    <h2 class="heading settled" data-level="2" id="problem-description"><span class="secno">2. </span><span class="content">Problem description</span><a class="self-link" href="#problem-description"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="range-with-the-exact-number-of-items"><span class="secno">2.1. </span><span class="content">Range with the exact number of items</span><a class="self-link" href="#range-with-the-exact-number-of-items"></a></h3>
    <p>Look at this example code <a data-link-type="biblio" href="#biblio-ce-filter">[CE-FILTER]</a>:</p>
@@ -2293,59 +2277,34 @@ around 0 count so it doesn’t increment the internal iterator when reaching 0
 count.</p>
    <p>Additionally, this requires adding <code class="highlight"><c- n>lazy_take</c-></code> and <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> that
 uses the new iterator instead of <code class="highlight"><c- n>counted_iterator</c-></code>.</p>
-   <p>See below (<a href="#design-alternatives">§ 7 Design alternatives</a>) for more details.</p>
    <h2 class="heading settled" data-level="6" id="design-points-for-discussion"><span class="secno">6. </span><span class="content">Design points for discussion</span><a class="self-link" href="#design-points-for-discussion"></a></h2>
-   <h3 class="heading settled" data-level="6.1" id="random_access_iterator-case"><span class="secno">6.1. </span><span class="content"><code class="highlight"><c- n>random_access_iterator</c-></code> case</span><a class="self-link" href="#random_access_iterator-case"></a></h3>
-   <p>To reduce the amount of changes required, we kept the current behavior for <code class="highlight"><c- n>random_access_iterator</c-></code> case, so we don’t have to touch the additional
-operators defined only for this category. The rational behind it is that for <code class="highlight"><c- n>random_access_iterator</c-></code> case we can expect the view to either have all the
-items ready or able to compute all of them efficiently, so it doesn’t suffer
-from an issue similar to the one <code class="highlight"><c- n>forward_iterator</c-></code> might have.</p>
-   <h3 class="heading settled" data-level="6.2" id="consructing-with-0-count"><span class="secno">6.2. </span><span class="content">Consructing with 0 count</span><a class="self-link" href="#consructing-with-0-count"></a></h3>
+   <h3 class="heading settled" data-level="6.1" id="consructing-with-0-count"><span class="secno">6.1. </span><span class="content">Consructing with 0 count</span><a class="self-link" href="#consructing-with-0-count"></a></h3>
    <p>Similarly to <code class="highlight"><c- n>counted_iterator</c-></code>, <code class="highlight"><c- n>lazy_counted_iterator</c-></code> must allow constructing
 with 0 count. In most design alternatives, this puts the iterator in an
 inconsistent internal state, as the underlying iterator is expected to be "one
 step back".</p>
    <p>Please note that <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and decrementing are the only operations involving the
 state of the internal iterator and still legal for <code class="highlight"><c- n>counted_iterator</c-></code> constructed with <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>.</p>
-   <p>The options we see:</p>
-   <p>Option 1: Require that if <code class="highlight"><c- n>n</c-> <c- o>==</c-> <c- mi>0</c-></code>, <code class="highlight"><c- n>i</c-></code> must be decrementable, and actually
-decrement it in the c-tor. Please note that this obviously works only for <code class="highlight"><c- n>bidirectional_iterator</c-></code>. Other kind of iterators can be left as UB, or just
-advice against calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> on the resulted <code class="highlight"><c- n>counted_iterator</c-></code> (which
-doesn’t sound correct, blocking a basic operation like <code class="highlight"><c- n>base</c-><c- p>()</c-></code>).</p>
-   <p>This option assumes the only reason to create such an <code class="highlight"><c- n>counted_iterator</c-></code> is to
-decrement it later, so we always expect the given iterator to be decrementable.
-Obviously, we can’t really assume it. The next operation could be to test for <code class="highlight"><c- n>count</c-><c- p>()</c-></code> before doing anything else and do nothing in the <code class="highlight"><c- mi>0</c-></code> case. This
-happens naturally in a pipeline if the passed range becomes empty, for example.</p>
-   <p>Option 2: Require that if <code class="highlight"><c- n>n</c-><c- o>==</c-><c- mi>0</c-></code>, <code class="highlight"><c- n>i</c-></code> must be "the one before" the actual
-iterator (leaving it to the user to decide how to handle, and if neither <code class="highlight"><c- o>--</c-></code> nor <code class="highlight"><c- n>base</c-><c- p>()</c-></code> are ever called on it, it doesn’t matter what the user does). This
-option changes behavior of existing code so it’s isn’t relevant either.</p>
-   <p>Option 3: Mark this case internally (e.g. with <code class="highlight"><c- n>length</c-><c- o>=</c-><c- mi>-1</c-></code> or a boolean flag)
-and handle specially when decrementing (<code class="highlight"><c- n>length</c-></code> "jumps" to <code class="highlight"><c- mi>1</c-></code> after
-decrementing the internal iterator). Implementation must be careful if -1 is
-used, instead of a separated flag, as comparison operators have to consider this
-case too. Using a flag, OTOH, will probably push for separated specialization of
-the whole class, so for random-access iterators this member will not exist.</p>
-   <h3 class="heading settled" data-level="6.3" id="base"><span class="secno">6.3. </span><span class="content"><code class="highlight"><c- n>base</c-><c- p>()</c-></code></span><a class="self-link" href="#base"></a></h3>
-   <p>When reaching 0 count, if <code class="highlight"><c- n>base</c-><c- p>()</c-></code> still simply returns the underlying iterator,
-it returns the "one before" iterator in most cases.</p>
-   <p>If we want it to return the actual end (as users expect) and make the behavior
-consistent, it means we must advance the underlying iterator first. This doesn’t
-allow <code class="highlight"><c- n>base</c-><c- p>()</c-></code> to be <code class="highlight"><c- k>const</c-></code> (at least logically) and invalidates other copies
-of the iterator (in case of non-forward iterator). As this option seems the most
-reasonable one, we based out <a href="#alternatives-for-base">§ 7.5 Alternatives for base()</a> suggestions on it.</p>
-   <p>Another option is to return by value, so this increment only a copy of the
-underlying operator and keeps <code class="highlight"><c- n>base</c-><c- p>()</c-></code> as <code class="highlight"><c- k>const</c-></code> member. Besides having the
-invlidation problem here (maybe worse than before, as it invalidated the current
-object too, so calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> twich isn’t allowed!), this prevents using it
-with move-only iterators, as mentioned in <a data-link-type="biblio" href="#biblio-lwg3391">[LWG3391]</a>.</p>
-   <h3 class="heading settled" data-level="6.4" id="return-type-of-operator-int"><span class="secno">6.4. </span><span class="content">Return type of <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></span><a class="self-link" href="#return-type-of-operator-int"></a></h3>
+   <p>The solution accepted in SG9 is to:</p>
+   <ol>
+    <li data-md>
+     <p>Cap <code class="highlight"><c- n>lazy_counted_iterator</c-></code> to <code class="highlight"><c- n>forward_iterator</c-></code>, so decrementing is never
+   supported.</p>
+    <li data-md>
+     <p>Don’t provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> method, so there is no way to observe the
+   inconsistency and get unexpected behavior in some cases.</p>
+   </ol>
+   <p>This also simplifies the implementation, as there is no requirement to to
+differentiate between these two states of the underlying iterator.
+(Implementations might still decide to track it for providing additional
+diagnostics for violations of the precondition of iterator comparison.)</p>
+   <h3 class="heading settled" data-level="6.2" id="return-type-of-operator-int"><span class="secno">6.2. </span><span class="content">Return type of <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></span><a class="self-link" href="#return-type-of-operator-int"></a></h3>
    <p>For non-forward iterators, today counted_iterator::operator++(int) is defined
 with <code class="highlight"><c- k>return</c-> <c- n>current</c-><c- o>++</c-><c- p>;</c-></code> and <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-></code>, as such an iterator might return
 a different type or not return anything at all (e.g. if it’s move only
-iterator). <code class="highlight"><c- n>input_or_output_iterator</c-></code> is <code class="highlight"><c- n>weakly_incrementable</c-></code>, not <code class="highlight"><c- n>incrementable</c-></code>. As in this change we don’t always increment the iterator, there
-is no consistent type to return. As a result, for non-forward iterators, we
-define <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code> as returning <code class="highlight"><c- b>void</c-></code>.</p>
-   <h3 class="heading settled" data-level="6.5" id="why-lazy_take-instead-of-fixing-take"><span class="secno">6.5. </span><span class="content">Why <code class="highlight"><c- n>lazy_take</c-></code> instead of fixing <code class="highlight"><c- n>take</c-></code>?</span><a class="self-link" href="#why-lazy_take-instead-of-fixing-take"></a></h3>
+iterator). <code class="highlight"><c- n>input_or_output_iterator</c-></code> is <code class="highlight"><c- n>weakly_incrementable</c-></code>, not <code class="highlight"><c- n>incrementable</c-></code>. As we don’t always increment the iterator, there is no
+consistent type to return. As a result, for non-forward iterators, we define <code class="highlight"><c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code> as returning <code class="highlight"><c- b>void</c-></code>. This also prevents us from supporting <code class="highlight"><c- n>output_iterator</c-></code>, as one of its requirements is to support <code class="highlight"><c- o>*</c-><c- n>it</c-><c- o>++</c-></code>.</p>
+   <h3 class="heading settled" data-level="6.3" id="why-lazy_take-instead-of-fixing-take"><span class="secno">6.3. </span><span class="content">Why <code class="highlight"><c- n>lazy_take</c-></code> instead of fixing <code class="highlight"><c- n>take</c-></code>?</span><a class="self-link" href="#why-lazy_take-instead-of-fixing-take"></a></h3>
    <p>We could have change <code class="highlight"><c- n>take</c-></code> to use <code class="highlight"><c- n>lazy_counted_iterator</c-></code> when constructed with
 input (non lazy) range. Besides ABI considerations, we find it wrong if <code class="highlight"><c- n>take</c-></code> used to return one type (<code class="highlight"><c- n>counted_iterator</c-></code>) and now will start returning a
 different one, <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, as this is source-breaking change.
@@ -2360,83 +2319,8 @@ point where users must be aware of it is when they use <code class="highlight"><
 expect to be quite advance usage in general. Users who care about absolute
 performance, can choose using <code class="highlight"><c- n>take</c-></code> when they know it works correctly for their
 case.</p>
-   <h4 class="heading settled" data-level="6.5.1" id="improve-discoverability-and-teachability"><span class="secno">6.5.1. </span><span class="content">Improve discoverability and teachability</span><a class="self-link" href="#improve-discoverability-and-teachability"></a></h4>
-   <p>An option mentioned in the discussions was to improve discoverability by
-renaming <code class="highlight"><c- n>counted_iterator</c-></code> and <code class="highlight"><c- n>take</c-></code> to <code class="highlight"><c- n>eager_counted_iterator</c-></code> and <code class="highlight"><c- n>eager_take</c-></code> and calling the new tools <code class="highlight"><c- n>counted_iterator</c-></code> and <code class="highlight"><c- n>take</c-></code>.</p>
-   <p>Another variation was to call the new tools <code class="highlight"><c- n>lazy_counted_iterator</c-></code> and <code class="highlight"><c- n>lazy_take</c-></code> as suggested here, rename the existing one to have <code class="highlight"><c- n>eager_</c-></code> prefix
-and add new versions of <code class="highlight"><c- n>counted_iterator</c-></code> and <code class="highlight"><c- n>take</c-></code> that alias the <code class="highlight"><c- n>lazy_</c-></code> version for <code class="highlight"><c- n>input_iterator</c-></code> case and keep aliasing the <code class="highlight"><c- n>eager_</c-></code> version for
-the rest of the cases.</p>
-   <p>While leaving the user the option to choose the option that fits their specific
-use-case, it still provides a safer default.</p>
-   <p>We believe this option is problematic as it might be source breaking (e.g. <code class="highlight"><c- n>counted_iterator</c-> <c- n>ci</c-> <c- o>=</c-> <c- n>take</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-> <c- mi>4</c-><c- p>).</c-><c- n>begin</c-><c- p>();</c-></code> for the second variation, or any
-usage of interface that isn’t provided by the new tools in any variation), but
-still wanted to mention this option for discussion.</p>
-   <h2 class="heading settled" data-level="7" id="design-alternatives"><span class="secno">7. </span><span class="content">Design alternatives</span><a class="self-link" href="#design-alternatives"></a></h2>
-   <p>Following are the design alternatives we came up with, after the discussions
-happend over the previous revisions:</p>
-   <h3 class="heading settled" data-level="7.1" id="option-1---as-closer-to-counted_iterator-as-possible"><span class="secno">7.1. </span><span class="content">Option 1 - As closer to <code class="highlight"><c- n>counted_iterator</c-></code> as possible</span><a class="self-link" href="#option-1---as-closer-to-counted_iterator-as-possible"></a></h3>
-   <p>With this option, <code class="highlight"><c- n>lazy_counted_iterator</c-></code> is almost identical to <code class="highlight"><c- n>counted_iterator</c-></code> with the following changes:</p>
-   <ol>
-    <li data-md>
-     <p>For <code class="highlight"><c- n>random_access_iterator</c-></code>, the behavior is the same. <br> Reason: If an iterator is random access, we expect it to know when we reach
-   the end. (Question: maybe we actually want <code class="highlight"><c- n>sized_iterator</c-></code> here?)</p>
-    <li data-md>
-     <p>Incrementing <code class="highlight"><c- n>lazy_counted_iterator</c-></code> doesn’t increment the underlying
-   iterator when reaching 0 count.</p>
-    <li data-md>
-     <p>Decrementing <code class="highlight"><c- n>lazy_counted_iterator</c-></code> doesn’t decrement the underlying
-   iterator when current count is 0.</p>
-    <li data-md>
-     <p>Implementation must handle correctly <code class="highlight"><c- n>lazy_counted_iterator</c-></code> constructed with
-   0 count (e.g. marking it differently so it knows to decrement the underlying
-   iterator despite the previous point).</p>
-   </ol>
-   <h3 class="heading settled" data-level="7.2" id="option-2---capped-to-forward_iterator"><span class="secno">7.2. </span><span class="content">Option 2 - Capped to <code class="highlight"><c- n>forward_iterator</c-></code></span><a class="self-link" href="#option-2---capped-to-forward_iterator"></a></h3>
-   <p>With this option, <code class="highlight"><c- n>lazy_counted_iterator</c-></code> provides <code class="highlight"><c- n>forward_iterator</c-></code> interface
-(at max). This removes the need to handle decrementing correctly. (Implementations
-might still choose to track the case of <code class="highlight"><c- n>lazy_counted_iterator</c-></code> constructed with 0
-count for validating the precondition of iterator comparison.)</p>
-   <h3 class="heading settled" data-level="7.3" id="option-3---dont-read-it-if-created-with-0-count"><span class="secno">7.3. </span><span class="content">Option 3 - Don’t read it if created with 0 count</span><a class="self-link" href="#option-3---dont-read-it-if-created-with-0-count"></a></h3>
-   <p>This option is similar to option 1, but to simplify the handling of an iterator
-constructed with 0 count, disallows using such an iterator with any operation
-that access the underlying iterator (no <code class="highlight"><c- o>--</c-></code> or <code class="highlight"><c- n>base</c-><c- p>()</c-></code>) or comparing to
-another iterator (effectively allowing only calling <code class="highlight"><c- n>count</c-><c- p>()</c-></code> and comparing to
-sentinel). Please note that if we choose option III below, it means that after
-calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code>, same restrictions apply on that iterator, including diallowing
-another call to <code class="highlight"><c- n>base</c-><c- p>()</c-></code>.</p>
-   <h3 class="heading settled" data-level="7.4" id="option-4---dont-increment-the-underlying-iterator-until-really-required"><span class="secno">7.4. </span><span class="content">Option 4 - Don’t increment the underlying iterator until really required</span><a class="self-link" href="#option-4---dont-increment-the-underlying-iterator-until-really-required"></a></h3>
-   <p>Increment the underlying iterator only on first dereference. This makes
-dereferencing a non-<code class="highlight"><c- k>const</c-></code> operation. Additionally, copying <code class="highlight"><c- n>lazy_counted_iterator</c-></code> of non-forward iterator (that wasn’t dereferenced yet
-for the current item) and then dereferencing one of them resulted with
-invalidation of the other one. To improve the situation we can make <code class="highlight"><c- n>lazy_counted_iterator</c-></code> non-copyable.</p>
-   <h3 class="heading settled" data-level="7.5" id="alternatives-for-base"><span class="secno">7.5. </span><span class="content">Alternatives for <code class="highlight"><c- n>base</c-><c- p>()</c-></code></span><a class="self-link" href="#alternatives-for-base"></a></h3>
-   <h4 class="heading settled" data-level="7.5.1" id="option-i---dont-provide-base"><span class="secno">7.5.1. </span><span class="content">Option I - Don’t provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code></span><a class="self-link" href="#option-i---dont-provide-base"></a></h4>
-   <p>In this option, we just don’t provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code>. Returning the underlying
-iterator when count is 0 can be confusing (it depends if <code class="highlight"><c- n>lazy_counted_iterator</c-></code> was created with 0 count or reached this state by incrementing it) or invoking
-the same issue we try to solve here (if we increment the iterator here).
-Additionally, if we increment the underlying iterator on first access to <code class="highlight"><c- n>base</c-><c- p>()</c-></code>, it can’t be <code class="highlight"><c- k>const</c-></code> (at least not logically), it invalidates other
-copies of the iterator in case of <code class="highlight"><c- n>input_iterator</c-></code> and (even if we go with
-option 2 above) adds back the complexity of tracking if the iterator was
-incremented already (e.g. constructed with 0 count).</p>
-   <p>If we go with option 1 above, it means that for <code class="highlight"><c- n>random_access_iterator</c-></code> we keep
-providing <code class="highlight"><c- n>base</c-><c- p>()</c-></code>, like <code class="highlight"><c- n>counted_iterator</c-></code> does, as there is no reason not to.</p>
-   <p>Wording must be adjustment when other functionality is defined in terms of
-calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and implementation can access the underlying iterator directly
-when needed.</p>
-   <h4 class="heading settled" data-level="7.5.2" id="option-ii---make-lazy_counted_iterator-non-copyable"><span class="secno">7.5.2. </span><span class="content">Option II - Make <code class="highlight"><c- n>lazy_counted_iterator</c-></code> non-copyable</span><a class="self-link" href="#option-ii---make-lazy_counted_iterator-non-copyable"></a></h4>
-   <p>Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> function which increments the underlying iterator if needed.
-Users are warned that calling <code class="highlight"><c- n>base</c-><c- p>()</c-></code> means non-lazy behavior. Implementation
-must not invoke it if not explicitly requested (same wording adjustment is
-required as in the previous option). We make <code class="highlight"><c- n>lazy_counted_iterator</c-></code> non-copyable even if the underlying iterator is copyable. If it’s non-copyable,
-we don’t have to worry about invalidation (at least not directly; it still
-invalidates copies of the underlying iterator).</p>
-   <h4 class="heading settled" data-level="7.5.3" id="option-iii---provide-base-and-mention-it-invalidates-other-copies"><span class="secno">7.5.3. </span><span class="content">Option III - Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and mention it invalidates other copies</span><a class="self-link" href="#option-iii---provide-base-and-mention-it-invalidates-other-copies"></a></h4>
-   <p>Provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code> and specify it as invalidating other copies, leaving it to the
-users to use it correctly. Implementation must increment the underlying iterator
-if needed (reached 0 count and this is the first time <code class="highlight"><c- n>base</c-><c- p>()</c-></code> is called).</p>
-   <h2 class="heading settled" data-level="8" id="wording"><span class="secno">8. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
-   <p>Wording is for the design recommended by SG9, Option 2 + I.</p>
-   <h3 class="heading settled" data-level="8.1" id="wording-for-lazy_counted_iterator"><span class="secno">8.1. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#wording-for-lazy_counted_iterator"></a></h3>
+   <h2 class="heading settled" data-level="7" id="wording"><span class="secno">7. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
+   <h3 class="heading settled" data-level="7.1" id="wording-for-lazy_counted_iterator"><span class="secno">7.1. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#wording-for-lazy_counted_iterator"></a></h3>
    <p>Under Header <code class="highlight"><c- o>&lt;</c-><c- n>iterator</c-><c- o>></c-></code> synopsis [<strong>iterator.syn</strong>] add the new type:</p>
 <pre class="language-c++ highlight"><c- c1>// [iterators.counted], counted iterators</c->
  <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
@@ -2448,16 +2332,12 @@ if needed (reached 0 count and this is the first time <code class="highlight"><c
    <ins>
 <pre class="language-c++ highlight"><c- c1>// [iterators.lazy.counted], lazy counted iterators</c->
  <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>lazy_counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
-
- <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c->
-   <c- n>requires</c-> <c- n>see</c-> <c- n>below</c->
-   <c- k>struct</c-> <c- nc>iterator_traits</c-><c- o>&lt;</c-><c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>>></c-><c- p>;</c->            <c- c1>// freestanding</c->
 </pre>
    </ins>
    <p>In Iterator adaptors [<strong>predef.iterators</strong>], after 25.5.7 Counted iterators [<strong>iterators.counted</strong>] add new section:</p>
    <ins> 25.5.x Lazy counted iterators     [iterators.lazy.counted] </ins>
    <p>Under this section add:</p>
-   <h4 class="heading settled" data-level="8.1.1" id="x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">8.1.1. </span><span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span><a class="self-link" href="#x1-class-template-lazy_counted_iterator-lazycountediterator"></a></h4>
+   <h4 class="heading settled" data-level="7.1.1" id="x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">7.1.1. </span><span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span><a class="self-link" href="#x1-class-template-lazy_counted_iterator-lazycountediterator"></a></h4>
    <p>Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> is an iterator adaptor with the same behavior
 as the underlying iterator except that it keeps track of the distance to the end
 of its range. It can be used together with <code class="highlight"><c- n>default_sentinel</c-></code> in calls to generic
@@ -2475,14 +2355,13 @@ without needing to know the end position a priori.</p>
 let <code class="highlight"><c- n>i1base</c-></code> denote the underlying iterator of <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2base</c-></code> denote the underlying iterator of <code class="highlight"><c- n>i2</c-></code>. <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2</c-></code> refer to elements of the same sequence if and only if there exists some integer
 n such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1base</c-><c- p>,</c-> <c- n>i1</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> and <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i2base</c-><c- p>,</c-> <c- n>i2</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> refer to the same (possibly past-the-end) element.</p>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-> <c- p>{</c->
-  <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c->
+  <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c->
   <c- n>class</c-> <c- n>lazy_counted_iterator</c-> <c- p>{</c->
   <c- n>public</c-><c- o>:</c->
     <c- n>using</c-> <c- n>iterator_type</c-> <c- o>=</c-> <c- n>I</c-><c- p>;</c->
-    <c- n>using</c-> <c- n>value_type</c-> <c- o>=</c-> <c- n>iter_value_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->                         <c- c1>// present only</c->
-                        <c- c1>// if I models indirectly_readable</c->
+    <c- n>using</c-> <c- n>value_type</c-> <c- o>=</c-> <c- n>iter_value_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
     <c- n>using</c-> <c- n>difference_type</c-> <c- o>=</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
-    <c- n>using</c-> <c- n>iterator_concept</c->  <c- o>=</c-> <c- n>see</c-> <c- n>below</c-><c- p>;</c->                      <c- c1>// not always present</c->
+    <c- n>using</c-> <c- n>iterator_concept</c->  <c- o>=</c-> <c- n>see</c-> <c- n>below</c-><c- p>;</c->
     <c- n>using</c-> <c- n>iterator_category</c-> <c- o>=</c-> <c- n>see</c-> <c- n>below</c-><c- p>;</c->                      <c- c1>// not always present</c->
     <c- n>constexpr</c-> <c- nf>lazy_counted_iterator</c-><c- p>()</c-> <c- n>requires</c-> <c- n>default_initializable</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
     <c- n>constexpr</c-> <c- nf>lazy_counted_iterator</c-><c- p>(</c-><c- n>I</c-> <c- n>x</c-><c- p>,</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>);</c->
@@ -2523,8 +2402,7 @@ n such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1base</c->
         <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
 
     <c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_rvalue_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>iter_move</c-><c- p>(</c-><c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>i</c-><c- p>)</c->
-      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)))</c->
-        <c- n>requires</c-> <c- n>input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
     <c- n>template</c-><c- o>&lt;</c-><c- n>indirectly_swappable</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
       <c- n>friend</c-> <c- n>constexpr</c-> <c- b>void</c-> <c- n>iter_swap</c-><c- p>(</c-><c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>)</c->
         <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
@@ -2535,23 +2413,23 @@ n such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1base</c->
   <c- p>};</c->
 <c- p>}</c->
 </pre>
-   <p>The member typedef-name <code class="highlight"><c- n>iterator_concept</c-></code> is defined if and only if the
-qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code> is valid and denotes a type. In that case, <code class="highlight"><c- n>iterator_concept</c-></code> denotes</p>
+   <p>The member typedef-name <code class="highlight"><c- n>iterator_concept</c-></code> denotes</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>forward_iterator_tag</c-></code> if the type <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code> models <code class="highlight"><c- n>derived_from</c-><c- o>&lt;</c-><c- n>forward_iterator_tag</c-><c- o>></c-></code>, and</p>
+     <p><code class="highlight"><c- n>forward_iterator_tag</c-></code> if <code class="highlight"><c- n>Iterator</c-></code> models <code class="highlight"><c- n>forward_iterator</c-></code>, and</p>
     <li data-md>
-     <p><code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code> otherwise.</p>
+     <p><code class="highlight"><c- n>input_iterator_tag</c-></code> otherwise.</p>
    </ul>
    <p>The member typedef-name <code class="highlight"><c- n>iterator_category</c-></code> is defined if and only if the
-qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_category</c-></code> is valid and denotes a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code> denotes</p>
+qualified-id <code class="highlight"><c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>Iterator</c-><c- o>>::</c-><c- n>iterator_category</c-></code> is valid and denotes
+a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code> denotes</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>forward_iterator_tag</c-></code> if the type <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_category</c-></code> models <code class="highlight"><c- n>derived_from</c-><c- o>&lt;</c-><c- n>forward_iterator_tag</c-><c- o>></c-></code>, and</p>
+     <p><code class="highlight"><c- n>forward_iterator_tag</c-></code> if the type <code class="highlight"><c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>Iterator</c-><c- o>>::</c-><c- n>iterator_category</c-></code> models <code class="highlight"><c- n>derived_from</c-><c- o>&lt;</c-><c- n>forward_iterator_tag</c-><c- o>></c-></code>, and</p>
     <li data-md>
-     <p><code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_category</c-></code> otherwise.</p>
+     <p><code class="highlight"><c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>Iterator</c-><c- o>>::</c-><c- n>iterator_category</c-></code> otherwise.</p>
    </ul>
-   <h4 class="heading settled" data-level="8.1.2" id="x2-constructors-and-conversions-lazycountediterconst"><span class="secno">8.1.2. </span><span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span><a class="self-link" href="#x2-constructors-and-conversions-lazycountediterconst"></a></h4>
+   <h4 class="heading settled" data-level="7.1.2" id="x2-constructors-and-conversions-lazycountediterconst"><span class="secno">7.1.2. </span><span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span><a class="self-link" href="#x2-constructors-and-conversions-lazycountediterconst"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_counted_iterator</c-><c- p>(</c-><c- n>I</c-> <c- n>i</c-><c- p>,</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>);</c-></code></p>
    <p><em>Preconditions</em>: n >= 0.</p>
    <p><em>Effects</em>: Initializes <code class="highlight"><c- n>current</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> and <code class="highlight"><c- n>length</c-></code> with <code class="highlight"><c- n>n</c-></code>.</p>
@@ -2566,17 +2444,17 @@ qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_cat
 </pre>
    <p><em>Effects</em>: Assigns <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>current</c-></code> to <code class="highlight"><c- n>current</c-></code> and <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-></code> to <code class="highlight"><c- n>length</c-></code>.</p>
    <p><em>Returns</em>: <code class="highlight"><c- o>*</c-><c- k>this</c-></code>.</p>
-   <h4 class="heading settled" data-level="8.1.3" id="x3-accessors-lazycountediteraccess"><span class="secno">8.1.3. </span><span class="content">x.3 Accessors              [lazy.counted.iter.access]</span><a class="self-link" href="#x3-accessors-lazycountediteraccess"></a></h4>
+   <h4 class="heading settled" data-level="7.1.3" id="x3-accessors-lazycountediteraccess"><span class="secno">7.1.3. </span><span class="content">x.3 Accessors              [lazy.counted.iter.access]</span><a class="self-link" href="#x3-accessors-lazycountediteraccess"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>count</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c-></code></p>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-><c- p>;</c-></code></p>
-   <h4 class="heading settled" data-level="8.1.4" id="x4-element-access-lazycountediterelem"><span class="secno">8.1.4. </span><span class="content">x.4 Element access         [lazy.counted.iter.elem]</span><a class="self-link" href="#x4-element-access-lazycountediterelem"></a></h4>
+   <h4 class="heading settled" data-level="7.1.4" id="x4-element-access-lazycountediterelem"><span class="secno">7.1.4. </span><span class="content">x.4 Element access         [lazy.counted.iter.elem]</span><a class="self-link" href="#x4-element-access-lazycountediterelem"></a></h4>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>();</c->
 <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>()</c-> <c- k>const</c->
   <c- n>requires</c-> <c- n>dereferenceable</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I</c-><c- o>></c-><c- p>;</c->
 </pre>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- n>current</c-><c- p>;</c-></code></p>
-   <h4 class="heading settled" data-level="8.1.5" id="x5-navigation-lazycountediternav"><span class="secno">8.1.5. </span><span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span><a class="self-link" href="#x5-navigation-lazycountediternav"></a></h4>
+   <h4 class="heading settled" data-level="7.1.5" id="x5-navigation-lazycountediternav"><span class="secno">7.1.5. </span><span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span><a class="self-link" href="#x5-navigation-lazycountediternav"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>++</c-><c- p>();</c-></code></p>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.</p>
    <p><em>Effects</em>: Equivalent to:</p>
@@ -2613,7 +2491,7 @@ qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_cat
   <c- n>default_sentinel_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>);</c->
 </pre>
    <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code> 
-   <h4 class="heading settled" data-level="8.1.6" id="x6-comparisons-lazycounteditercmp"><span class="secno">8.1.6. </span><span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span><a class="self-link" href="#x6-comparisons-lazycounteditercmp"></a></h4>
+   <h4 class="heading settled" data-level="7.1.6" id="x6-comparisons-lazycounteditercmp"><span class="secno">7.1.6. </span><span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span><a class="self-link" href="#x6-comparisons-lazycounteditercmp"></a></h4>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
   <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
     <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
@@ -2631,11 +2509,10 @@ qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_cat
    <em>Preconditions</em>: <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code> refer to elements of the same sequence ([lazy.counted.iterator]). 
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>&lt;=></c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code></p>
    <p>[Note 1: The argument order in the Effects: element is reversed because <code class="highlight"><c- n>length</c-></code> counts down, not up. — end note]</p>
-   <h4 class="heading settled" data-level="8.1.7" id="x7-customizations-lazycounteditercust"><span class="secno">8.1.7. </span><span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span><a class="self-link" href="#x7-customizations-lazycounteditercust"></a></h4>
+   <h4 class="heading settled" data-level="7.1.7" id="x7-customizations-lazycounteditercust"><span class="secno">7.1.7. </span><span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span><a class="self-link" href="#x7-customizations-lazycounteditercust"></a></h4>
 <pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_rvalue_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c->
   <c- n>iter_move</c-><c- p>(</c-><c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>i</c-><c- p>)</c->
-    <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)))</c->
-    <c- n>requires</c-> <c- n>input_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
+    <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
 </pre>
    <em>Preconditions</em>: <code class="highlight"><c- n>i</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>. 
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>);</c-></code></p>
@@ -2646,7 +2523,7 @@ qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_cat
 </pre>
    <em>Preconditions</em>: Both <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> and <code class="highlight"><c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> are <code class="highlight">true</code>. 
    <p><em>Effects</em>: Equivalent to <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)</c-></code>.</p>
-   <h3 class="heading settled" data-level="8.2" id="wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">8.2. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted-and-lazy_take_view"></a></h3>
+   <h3 class="heading settled" data-level="7.2" id="wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">7.2. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted-and-lazy_take_view"></a></h3>
    <p>Under Header <code class="highlight"><c- o>&lt;</c-><c- n>ranges</c-><c- o>></c-></code> synopsis [<strong>ranges.syn</strong>] add the new types:</p>
 <pre class="language-c++ highlight"><c- c1>// [range.counted], counted view</c->
 <c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>counted</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->     <c- c1>// freestanding</c->
@@ -2676,10 +2553,10 @@ qualified-id <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_cat
 <c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>lazy_take</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->        <c- c1>// freestanding</c->
 </pre>
    </ins>
-   <h3 class="heading settled" data-level="8.3" id="wording-for-viewslazy_counted"><span class="secno">8.3. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted"></a></h3>
+   <h3 class="heading settled" data-level="7.3" id="wording-for-viewslazy_counted"><span class="secno">7.3. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted"></a></h3>
    <p>In Range adaptors [<strong>range.adaptors</strong>], after 26.7.18 Counted view [<strong>range.counted</strong>] add new section:</p>
-   <h4 class="heading settled" data-level="8.3.1" id="267x-lazy-counted-view-rangelazycounted"><span class="secno">8.3.1. </span><span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span><a class="self-link" href="#267x-lazy-counted-view-rangelazycounted"></a></h4>
-   <p>A counted view presents a view of the elements of the counted range
+   <h4 class="heading settled" data-level="7.3.1" id="267x-lazy-counted-view-rangelazycounted"><span class="secno">7.3.1. </span><span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span><a class="self-link" href="#267x-lazy-counted-view-rangelazycounted"></a></h4>
+   <p>A lazy counted view presents a view of the elements of the counted range
 ([iterator.requirements.general]) <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- p>[</c-><c- mi>0</c-><c- p>,</c-> <c- n>n</c-><c- p>)</c-></code> for an iterator <code class="highlight"><c- n>i</c-></code> and
 non-negative integer <code class="highlight"><c- n>n</c-></code>.</p>
    <p>The name <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> denotes a customization point object
@@ -2694,11 +2571,11 @@ non-negative integer <code class="highlight"><c- n>n</c-></code>.</p>
     <li data-md>
      <p>Otherwise, <code class="highlight"><c- n>subrange</c-><c- p>(</c-><c- n>lazy_counted_iterator</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>),</c-> <c- n>default_sentinel</c-><c- p>)</c-></code>.</p>
    </ul>
-   <h3 class="heading settled" data-level="8.4" id="wording-for-lazy_take_view"><span class="secno">8.4. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-lazy_take_view"></a></h3>
+   <h3 class="heading settled" data-level="7.4" id="wording-for-lazy_take_view"><span class="secno">7.4. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-lazy_take_view"></a></h3>
    <p>After 26.7.10 Take view [<strong>range.take</strong>] add new section:</p>
    <ins> 26.7.x Lazy take view               [range.lazy.take] </ins>
    <p>Under this section add:</p>
-   <h4 class="heading settled" data-level="8.4.1" id="x1-overview-rangelazytakeoverview"><span class="secno">8.4.1. </span><span class="content">x.1 Overview              [range.lazy.take.overview]</span><a class="self-link" href="#x1-overview-rangelazytakeoverview"></a></h4>
+   <h4 class="heading settled" data-level="7.4.1" id="x1-overview-rangelazytakeoverview"><span class="secno">7.4.1. </span><span class="content">x.1 Overview              [range.lazy.take.overview]</span><a class="self-link" href="#x1-overview-rangelazytakeoverview"></a></h4>
    <p><code class="highlight"><c- n>lazy_take_view</c-></code> produces a view of the first N elements from another view, or all
 the elements if the adapted view contains fewer than N.</p>
    <p>The name <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take</c-></code> denotes a range adaptor object
@@ -2741,7 +2618,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
   <c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>' '</c-><c- p>;</c-> <c- c1>// prints 0 1 2 3 4</c->
 </pre>
    — end example] 
-   <h4 class="heading settled" data-level="8.4.2" id="x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">8.4.2. </span><span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span><a class="self-link" href="#x2-class-template-lazy_take_view-rangelazytakeview"></a></h4>
+   <h4 class="heading settled" data-level="7.4.2" id="x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">7.4.2. </span><span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span><a class="self-link" href="#x2-class-template-lazy_take_view-rangelazytakeview"></a></h4>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
   <c- n>class</c-> <c- n>lazy_take_view</c-> <c- o>:</c-> <c- n>public</c-> <c- n>view_interface</c-><c- o>&lt;</c-><c- n>take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-> <c- p>{</c->
@@ -2838,7 +2715,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_take_view</c-><c- p>(</c-><c- n>V</c-> <c- n>base</c-><c- p>,</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count</c-><c- p>);</c-></code></p>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>count</c-> <c- o>>=</c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects</em>: Initializes <code class="highlight"><c- n>base_</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>base</c-><c- p>)</c-></code> and <code class="highlight"><c- n>count_</c-></code> with <code class="highlight"><c- n>count</c-></code>.</p>
-   <h4 class="heading settled" data-level="8.4.3" id="x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">8.4.3. </span><span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span><a class="self-link" href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"></a></h4>
+   <h4 class="heading settled" data-level="7.4.3" id="x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">7.4.3. </span><span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span><a class="self-link" href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"></a></h4>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
   <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>Const</c-><c- o>></c->
@@ -2880,18 +2757,12 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
 <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
 </pre>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>==</c-> <c- mi>0</c-> <c- o>||</c-> <c- n>y</c-><c- p>.</c-><c- n>base</c-><c- p>()</c-> <c- o>==</c-> <c- n>x</c-><c- p>.</c-><c- n>end_</c-><c- p>;</c-></code></p>
-   <h3 class="heading settled" data-level="8.5" id="opens"><span class="secno">8.5. </span><span class="content">Opens</span><a class="self-link" href="#opens"></a></h3>
-   <h4 class="heading settled" data-level="8.5.1" id="iterator_concept-depends-on-iiterator_concept"><span class="secno">8.5.1. </span><span class="content"><code class="highlight"><c- n>iterator_concept</c-></code> depends on <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code></span><a class="self-link" href="#iterator_concept-depends-on-iiterator_concept"></a></h4>
-   <p>We followed <code class="highlight"><c- n>counted_iterator</c-></code> defintion, which defines <code class="highlight"><c- n>iterator_concept</c-></code> as
-equal to <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_concept</c-></code> and only if it’s found. As other iterators always
-define <code class="highlight"><c- n>iterator_concept</c-></code> depending on what <code class="highlight"><c- n>I</c-></code> models (only <code class="highlight"><c- n>iterator_category</c-></code> depends on <code class="highlight"><c- n>I</c-><c- o>::</c-><c- n>iterator_category</c-></code>), maybe <code class="highlight"><c- p>{</c-><c- n>lazy_</c-><c- p>,}</c-><c- n>counted_iterator</c-></code> should
-follow this for consistency?</p>
-   <h2 class="heading settled" data-level="9" id="note-about-optimization"><span class="secno">9. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
+   <h2 class="heading settled" data-level="8" id="note-about-optimization"><span class="secno">8. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
    <p>It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>.</p>
-   <h2 class="heading settled" data-level="10" id="acknowledgements"><span class="secno">10. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="9" id="acknowledgements"><span class="secno">9. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
    <p>Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 <a data-link-type="biblio" href="#biblio-reddit-cpp">[reddit-cpp]</a>. Thanks SG9 members
@@ -3037,12 +2908,6 @@ for their feedback and guidance.</p>
    <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz"><cite>Optimizer magic solves filter+take issue, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
    <dt id="biblio-ce-opt2">[CE-OPT2]
    <dd><a href="https://gcc.godbolt.org/z/PvMY8WeaT"><cite>Optimizer is right when filter really never returns, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/PvMY8WeaT">https://gcc.godbolt.org/z/PvMY8WeaT</a>
-   <dt id="biblio-d2406r1">[D2406R1]
-   <dd><a href="https://isocpp.org/files/papers/D2406R1.html"><cite>D2406R1</cite></a>. URL: <a href="https://isocpp.org/files/papers/D2406R1.html">https://isocpp.org/files/papers/D2406R1.html</a>
-   <dt id="biblio-lwg3391">[LWG3391]
-   <dd><a href="https://cplusplus.github.io/LWG/issue3391"><cite>LWG3391 - Problems with counted_iterator/move_iterator::base() const &amp;</cite></a>. URL: <a href="https://cplusplus.github.io/LWG/issue3391">https://cplusplus.github.io/LWG/issue3391</a>
-   <dt id="biblio-p2406r0">[P2406R0]
-   <dd><a href="https://wg21.link/p2406r0"><cite>P2406R0</cite></a>. URL: <a href="https://wg21.link/p2406r0">https://wg21.link/p2406r0</a>
    <dt id="biblio-range-v3-issue57">[RANGE-V3-ISSUE57]
    <dd><a href="https://github.com/ericniebler/range-v3/issues/57"><cite>range-v3 - istream_range filtered with take(N) should stop reading at N</cite></a>. URL: <a href="https://github.com/ericniebler/range-v3/issues/57">https://github.com/ericniebler/range-v3/issues/57</a>
    <dt id="biblio-reddit-cpp">[REDDIT-CPP]

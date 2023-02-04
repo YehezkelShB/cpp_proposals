@@ -65,6 +65,13 @@ ED: https://wg21.link/P2406
 
 # Revision History
 
+r3: Itegreating LEWG feedback:
+- Define `iterator_concept` and `iterator_category` like other iterator adaptors
+  do, unlike `counted_iterator` which is special
+- Require `input_iterator` as `operator++(int)` definition doens't match
+  `output_iterator` requirements
+- General cleanup
+
 r2: Integrating SG9 feedback:
 - Removing references to p2578, after SG9 vote against it
 - Fix design suggested
