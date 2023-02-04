@@ -59,14 +59,6 @@ ED: https://wg21.link/P2406
     "reddit-cpp": {
         "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
         "title": "r/cpp comments on P2406R0"
-    },
-    "P2406R0": {
-        "href": "https://wg21.link/p2406r0",
-        "title": "P2406R0"
-    },
-    "D2406R1": {
-        "href": "https://isocpp.org/files/papers/D2406R1.html",
-        "title": "D2406R1"
     }
 }
 </pre>
@@ -79,9 +71,9 @@ r2: Integrating SG9 feedback:
 - Add design alternatives
 
 r1: Improving many parts, following feedback from Inbal Levi and from Reddit
-users - [[D2406R1]]
+users
 
-r0: initial revision - [[P2406R0]]
+r0: initial revision
 
 
 # Problem description
