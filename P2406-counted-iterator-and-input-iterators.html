@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="6757862f7f5d425a4689b0605b87c869a5900c97" name="document-revision">
+  <meta content="b6e9156c36fa3aed728e5fb05028bd43b652b839" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2097,7 +2097,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2406R3<br>Add `lazy_counted_iterator`</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-04">2023-02-04</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-06">2023-02-06</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2621,7 +2621,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
    <h4 class="heading settled" data-level="7.4.2" id="x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">7.4.2. </span><span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span><a class="self-link" href="#x2-class-template-lazy_take_view-rangelazytakeview"></a></h4>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
-  <c- n>class</c-> <c- n>lazy_take_view</c-> <c- o>:</c-> <c- n>public</c-> <c- n>view_interface</c-><c- o>&lt;</c-><c- n>take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-> <c- p>{</c->
+  <c- n>class</c-> <c- n>lazy_take_view</c-> <c- o>:</c-> <c- n>public</c-> <c- n>view_interface</c-><c- o>&lt;</c-><c- n>lazy_take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-> <c- p>{</c->
   <c- n>private</c-><c- o>:</c->
     <c- n>V</c-> <c- n>base_</c-> <c- o>=</c-> <c- n>V</c-><c- p>();</c->                                      <c- c1>// exposition only</c->
     <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count_</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c->                   <c- c1>// exposition only</c->

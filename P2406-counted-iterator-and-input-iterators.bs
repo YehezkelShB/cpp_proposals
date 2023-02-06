@@ -7,7 +7,7 @@ Editor: Yehuda Bernat, YehudaMBer@gmail.com
 Shortname: P2406
 Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggests adding `lazy_counted_iterator` alternative to be used in such cases
 Group: WG21
-Date: 2023-02-04
+Date: 2023-02-06
 Markup Shorthands: markdown yes
 Revision: 3
 Default Highlight: CPP
@@ -662,7 +662,7 @@ for (int i : is | views::lazy_take(5))
 ```c++
 namespace std::ranges {
   template<view V>
-  class lazy_take_view : public view_interface<take_view<V>> {
+  class lazy_take_view : public view_interface<lazy_take_view<V>> {
   private:
     V base_ = V();                                      // exposition only
     range_difference_t<V> count_ = 0;                   // exposition only
