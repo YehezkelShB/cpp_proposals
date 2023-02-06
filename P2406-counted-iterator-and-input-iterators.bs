@@ -48,10 +48,6 @@ ED: https://wg21.link/P2406
         "href": "https://gcc.godbolt.org/z/PvMY8WeaT",
         "title": "Optimizer is right when filter really never returns, Compiler Explorer"
     },
-    "LWG3391": {
-        "href": "https://cplusplus.github.io/LWG/issue3391",
-        "title": "LWG3391 - Problems with counted_iterator/move_iterator::base() const &"
-    },
     "range-v3-issue57": {
         "href": "https://github.com/ericniebler/range-v3/issues/57",
         "title": "range-v3 - istream_range filtered with take(N) should stop reading at N"
