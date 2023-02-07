@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2406R3: Add `lazy_counted_iterator`</title>
+  <title>P2406R4: Add `lazy_counted_iterator`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="ff825ee69339e0afcb3af819a79b121898379ce6" name="document-revision">
+  <meta content="ad1a94b0410ac0c4941c72490491cfafcaa0b626" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2096,8 +2096,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2406R3<br>Add `lazy_counted_iterator`</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-06">2023-02-06</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P2406R4<br>Add `lazy_counted_iterator`</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-07">2023-02-07</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2168,8 +2168,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">7.4.3</span> <span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span></a>
        </ol>
      </ol>
-    <li><a href="#note-about-optimization"><span class="secno">8</span> <span class="content">Note about optimization</span></a>
-    <li><a href="#acknowledgements"><span class="secno">9</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#opens"><span class="secno">8</span> <span class="content">Opens</span></a>
+    <li><a href="#note-about-optimization"><span class="secno">9</span> <span class="content">Note about optimization</span></a>
+    <li><a href="#acknowledgements"><span class="secno">10</span> <span class="content">Acknowledgements</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2179,6 +2180,17 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="revision-history"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#revision-history"></a></h2>
+   <p>r4: Integrate SG9 feedback (Issaquah)</p>
+   <ul>
+    <li data-md>
+     <p>Fix missing change from input_or_output_iterator to input_iterator in the synopsis</p>
+    <li data-md>
+     <p>Simplify the definition of when two iterators refer to the same sequence</p>
+    <li data-md>
+     <p>Simplify the definition of <code class="highlight"><c- b>void</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></p>
+    <li data-md>
+     <p>Add <a href="#opens">opens</a> section for additional design suggestions/questions raised</p>
+   </ul>
    <p>r3: Itegreating LEWG feedback:</p>
    <ul>
     <li data-md>
@@ -2463,9 +2475,7 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
    <p><code class="highlight"><c- k>constexpr</c-> <c- b>void</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>);</c-></code></p>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.</p>
    <p><em>Effects</em>: Equivalent to:</p>
-<pre class="language-c++ highlight"><c- o>--</c-><c- n>length</c-><c- p>;</c->
-<c- n>try</c-> <c- p>{</c-> <c- k>if</c-> <c- p>(</c-><c- n>length</c-><c- p>)</c-> <c- n>current</c-><c- o>++</c-><c- p>;</c-> <c- p>}</c->
-<c- n>catch</c-><c- p>(...)</c-> <c- p>{</c-> <c- o>++</c-><c- n>length</c-><c- p>;</c-> <c- n>throw</c-><c- p>;</c-> <c- p>}</c->
+<pre class="language-c++ highlight"><c- o>++*</c-><c- n>this</c-><c- p>;</c->
 </pre>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>lazy_counted_iterator</c-> <c- n>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c->
   <c- n>requires</c-> <c- n>forward_iterator</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-><c- p>;</c->
@@ -2755,12 +2765,37 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
 <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
 </pre>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>==</c-> <c- mi>0</c-> <c- o>||</c-> <c- n>y</c-><c- p>.</c-><c- n>base</c-><c- p>()</c-> <c- o>==</c-> <c- n>x</c-><c- p>.</c-><c- n>end_</c-><c- p>;</c-></code></p>
-   <h2 class="heading settled" data-level="8" id="note-about-optimization"><span class="secno">8. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
+   <h2 class="heading settled" data-level="8" id="opens"><span class="secno">8. </span><span class="content">Opens</span><a class="self-link" href="#opens"></a></h2>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>basic_const_iterator</c-></code> defines <code class="highlight"><c- n>iterator_category</c-></code> only if the underlying
+  iterator models <code class="highlight"><c- n>forward_iterator</c-></code>. <code class="highlight"><c- n>move_iterator</c-></code> defines it even for <code class="highlight"><c- n>input_iterator</c-></code> case. We followed <code class="highlight"><c- n>move_iterator</c-></code> example in the wording
+  above, but maybe <code class="highlight"><c- n>basic_const_iterator</c-></code> behvaior is what should be used here?</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take</c-></code> effectively increment the underlying
+  iterator when reaching <code class="highlight"><c- n>count</c-></code> for cases like <code class="highlight"><c- n>random_access_iterator</c-></code>, as
+  they use tools other than <code class="highlight"><c- n>lazy_counted_iterator</c-></code> in such cases (<code class="highlight"><c- n>span</c-></code>,
+  returning the iterator directly etc.). We kept it this way as:</p>
+     <ol>
+      <li data-md>
+       <p>These types don’t promise to never increment the underlying iterator for
+ such cases, they only promise it implicitly for the cases that use <code class="highlight"><c- n>lazy_counted_iterator</c-></code>.</p>
+      <li data-md>
+       <p>We don’t think that difference is directly observable (especially as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> doesn’t provide <code class="highlight"><c- n>base</c-><c- p>()</c-></code>).</p>
+      <li data-md>
+       <p>We could’ve define these types to always use <code class="highlight"><c- n>lazy_counted_iterator</c-></code> internally, but this limits their usability and means we can’t recommend
+ people to just use <code class="highlight"><c- n>lazy_take</c-></code> by default.</p>
+     </ol>
+    <li data-md>
+     <p>There was a suggestion to combine <code class="highlight"><c- k>operator</c-><c- o>*</c-></code> definitions into a single <code class="highlight"><c- k>const</c-></code> overload, but we aren’t sure about this and would like to hear more
+  about it.</p>
+   </ul>
+   <h2 class="heading settled" data-level="9" id="note-about-optimization"><span class="secno">9. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
    <p>It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>.</p>
-   <h2 class="heading settled" data-level="9" id="acknowledgements"><span class="secno">9. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="10" id="acknowledgements"><span class="secno">10. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
    <p>Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 <a data-link-type="biblio" href="#biblio-reddit-cpp">[reddit-cpp]</a>. Thanks SG9 members
