@@ -9,7 +9,7 @@ Abstract: `counted_iterator` increments its internal iterator even when reaching
 Group: WG21
 Date: 2023-02-07
 Markup Shorthands: markdown yes
-Revision: 4
+Revision: 5
 Default Highlight: CPP
 ED: https://wg21.link/P2406
 !Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2406-counted-iterator-and-input-iterators.bs">GitHub</a>
@@ -68,6 +68,11 @@ ED: https://wg21.link/P2406
 </pre>
 
 # Revision History
+
+r5: Updates following LEWG review (Issaquah - 2023-02-07 morning)
+- Incorporate poll results
+- Suggest design alternatives
+- Add missing feature test macro
 
 r4: Integrate SG9 feedback (Issaquah)
 - Fix missing change from input_or_output_iterator to input_iterator in the synopsis
@@ -260,6 +265,101 @@ point where users must be aware of it is when they use `base()` method, which we
 expect to be quite advance usage in general. Users who care about absolute
 performance, can choose using `take` when they know it works correctly for their
 case.
+
+
+# Design alternative
+
+## Motivation
+
+LEWG reviewed R4 of this paper (Issaquah - 2023-02-07 morning) with the
+following poll results:
+
+### Poll outcomes
+
+#### POLL: Reject the NB Comment US-46-107
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 3 <td> 8 <td> 9 <td> 2 <td> 2
+</table>
+
+Outcom: No consensus
+
+WA: Preference to break C++20 sooner
+
+#### POLL: Change `counted_iterator` to have the proposed behavior of `lazy_counted_iterator`, which is a breaking change.
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 6 <td> 12 <td> 2 <td> 1 <td> 3
+</table>
+
+Outcome:
+
+#### POLL: Change iterator category to at most `forward`
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 0 <td> 8 <td> 7 <td> 0 <td> 2
+</table>
+
+Outcome:
+
+#### POLL: Require `forward` as a minimum underlying iterator category
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 0 <td> 3 <td> 5 <td> 3 <td> 3
+</table>
+
+Outcome:
+
+#### POLL: Remove `base` from `lazy_counted_iterator`
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 1 <td> 9 <td> 1 <td> 3 <td> 1
+</table>
+
+Outcome:
+
+
+## Alternative 1: Replace `counted_iterator` with `lazy_counted_iterator`
+
+This alternative propse to change `counted_iterator` to be what this paper
+suggests as `lazy_counted_iterator` or a variation of it.
+
+Issues with this alternative are:
+
+1. This is breaking change (both ABI and source breaking, and depending on the
+   design it might be a silent break of behavior change too)
+2. At least one implementer can't/won't ship it
+3. It would require that we lose `base()` (which LEWG opposed) since otherwise
+   there'd be a behavior-breaking/dangerous change
+
+
+## Alternative 2: Add `lazy_counted_iterator` and deprecate `counted_iterator`
+
+This alternative strives to reduce to additional complexity in teachability and
+direct the users to the right direction.
+
+The proposal here is to adopt `lazy_counted_iterator`, `views::lazy_counted` and
+`lazy_take` as propsed in this paper and mark `counted_iterator`,
+`views::counted` and `take` as deprecated.
+
+
+### Alternative 2 variation II: Partial deprecation
+
+To allow things like `vector | take(n)` to keep being `random_access_iterator`,
+we want to suggest here to deprecate only the cases of `counted_iterator` used
+`input_iterator` or `forward_iterator`, keeping the cases of `output_iterator`
+and `bidirectional_iterator` (and better) as they are.
+
+We also want LWEG to consider the case of `istreambuf_iterator` (or any iterator
+considered as "lazy input iterator", see [[P2578]] for further discussion),
+where current behavior of `take` does the right thing. Forcing the user to use
+`lazy_take` and then incrementing the iterator once again to continue reading
+from the right location seems like another teachability issue.
 
 
 # Wording
@@ -833,6 +933,14 @@ friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
 *Effects*: Equivalent to: `return y.count() == 0 || y.base() == x.end_;`
 
 
+## Feature test macro
+
+Add the following feature test macro to [version.syn]:
+
+```c++
+#define __cpp_lib_lazy_counted_iterator date // also in <iterator>
+```
+
 # Opens
 
 - `basic_const_iterator` defines `iterator_category` only if the underlying
@@ -879,3 +987,6 @@ Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 [[reddit-cpp]]. Thanks SG9 members
 for their feedback and guidance.
+
+Thanks Eddie Nolan and Robert Leahy for thier invaluable help and support in
+preparing R5 of this paper.

@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>P2406R4: Add `lazy_counted_iterator`</title>
+  <title>P2406R5: Add `lazy_counted_iterator`</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="eb3256eba5916123156ce734c5f8de218f87183f" name="document-revision">
+  <meta content="a795e49124e8adcc58d3f8734cfc885e4a082ab5" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2096,7 +2096,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">P2406R4<br>Add `lazy_counted_iterator`</h1>
+   <h1 class="p-name no-ref" id="title">P2406R5<br>Add `lazy_counted_iterator`</h1>
    <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-07">2023-02-07</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
@@ -2141,37 +2141,61 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#why-lazy_take-instead-of-fixing-take"><span class="secno">6.3</span> <span class="content">Why <code class="highlight"><c- n>lazy_take</c-></code> instead of fixing <code class="highlight"><c- n>take</c-></code>?</span></a>
      </ol>
     <li>
-     <a href="#wording"><span class="secno">7</span> <span class="content">Wording</span></a>
+     <a href="#design-alternative"><span class="secno">7</span> <span class="content">Design alternative</span></a>
      <ol class="toc">
       <li>
-       <a href="#wording-for-lazy_counted_iterator"><span class="secno">7.1</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
+       <a href="#motivation"><span class="secno">7.1</span> <span class="content">Motivation</span></a>
        <ol class="toc">
-        <li><a href="#x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">7.1.1</span> <span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span></a>
-        <li><a href="#x2-constructors-and-conversions-lazycountediterconst"><span class="secno">7.1.2</span> <span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span></a>
-        <li><a href="#x3-accessors-lazycountediteraccess"><span class="secno">7.1.3</span> <span class="content">x.3 Accessors              [lazy.counted.iter.access]</span></a>
-        <li><a href="#x4-element-access-lazycountediterelem"><span class="secno">7.1.4</span> <span class="content">x.4 Element access         [lazy.counted.iter.elem]</span></a>
-        <li><a href="#x5-navigation-lazycountediternav"><span class="secno">7.1.5</span> <span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span></a>
-        <li><a href="#x6-comparisons-lazycounteditercmp"><span class="secno">7.1.6</span> <span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span></a>
-        <li><a href="#x7-customizations-lazycounteditercust"><span class="secno">7.1.7</span> <span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span></a>
+        <li>
+         <a href="#poll-outcomes"><span class="secno">7.1.1</span> <span class="content">Poll outcomes</span></a>
+         <ol class="toc">
+          <li><a href="#poll-reject-the-nb-comment-us-46-107"><span class="secno">7.1.1.1</span> <span class="content">POLL: Reject the NB Comment US-46-107</span></a>
+          <li><a href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.2</span> <span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span></a>
+          <li><a href="#poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.3</span> <span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span></a>
+          <li><a href="#poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.4</span> <span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span></a>
+          <li><a href="#poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.5</span> <span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
+         </ol>
        </ol>
-      <li><a href="#wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">7.2</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
+      <li><a href="#alternative-1-replace-counted_iterator-with-lazy_counted_iterator"><span class="secno">7.2</span> <span class="content">Alternative 1: Replace <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
       <li>
-       <a href="#wording-for-viewslazy_counted"><span class="secno">7.3</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span></a>
+       <a href="#alternative-2-add-lazy_counted_iterator-and-deprecate-counted_iterator"><span class="secno">7.3</span> <span class="content">Alternative 2: Add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> and deprecate <code class="highlight"><c- n>counted_iterator</c-></code></span></a>
        <ol class="toc">
-        <li><a href="#267x-lazy-counted-view-rangelazycounted"><span class="secno">7.3.1</span> <span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span></a>
-       </ol>
-      <li>
-       <a href="#wording-for-lazy_take_view"><span class="secno">7.4</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
-       <ol class="toc">
-        <li><a href="#x1-overview-rangelazytakeoverview"><span class="secno">7.4.1</span> <span class="content">x.1 Overview              [range.lazy.take.overview]</span></a>
-        <li><a href="#x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">7.4.2</span> <span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span></a>
-        <li><a href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">7.4.3</span> <span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span></a>
+        <li><a href="#alternative-2-variation-ii-partial-deprecation"><span class="secno">7.3.1</span> <span class="content">Alternative 2 variation II: Partial deprecation</span></a>
        </ol>
      </ol>
-    <li><a href="#opens"><span class="secno">8</span> <span class="content">Opens</span></a>
-    <li><a href="#implementation-experience"><span class="secno">9</span> <span class="content">Implementation experience</span></a>
-    <li><a href="#note-about-optimization"><span class="secno">10</span> <span class="content">Note about optimization</span></a>
-    <li><a href="#acknowledgements"><span class="secno">11</span> <span class="content">Acknowledgements</span></a>
+    <li>
+     <a href="#wording"><span class="secno">8</span> <span class="content">Wording</span></a>
+     <ol class="toc">
+      <li>
+       <a href="#wording-for-lazy_counted_iterator"><span class="secno">8.1</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
+       <ol class="toc">
+        <li><a href="#x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">8.1.1</span> <span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span></a>
+        <li><a href="#x2-constructors-and-conversions-lazycountediterconst"><span class="secno">8.1.2</span> <span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span></a>
+        <li><a href="#x3-accessors-lazycountediteraccess"><span class="secno">8.1.3</span> <span class="content">x.3 Accessors              [lazy.counted.iter.access]</span></a>
+        <li><a href="#x4-element-access-lazycountediterelem"><span class="secno">8.1.4</span> <span class="content">x.4 Element access         [lazy.counted.iter.elem]</span></a>
+        <li><a href="#x5-navigation-lazycountediternav"><span class="secno">8.1.5</span> <span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span></a>
+        <li><a href="#x6-comparisons-lazycounteditercmp"><span class="secno">8.1.6</span> <span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span></a>
+        <li><a href="#x7-customizations-lazycounteditercust"><span class="secno">8.1.7</span> <span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span></a>
+       </ol>
+      <li><a href="#wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">8.2</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
+      <li>
+       <a href="#wording-for-viewslazy_counted"><span class="secno">8.3</span> <span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span></a>
+       <ol class="toc">
+        <li><a href="#267x-lazy-counted-view-rangelazycounted"><span class="secno">8.3.1</span> <span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span></a>
+       </ol>
+      <li>
+       <a href="#wording-for-lazy_take_view"><span class="secno">8.4</span> <span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span></a>
+       <ol class="toc">
+        <li><a href="#x1-overview-rangelazytakeoverview"><span class="secno">8.4.1</span> <span class="content">x.1 Overview              [range.lazy.take.overview]</span></a>
+        <li><a href="#x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">8.4.2</span> <span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span></a>
+        <li><a href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">8.4.3</span> <span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span></a>
+       </ol>
+      <li><a href="#feature-test-macro"><span class="secno">8.5</span> <span class="content">Feature test macro</span></a>
+     </ol>
+    <li><a href="#opens"><span class="secno">9</span> <span class="content">Opens</span></a>
+    <li><a href="#implementation-experience"><span class="secno">10</span> <span class="content">Implementation experience</span></a>
+    <li><a href="#note-about-optimization"><span class="secno">11</span> <span class="content">Note about optimization</span></a>
+    <li><a href="#acknowledgements"><span class="secno">12</span> <span class="content">Acknowledgements</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2181,6 +2205,15 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   </nav>
   <main>
    <h2 class="heading settled" data-level="1" id="revision-history"><span class="secno">1. </span><span class="content">Revision History</span><a class="self-link" href="#revision-history"></a></h2>
+   <p>r5: Updates following LEWG review (Issaquah - 2023-02-07 morning)</p>
+   <ul>
+    <li data-md>
+     <p>Incorporate poll results</p>
+    <li data-md>
+     <p>Suggest design alternatives</p>
+    <li data-md>
+     <p>Add missing feature test macro</p>
+   </ul>
    <p>r4: Integrate SG9 feedback (Issaquah)</p>
    <ul>
     <li data-md>
@@ -2334,8 +2367,124 @@ point where users must be aware of it is when they use <code class="highlight"><
 expect to be quite advance usage in general. Users who care about absolute
 performance, can choose using <code class="highlight"><c- n>take</c-></code> when they know it works correctly for their
 case.</p>
-   <h2 class="heading settled" data-level="7" id="wording"><span class="secno">7. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
-   <h3 class="heading settled" data-level="7.1" id="wording-for-lazy_counted_iterator"><span class="secno">7.1. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#wording-for-lazy_counted_iterator"></a></h3>
+   <h2 class="heading settled" data-level="7" id="design-alternative"><span class="secno">7. </span><span class="content">Design alternative</span><a class="self-link" href="#design-alternative"></a></h2>
+   <h3 class="heading settled" data-level="7.1" id="motivation"><span class="secno">7.1. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h3>
+   <p>LEWG reviewed R4 of this paper (Issaquah - 2023-02-07 morning) with the
+following poll results:</p>
+   <h4 class="heading settled" data-level="7.1.1" id="poll-outcomes"><span class="secno">7.1.1. </span><span class="content">Poll outcomes</span><a class="self-link" href="#poll-outcomes"></a></h4>
+   <h5 class="heading settled" data-level="7.1.1.1" id="poll-reject-the-nb-comment-us-46-107"><span class="secno">7.1.1.1. </span><span class="content">POLL: Reject the NB Comment US-46-107</span><a class="self-link" href="#poll-reject-the-nb-comment-us-46-107"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 3 
+      <td> 8 
+      <td> 9 
+      <td> 2 
+      <td> 2 
+   </table>
+   <p>Outcom: No consensus</p>
+   <p>WA: Preference to break C++20 sooner</p>
+   <h5 class="heading settled" data-level="7.1.1.2" id="poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.2. </span><span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span><a class="self-link" href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 6 
+      <td> 12 
+      <td> 2 
+      <td> 1 
+      <td> 3 
+   </table>
+   <p>Outcome:</p>
+   <h5 class="heading settled" data-level="7.1.1.3" id="poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.3. </span><span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span><a class="self-link" href="#poll-change-iterator-category-to-at-most-forward"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 0 
+      <td> 8 
+      <td> 7 
+      <td> 0 
+      <td> 2 
+   </table>
+   <p>Outcome:</p>
+   <h5 class="heading settled" data-level="7.1.1.4" id="poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.4. </span><span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span><a class="self-link" href="#poll-require-forward-as-a-minimum-underlying-iterator-category"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 0 
+      <td> 3 
+      <td> 5 
+      <td> 3 
+      <td> 3 
+   </table>
+   <p>Outcome:</p>
+   <h5 class="heading settled" data-level="7.1.1.5" id="poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.5. </span><span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#poll-remove-base-from-lazy_counted_iterator"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 1 
+      <td> 9 
+      <td> 1 
+      <td> 3 
+      <td> 1 
+   </table>
+   <p>Outcome:</p>
+   <h3 class="heading settled" data-level="7.2" id="alternative-1-replace-counted_iterator-with-lazy_counted_iterator"><span class="secno">7.2. </span><span class="content">Alternative 1: Replace <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#alternative-1-replace-counted_iterator-with-lazy_counted_iterator"></a></h3>
+   <p>This alternative propse to change <code class="highlight"><c- n>counted_iterator</c-></code> to be what this paper
+suggests as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> or a variation of it.</p>
+   <p>Issues with this alternative are:</p>
+   <ol>
+    <li data-md>
+     <p>This is breaking change (both ABI and source breaking, and depending on the
+   design it might be a silent break of behavior change too)</p>
+    <li data-md>
+     <p>At least one implementer can’t/won’t ship it</p>
+    <li data-md>
+     <p>It would require that we lose <code class="highlight"><c- n>base</c-><c- p>()</c-></code> (which LEWG opposed) since otherwise
+   there’d be a behavior-breaking/dangerous change</p>
+   </ol>
+   <h3 class="heading settled" data-level="7.3" id="alternative-2-add-lazy_counted_iterator-and-deprecate-counted_iterator"><span class="secno">7.3. </span><span class="content">Alternative 2: Add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> and deprecate <code class="highlight"><c- n>counted_iterator</c-></code></span><a class="self-link" href="#alternative-2-add-lazy_counted_iterator-and-deprecate-counted_iterator"></a></h3>
+   <p>This alternative strives to reduce to additional complexity in teachability and
+direct the users to the right direction.</p>
+   <p>The proposal here is to adopt <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take</c-></code> as propsed in this paper and mark <code class="highlight"><c- n>counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-></code> and <code class="highlight"><c- n>take</c-></code> as deprecated.</p>
+   <h4 class="heading settled" data-level="7.3.1" id="alternative-2-variation-ii-partial-deprecation"><span class="secno">7.3.1. </span><span class="content">Alternative 2 variation II: Partial deprecation</span><a class="self-link" href="#alternative-2-variation-ii-partial-deprecation"></a></h4>
+   <p>To allow things like <code class="highlight"><c- n>vector</c-> <c- o>|</c-> <c- n>take</c-><c- p>(</c-><c- n>n</c-><c- p>)</c-></code> to keep being <code class="highlight"><c- n>random_access_iterator</c-></code>,
+we want to suggest here to deprecate only the cases of <code class="highlight"><c- n>counted_iterator</c-></code> used <code class="highlight"><c- n>input_iterator</c-></code> or <code class="highlight"><c- n>forward_iterator</c-></code>, keeping the cases of <code class="highlight"><c- n>output_iterator</c-></code> and <code class="highlight"><c- n>bidirectional_iterator</c-></code> (and better) as they are.</p>
+   <p>We also want LWEG to consider the case of <code class="highlight"><c- n>istreambuf_iterator</c-></code> (or any iterator
+considered as "lazy input iterator", see <span>[P2578]</span> for further discussion),
+where current behavior of <code class="highlight"><c- n>take</c-></code> does the right thing. Forcing the user to use <code class="highlight"><c- n>lazy_take</c-></code> and then incrementing the iterator once again to continue reading
+from the right location seems like another teachability issue.</p>
+   <h2 class="heading settled" data-level="8" id="wording"><span class="secno">8. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
+   <h3 class="heading settled" data-level="8.1" id="wording-for-lazy_counted_iterator"><span class="secno">8.1. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#wording-for-lazy_counted_iterator"></a></h3>
    <p>Under Header <code class="highlight"><c- o>&lt;</c-><c- n>iterator</c-><c- o>></c-></code> synopsis [<strong>iterator.syn</strong>] add the new type:</p>
 <pre class="language-c++ highlight"><c- c1>// [iterators.counted], counted iterators</c->
  <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
@@ -2352,7 +2501,7 @@ case.</p>
    <p>In Iterator adaptors [<strong>predef.iterators</strong>], after 25.5.7 Counted iterators [<strong>iterators.counted</strong>] add new section:</p>
    <ins> 25.5.x Lazy counted iterators     [iterators.lazy.counted] </ins>
    <p>Under this section add:</p>
-   <h4 class="heading settled" data-level="7.1.1" id="x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">7.1.1. </span><span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span><a class="self-link" href="#x1-class-template-lazy_counted_iterator-lazycountediterator"></a></h4>
+   <h4 class="heading settled" data-level="8.1.1" id="x1-class-template-lazy_counted_iterator-lazycountediterator"><span class="secno">8.1.1. </span><span class="content">x.1 Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> [lazy.counted.iterator]</span><a class="self-link" href="#x1-class-template-lazy_counted_iterator-lazycountediterator"></a></h4>
    <p>Class template <code class="highlight"><c- n>lazy_counted_iterator</c-></code> is an iterator adaptor with the same behavior
 as the underlying iterator except that it keeps track of the distance to the end
 of its range. It can be used together with <code class="highlight"><c- n>default_sentinel</c-></code> in calls to generic
@@ -2442,7 +2591,7 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
     <li data-md>
      <p><code class="highlight"><c- n>iterator_traits</c-><c- o>&lt;</c-><c- n>Iterator</c-><c- o>>::</c-><c- n>iterator_category</c-></code> otherwise.</p>
    </ul>
-   <h4 class="heading settled" data-level="7.1.2" id="x2-constructors-and-conversions-lazycountediterconst"><span class="secno">7.1.2. </span><span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span><a class="self-link" href="#x2-constructors-and-conversions-lazycountediterconst"></a></h4>
+   <h4 class="heading settled" data-level="8.1.2" id="x2-constructors-and-conversions-lazycountediterconst"><span class="secno">8.1.2. </span><span class="content">x.2 Constructors and conversions          [lazy.counted.iter.const]</span><a class="self-link" href="#x2-constructors-and-conversions-lazycountediterconst"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_counted_iterator</c-><c- p>(</c-><c- n>I</c-> <c- n>i</c-><c- p>,</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>n</c-><c- p>);</c-></code></p>
    <p><em>Preconditions</em>: n >= 0.</p>
    <p><em>Effects</em>: Initializes <code class="highlight"><c- n>current</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> and <code class="highlight"><c- n>length</c-></code> with <code class="highlight"><c- n>n</c-></code>.</p>
@@ -2457,17 +2606,17 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
 </pre>
    <p><em>Effects</em>: Assigns <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>current</c-></code> to <code class="highlight"><c- n>current</c-></code> and <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-></code> to <code class="highlight"><c- n>length</c-></code>.</p>
    <p><em>Returns</em>: <code class="highlight"><c- o>*</c-><c- k>this</c-></code>.</p>
-   <h4 class="heading settled" data-level="7.1.3" id="x3-accessors-lazycountediteraccess"><span class="secno">7.1.3. </span><span class="content">x.3 Accessors              [lazy.counted.iter.access]</span><a class="self-link" href="#x3-accessors-lazycountediteraccess"></a></h4>
+   <h4 class="heading settled" data-level="8.1.3" id="x3-accessors-lazycountediteraccess"><span class="secno">8.1.3. </span><span class="content">x.3 Accessors              [lazy.counted.iter.access]</span><a class="self-link" href="#x3-accessors-lazycountediteraccess"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>iter_difference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>count</c-><c- p>()</c-> <c- k>const</c-> <c- k>noexcept</c-><c- p>;</c-></code></p>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>length</c-><c- p>;</c-></code></p>
-   <h4 class="heading settled" data-level="7.1.4" id="x4-element-access-lazycountediterelem"><span class="secno">7.1.4. </span><span class="content">x.4 Element access         [lazy.counted.iter.elem]</span><a class="self-link" href="#x4-element-access-lazycountediterelem"></a></h4>
+   <h4 class="heading settled" data-level="8.1.4" id="x4-element-access-lazycountediterelem"><span class="secno">8.1.4. </span><span class="content">x.4 Element access         [lazy.counted.iter.elem]</span><a class="self-link" href="#x4-element-access-lazycountediterelem"></a></h4>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>();</c->
 <c- n>constexpr</c-> <c- nf>decltype</c-><c- p>(</c-><c- k>auto</c-><c- p>)</c-> <c- n>operator</c-><c- o>*</c-><c- p>()</c-> <c- k>const</c->
   <c- n>requires</c-> <c- n>dereferenceable</c-><c- o>&lt;</c-><c- k>const</c-> <c- n>I</c-><c- o>></c-><c- p>;</c->
 </pre>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- o>*</c-><c- n>current</c-><c- p>;</c-></code></p>
-   <h4 class="heading settled" data-level="7.1.5" id="x5-navigation-lazycountediternav"><span class="secno">7.1.5. </span><span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span><a class="self-link" href="#x5-navigation-lazycountediternav"></a></h4>
+   <h4 class="heading settled" data-level="8.1.5" id="x5-navigation-lazycountediternav"><span class="secno">8.1.5. </span><span class="content">x.5 Navigation            [lazy.counted.iter.nav]</span><a class="self-link" href="#x5-navigation-lazycountediternav"></a></h4>
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- k>operator</c-><c- o>++</c-><c- p>();</c-></code></p>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code>.</p>
    <p><em>Effects</em>: Equivalent to:</p>
@@ -2502,7 +2651,7 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
   <c- n>default_sentinel_t</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>);</c->
 </pre>
    <em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code> 
-   <h4 class="heading settled" data-level="7.1.6" id="x6-comparisons-lazycounteditercmp"><span class="secno">7.1.6. </span><span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span><a class="self-link" href="#x6-comparisons-lazycounteditercmp"></a></h4>
+   <h4 class="heading settled" data-level="8.1.6" id="x6-comparisons-lazycounteditercmp"><span class="secno">8.1.6. </span><span class="content">x.6 Comparisons           [lazy.counted.iter.cmp]</span><a class="self-link" href="#x6-comparisons-lazycounteditercmp"></a></h4>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>common_with</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c-> <c- n>I2</c-><c- o>></c->
   <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c->
     <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>);</c->
@@ -2520,7 +2669,7 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
    <em>Preconditions</em>: <code class="highlight"><c- n>x</c-></code> and <code class="highlight"><c- n>y</c-></code> refer to elements of the same sequence ([lazy.counted.iterator]). 
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>&lt;=></c-> <c- n>x</c-><c- p>.</c-><c- n>length</c-><c- p>;</c-></code></p>
    <p>[Note 1: The argument order in the Effects: element is reversed because <code class="highlight"><c- n>length</c-></code> counts down, not up. — end note]</p>
-   <h4 class="heading settled" data-level="7.1.7" id="x7-customizations-lazycounteditercust"><span class="secno">7.1.7. </span><span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span><a class="self-link" href="#x7-customizations-lazycounteditercust"></a></h4>
+   <h4 class="heading settled" data-level="8.1.7" id="x7-customizations-lazycounteditercust"><span class="secno">8.1.7. </span><span class="content">x.7 Customizations       [lazy.counted.iter.cust]</span><a class="self-link" href="#x7-customizations-lazycounteditercust"></a></h4>
 <pre class="language-c++ highlight"><c- n>friend</c-> <c- n>constexpr</c-> <c- n>iter_rvalue_reference_t</c-><c- o>&lt;</c-><c- n>I</c-><c- o>></c->
   <c- n>iter_move</c-><c- p>(</c-><c- k>const</c-> <c- n>lazy_counted_iterator</c-><c- o>&amp;</c-> <c- n>i</c-><c- p>)</c->
     <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>iter_move</c-><c- p>(</c-><c- n>i</c-><c- p>.</c-><c- n>current</c-><c- p>)));</c->
@@ -2534,7 +2683,7 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
 </pre>
    <em>Preconditions</em>: Both <code class="highlight"><c- n>x</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> and <code class="highlight"><c- n>y</c-><c- p>.</c-><c- n>length</c-> <c- o>></c-> <c- mi>0</c-></code> are <code class="highlight">true</code>. 
    <p><em>Effects</em>: Equivalent to <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iter_swap</c-><c- p>(</c-><c- n>x</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>y</c-><c- p>.</c-><c- n>current</c-><c- p>)</c-></code>.</p>
-   <h3 class="heading settled" data-level="7.2" id="wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">7.2. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted-and-lazy_take_view"></a></h3>
+   <h3 class="heading settled" data-level="8.2" id="wording-for-viewslazy_counted-and-lazy_take_view"><span class="secno">8.2. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted-and-lazy_take_view"></a></h3>
    <p>Under Header <code class="highlight"><c- o>&lt;</c-><c- n>ranges</c-><c- o>></c-></code> synopsis [<strong>ranges.syn</strong>] add the new types:</p>
 <pre class="language-c++ highlight"><c- c1>// [range.counted], counted view</c->
 <c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>counted</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->     <c- c1>// freestanding</c->
@@ -2564,9 +2713,9 @@ a type. In that case, <code class="highlight"><c- n>iterator_category</c-></code
 <c- n>namespace</c-> <c- n>views</c-> <c- p>{</c-> <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>unspecified</c-> <c- n>lazy_take</c-> <c- o>=</c-> <c- n>unspecified</c-><c- p>;</c-> <c- p>}</c->        <c- c1>// freestanding</c->
 </pre>
    </ins>
-   <h3 class="heading settled" data-level="7.3" id="wording-for-viewslazy_counted"><span class="secno">7.3. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted"></a></h3>
+   <h3 class="heading settled" data-level="8.3" id="wording-for-viewslazy_counted"><span class="secno">8.3. </span><span class="content">Wording for <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code></span><a class="self-link" href="#wording-for-viewslazy_counted"></a></h3>
    <p>In Range adaptors [<strong>range.adaptors</strong>], after 26.7.18 Counted view [<strong>range.counted</strong>] add new section:</p>
-   <h4 class="heading settled" data-level="7.3.1" id="267x-lazy-counted-view-rangelazycounted"><span class="secno">7.3.1. </span><span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span><a class="self-link" href="#267x-lazy-counted-view-rangelazycounted"></a></h4>
+   <h4 class="heading settled" data-level="8.3.1" id="267x-lazy-counted-view-rangelazycounted"><span class="secno">8.3.1. </span><span class="content">26.7.x Lazy counted view        [range.lazy.counted]</span><a class="self-link" href="#267x-lazy-counted-view-rangelazycounted"></a></h4>
    <p>A lazy counted view presents a view of the elements of the counted range
 ([iterator.requirements.general]) <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- p>[</c-><c- mi>0</c-><c- p>,</c-> <c- n>n</c-><c- p>)</c-></code> for an iterator <code class="highlight"><c- n>i</c-></code> and
 non-negative integer <code class="highlight"><c- n>n</c-></code>.</p>
@@ -2582,11 +2731,11 @@ non-negative integer <code class="highlight"><c- n>n</c-></code>.</p>
     <li data-md>
      <p>Otherwise, <code class="highlight"><c- n>subrange</c-><c- p>(</c-><c- n>lazy_counted_iterator</c-><c- p>(</c-><c- n>E</c-><c- p>,</c-> <c- n>F</c-><c- p>),</c-> <c- n>default_sentinel</c-><c- p>)</c-></code>.</p>
    </ul>
-   <h3 class="heading settled" data-level="7.4" id="wording-for-lazy_take_view"><span class="secno">7.4. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-lazy_take_view"></a></h3>
+   <h3 class="heading settled" data-level="8.4" id="wording-for-lazy_take_view"><span class="secno">8.4. </span><span class="content">Wording for <code class="highlight"><c- n>lazy_take_view</c-></code></span><a class="self-link" href="#wording-for-lazy_take_view"></a></h3>
    <p>After 26.7.10 Take view [<strong>range.take</strong>] add new section:</p>
    <ins> 26.7.x Lazy take view               [range.lazy.take] </ins>
    <p>Under this section add:</p>
-   <h4 class="heading settled" data-level="7.4.1" id="x1-overview-rangelazytakeoverview"><span class="secno">7.4.1. </span><span class="content">x.1 Overview              [range.lazy.take.overview]</span><a class="self-link" href="#x1-overview-rangelazytakeoverview"></a></h4>
+   <h4 class="heading settled" data-level="8.4.1" id="x1-overview-rangelazytakeoverview"><span class="secno">8.4.1. </span><span class="content">x.1 Overview              [range.lazy.take.overview]</span><a class="self-link" href="#x1-overview-rangelazytakeoverview"></a></h4>
    <p><code class="highlight"><c- n>lazy_take_view</c-></code> produces a view of the first N elements from another view, or all
 the elements if the adapted view contains fewer than N.</p>
    <p>The name <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take</c-></code> denotes a range adaptor object
@@ -2629,7 +2778,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
   <c- n>cout</c-> <c- o>&lt;&lt;</c-> <c- n>i</c-> <c- o>&lt;&lt;</c-> <c- sc>' '</c-><c- p>;</c-> <c- c1>// prints 0 1 2 3 4</c->
 </pre>
    — end example] 
-   <h4 class="heading settled" data-level="7.4.2" id="x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">7.4.2. </span><span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span><a class="self-link" href="#x2-class-template-lazy_take_view-rangelazytakeview"></a></h4>
+   <h4 class="heading settled" data-level="8.4.2" id="x2-class-template-lazy_take_view-rangelazytakeview"><span class="secno">8.4.2. </span><span class="content">x.2 Class template <code class="highlight"><c- n>lazy_take_view</c-></code> [range.lazy.take.view]</span><a class="self-link" href="#x2-class-template-lazy_take_view-rangelazytakeview"></a></h4>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
   <c- n>class</c-> <c- n>lazy_take_view</c-> <c- o>:</c-> <c- n>public</c-> <c- n>view_interface</c-><c- o>&lt;</c-><c- n>lazy_take_view</c-><c- o>&lt;</c-><c- n>V</c-><c- o>>></c-> <c- p>{</c->
@@ -2726,7 +2875,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
    <p><code class="highlight"><c- k>constexpr</c-> <c- n>lazy_take_view</c-><c- p>(</c-><c- n>V</c-> <c- n>base</c-><c- p>,</c-> <c- n>range_difference_t</c-><c- o>&lt;</c-><c- n>V</c-><c- o>></c-> <c- n>count</c-><c- p>);</c-></code></p>
    <p><em>Preconditions</em>: <code class="highlight"><c- n>count</c-> <c- o>>=</c-> <c- mi>0</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects</em>: Initializes <code class="highlight"><c- n>base_</c-></code> with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>move</c-><c- p>(</c-><c- n>base</c-><c- p>)</c-></code> and <code class="highlight"><c- n>count_</c-></code> with <code class="highlight"><c- n>count</c-></code>.</p>
-   <h4 class="heading settled" data-level="7.4.3" id="x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">7.4.3. </span><span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span><a class="self-link" href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"></a></h4>
+   <h4 class="heading settled" data-level="8.4.3" id="x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"><span class="secno">8.4.3. </span><span class="content">x.3 Class template <code class="highlight"><c- n>lazy_take_view</c-><c- o>::</c-><c- n>sentinel</c-></code> [range.lazy.take.sentinel]</span><a class="self-link" href="#x3-class-template-lazy_take_viewsentinel-rangelazytakesentinel"></a></h4>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>view</c-> <c- n>V</c-><c- o>></c->
   <c- n>template</c-><c- o>&lt;</c-><c- b>bool</c-> <c- n>Const</c-><c- o>></c->
@@ -2768,7 +2917,11 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
 <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>CI</c-><c- o>&lt;</c-><c- n>OtherConst</c-><c- o>>&amp;</c-> <c- n>y</c-><c- p>,</c-> <c- k>const</c-> <c- n>sentinel</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>);</c->
 </pre>
    <p><em>Effects</em>: Equivalent to: <code class="highlight"><c- k>return</c-> <c- n>y</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>==</c-> <c- mi>0</c-> <c- o>||</c-> <c- n>y</c-><c- p>.</c-><c- n>base</c-><c- p>()</c-> <c- o>==</c-> <c- n>x</c-><c- p>.</c-><c- n>end_</c-><c- p>;</c-></code></p>
-   <h2 class="heading settled" data-level="8" id="opens"><span class="secno">8. </span><span class="content">Opens</span><a class="self-link" href="#opens"></a></h2>
+   <h3 class="heading settled" data-level="8.5" id="feature-test-macro"><span class="secno">8.5. </span><span class="content">Feature test macro</span><a class="self-link" href="#feature-test-macro"></a></h3>
+   <p>Add the following feature test macro to [version.syn]:</p>
+<pre class="language-c++ highlight"><c- cp>#define __cpp_lib_lazy_counted_iterator date </c-><c- c1>// also in &lt;iterator></c->
+</pre>
+   <h2 class="heading settled" data-level="9" id="opens"><span class="secno">9. </span><span class="content">Opens</span><a class="self-link" href="#opens"></a></h2>
    <ul>
     <li data-md>
      <p><code class="highlight"><c- n>basic_const_iterator</c-></code> defines <code class="highlight"><c- n>iterator_category</c-></code> only if the underlying
@@ -2793,20 +2946,22 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
      <p>There was a suggestion to combine <code class="highlight"><c- k>operator</c-><c- o>*</c-></code> definitions into a single <code class="highlight"><c- k>const</c-></code> overload, but we aren’t sure about this and would like to hear more
   about it.</p>
    </ul>
-   <h2 class="heading settled" data-level="9" id="implementation-experience"><span class="secno">9. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation-experience"></a></h2>
+   <h2 class="heading settled" data-level="10" id="implementation-experience"><span class="secno">10. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation-experience"></a></h2>
    <p>The current wording has been implemented over Microsoft STL <a data-link-type="biblio" href="#biblio-msft-stl">[MSFT-STL]</a>.</p>
    <p>There is also a partial implementation, that is based as much as possible directly on the
 wording of this paper <a data-link-type="biblio" href="#biblio-yb-impl">[YB-IMPL]</a>.</p>
-   <h2 class="heading settled" data-level="10" id="note-about-optimization"><span class="secno">10. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
+   <h2 class="heading settled" data-level="11" id="note-about-optimization"><span class="secno">11. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
    <p>It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>.</p>
-   <h2 class="heading settled" data-level="11" id="acknowledgements"><span class="secno">11. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="12" id="acknowledgements"><span class="secno">12. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
    <p>Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 <a data-link-type="biblio" href="#biblio-reddit-cpp">[reddit-cpp]</a>. Thanks SG9 members
 for their feedback and guidance.</p>
+   <p>Thanks Eddie Nolan and Robert Leahy for thier invaluable help and support in
+preparing R5 of this paper.</p>
   </main>
 <script>
 (function() {
