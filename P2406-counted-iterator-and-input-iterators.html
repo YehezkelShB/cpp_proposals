@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="a4fb49d163f868ee11ec287be6e8a4381563d9d3" name="document-revision">
+  <meta content="ff825ee69339e0afcb3af819a79b121898379ce6" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2351,9 +2351,7 @@ without needing to know the end position a priori.</p>
 <c- n>ranges</c-><c- o>::</c-><c- n>copy</c-><c- p>(</c-><c- n>lazy_counted_iterator</c-><c- p>(</c-><c- n>s</c-><c- p>.</c-><c- n>begin</c-><c- p>(),</c-> <c- mi>10</c-><c- p>),</c-> <c- n>default_sentinel</c-><c- p>,</c-> <c- n>back_inserter</c-><c- p>(</c-><c- n>v</c-><c- p>));</c->
 </pre>
    — end example] 
-   <p>Given two values <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2</c-></code> of types <code class="highlight"><c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I1</c-><c- o>></c-></code> and <code class="highlight"><c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>></c-></code>,
-let <code class="highlight"><c- n>i1base</c-></code> denote the underlying iterator of <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2base</c-></code> denote the underlying iterator of <code class="highlight"><c- n>i2</c-></code>. <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2</c-></code> refer to elements of the same sequence if and only if there exists some integer
-n such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1base</c-><c- p>,</c-> <c- n>i1</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> and <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i2base</c-><c- p>,</c-> <c- n>i2</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> refer to the same (possibly past-the-end) element.</p>
+   <p>Two values <code class="highlight"><c- n>i1</c-></code> and <code class="highlight"><c- n>i2</c-></code> of types <code class="highlight"><c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I1</c-><c- o>></c-></code> and <code class="highlight"><c- n>lazy_counted_iterator</c-><c- o>&lt;</c-><c- n>I2</c-><c- o>></c-></code> refer to elements of the same sequence if and only if there exists some integer <code class="highlight"><c- n>n</c-></code> such that <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i1</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>i1</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> and <code class="highlight"><c- n>next</c-><c- p>(</c-><c- n>i2</c-><c- p>.</c-><c- n>current</c-><c- p>,</c-> <c- n>i2</c-><c- p>.</c-><c- n>count</c-><c- p>()</c-> <c- o>+</c-> <c- n>n</c-><c- p>)</c-></code> refer to the same (possibly past-the-end) element.</p>
 <pre class="language-c++ highlight"><c- n>namespace</c-> <c- n>std</c-> <c- p>{</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c->
   <c- n>class</c-> <c- n>lazy_counted_iterator</c-> <c- p>{</c->

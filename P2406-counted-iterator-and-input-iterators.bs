@@ -294,10 +294,9 @@ ranges::copy(lazy_counted_iterator(s.begin(), 10), default_sentinel, back_insert
 ```
 — end example]
 
-Given two values `i1` and `i2` of types `lazy_counted_iterator<I1>` and `lazy_counted_iterator<I2>`,
-let `i1base` denote the underlying iterator of `i1` and `i2base` denote the underlying iterator of `i2`.
-`i1` and `i2` refer to elements of the same sequence if and only if there exists some integer
-n such that `next(i1base, i1.count() + n)` and `next(i2base, i2.count() + n)`
+Two values `i1` and `i2` of types `lazy_counted_iterator<I1>` and `lazy_counted_iterator<I2>`
+refer to elements of the same sequence if and only if there exists some integer
+`n` such that `next(i1.current, i1.count() + n)` and `next(i2.current, i2.count() + n)`
 refer to the same (possibly past-the-end) element.
 
 ```c++
