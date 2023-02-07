@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="b6e9156c36fa3aed728e5fb05028bd43b652b839" name="document-revision">
+  <meta content="a4fb49d163f868ee11ec287be6e8a4381563d9d3" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2331,7 +2331,7 @@ case.</p>
 </pre>
    <ins>
 <pre class="language-c++ highlight"><c- c1>// [iterators.lazy.counted], lazy counted iterators</c->
- <c- n>template</c-><c- o>&lt;</c-><c- n>input_or_output_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>lazy_counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
+ <c- n>template</c-><c- o>&lt;</c-><c- n>input_iterator</c-> <c- n>I</c-><c- o>></c-> <c- n>class</c-> <c- n>lazy_counted_iterator</c-><c- p>;</c->             <c- c1>// freestanding</c->
 </pre>
    </ins>
    <p>In Iterator adaptors [<strong>predef.iterators</strong>], after 25.5.7 Counted iterators [<strong>iterators.counted</strong>] add new section:</p>
@@ -2597,7 +2597,7 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
       <li data-md>
        <p>otherwise, <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>subrange</c-></code>, and <code class="highlight"><c- n>U</c-></code> is <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>subrange</c-><c- o>&lt;</c-><c- n>iterator_t</c-><c- o>&lt;</c-><c- n>T</c-><c- o>>></c-></code>;</p>
       <li data-md>
-       <p>otherwise, if <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-></code> ([range.iota.view]) that models <code class="highlight"><c- n>random_access_range</c-></code> and <code class="highlight"><c- n>sized_range</c-></code>, then <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-><c- p>(</c-><c- o>*</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- o>*</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-> <c- o>+</c-> <c- n>std</c-><c- o>::</c-> <c- n>min</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>F</c-><c- p>)))</c-></code>, except
+       <p>otherwise, if <code class="highlight"><c- n>T</c-></code> is a specialization of <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-></code> ([range.iota.view]) that models <code class="highlight"><c- n>random_access_range</c-></code> and <code class="highlight"><c- n>sized_range</c-></code>, then <code class="highlight"><c- n>ranges</c-><c- o>::</c-><c- n>iota_view</c-><c- p>(</c-><c- o>*</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- o>*</c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>begin</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-> <c- o>+</c-> <c- n>std</c-><c- o>::</c-><c- n>min</c-><c- o>&lt;</c-><c- n>D</c-><c- o>></c-><c- p>(</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>E</c-><c- p>),</c-> <c- n>F</c-><c- p>)))</c-></code>, except
   that <code class="highlight"><c- n>E</c-></code> is evaluated only once.</p>
      </ul>
     <li data-md>
