@@ -7,9 +7,9 @@ Editor: Yehuda Bernat, YehudaMBer@gmail.com
 Shortname: P2406
 Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggests adding `lazy_counted_iterator` alternative to be used in such cases
 Group: WG21
-Date: 2023-02-06
+Date: 2023-02-07
 Markup Shorthands: markdown yes
-Revision: 3
+Revision: 4
 Default Highlight: CPP
 ED: https://wg21.link/P2406
 !Source: <a href="https://github.com/YehezkelShB/cpp_proposals/blob/master/P2406-counted-iterator-and-input-iterators.bs">GitHub</a>
@@ -55,11 +55,26 @@ ED: https://wg21.link/P2406
     "reddit-cpp": {
         "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
         "title": "r/cpp comments on P2406R0"
+    },
+    "MSFT-STL": {
+        "href": "https://github.com/YehezkelShB/STL/tree/P2406R2-Option2",
+        "title": "GitHub - YehezkelShB/STL - forked from microsoft/STL - P2406R2-Option2 branch"
+    },
+    "YB-IMPL": {
+        "href": "https://github.com/YehezkelShB/LazyCountedIterator",
+        "title": "GitHub - YehezkelShB/LazyCountedIterator"
     }
 }
 </pre>
 
 # Revision History
+
+r4: Integrate SG9 feedback (Issaquah)
+- Fix missing change from input_or_output_iterator to input_iterator in the synopsis
+- Simplify the definition of when two iterators refer to the same sequence
+- Simplify the definition of `void operator++(int)`
+- Add [[#opens|opens]] section for additional design suggestions/questions raised
+- Add [[#implementation-experience|implementation experience]] section
 
 r3: Itegreating LEWG feedback:
 - Define `iterator_concept` and `iterator_category` like other iterator adaptors
@@ -264,7 +279,7 @@ Under Header `<iterator>` synopsis [**iterator.syn**] add the new type:
 <ins>
  ```c++
  // [iterators.lazy.counted], lazy counted iterators
-  template<input_or_output_iterator I> class lazy_counted_iterator;             // freestanding
+  template<input_iterator I> class lazy_counted_iterator;             // freestanding
   ```
 </ins>
 
@@ -294,10 +309,9 @@ ranges::copy(lazy_counted_iterator(s.begin(), 10), default_sentinel, back_insert
 ```
 — end example]
 
-Given two values `i1` and `i2` of types `lazy_counted_iterator<I1>` and `lazy_counted_iterator<I2>`,
-let `i1base` denote the underlying iterator of `i1` and `i2base` denote the underlying iterator of `i2`.
-`i1` and `i2` refer to elements of the same sequence if and only if there exists some integer
-n such that `next(i1base, i1.count() + n)` and `next(i2base, i2.count() + n)`
+Two values `i1` and `i2` of types `lazy_counted_iterator<I1>` and `lazy_counted_iterator<I2>`
+refer to elements of the same sequence if and only if there exists some integer
+`n` such that `next(i1.current, i1.count() + n)` and `next(i2.current, i2.count() + n)`
 refer to the same (possibly past-the-end) element.
 
 ```c++
@@ -443,9 +457,7 @@ return *this;
 
 *Effects*: Equivalent to:
 ```c++
---length;
-try { if (length) current++; }
-catch(...) { ++length; throw; }
+++*this;
 ```
 
 
@@ -639,7 +651,7 @@ expression `views::lazy_take(E, F)` is expression-equivalent to:
     - otherwise, if `T` is a specialization of `ranges::iota_view`
       ([range.iota.view]) that models `random_access_range` and
       `sized_range`, then `ranges::iota_view(*ranges::begin(E),
-      *(ranges::begin(E) + std:: min<D>(ranges::distance(E), F)))`, except
+      *(ranges::begin(E) + std::min<D>(ranges::distance(E), F)))`, except
       that `E` is evaluated only once.
 - Otherwise, if `T` is a specialization of `ranges::repeat_view` ([range.repeat.view]):
     - if `T` models `sized_range`, then `views::repeat(*E.value_,
@@ -819,6 +831,37 @@ friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
 ```
 
 *Effects*: Equivalent to: `return y.count() == 0 || y.base() == x.end_;`
+
+
+# Opens
+
+- `basic_const_iterator` defines `iterator_category` only if the underlying
+  iterator models `forward_iterator`. `move_iterator` defines it even for
+  `input_iterator` case. We followed `move_iterator` example in the wording
+  above, but maybe `basic_const_iterator` behvaior is what should be used here?
+- `views::lazy_counted` and `lazy_take` effectively increment the underlying
+  iterator when reaching `count` for cases like `random_access_iterator`, as
+  they use tools other than `lazy_counted_iterator` in such cases (`span`,
+  returning the iterator directly etc.). We kept it this way as:
+  1. These types don't promise to never increment the underlying iterator for
+     such cases, they only promise it implicitly for the cases that use
+     `lazy_counted_iterator`.
+  2. We don't think that difference is directly observable (especially as
+     `lazy_counted_iterator` doesn't provide `base()`).
+  3. We could've define these types to always use `lazy_counted_iterator`
+     internally, but this limits their usability and means we can't recommend
+     people to just use `lazy_take` by default.
+- There was a suggestion to combine `operator*` definitions into a single
+  `const` overload, but we aren't sure about this and would like to hear more
+  about it.
+
+
+# Implementation experience
+
+The current wording has been implemented over Microsoft STL [[MSFT-STL]].
+
+There is also a partial implementation, that is based as much as possible directly on the
+wording of this paper [[YB-IMPL]].
 
 
 # Note about optimization
