@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="a795e49124e8adcc58d3f8734cfc885e4a082ab5" name="document-revision">
+  <meta content="4af3f08a11bbe75bcf9a9ae08118f6362c781815" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2388,7 +2388,7 @@ following poll results:</p>
       <td> 2 
       <td> 2 
    </table>
-   <p>Outcom: No consensus</p>
+   <p>Outcome: No consensus</p>
    <p>WA: Preference to break C++20 sooner</p>
    <h5 class="heading settled" data-level="7.1.1.2" id="poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.2. </span><span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span><a class="self-link" href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"></a></h5>
    <table>
@@ -2459,7 +2459,7 @@ following poll results:</p>
    </table>
    <p>Outcome:</p>
    <h3 class="heading settled" data-level="7.2" id="alternative-1-replace-counted_iterator-with-lazy_counted_iterator"><span class="secno">7.2. </span><span class="content">Alternative 1: Replace <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#alternative-1-replace-counted_iterator-with-lazy_counted_iterator"></a></h3>
-   <p>This alternative propse to change <code class="highlight"><c- n>counted_iterator</c-></code> to be what this paper
+   <p>This alternative propose to change <code class="highlight"><c- n>counted_iterator</c-></code> to be what this paper
 suggests as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> or a variation of it.</p>
    <p>Issues with this alternative are:</p>
    <ol>
@@ -2467,7 +2467,9 @@ suggests as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> or a
      <p>This is breaking change (both ABI and source breaking, and depending on the
    design it might be a silent break of behavior change too)</p>
     <li data-md>
-     <p>At least one implementer can’t/won’t ship it</p>
+     <p>At least one implementer can’t/won’t ship it. Another implementer could ship
+   it but seems to vaguely prefer not to and is wondering whether or not
+   breaking this now is worth it</p>
     <li data-md>
      <p>It would require that we lose <code class="highlight"><c- n>base</c-><c- p>()</c-></code> (which LEWG opposed) since otherwise
    there’d be a behavior-breaking/dangerous change</p>
@@ -2475,7 +2477,9 @@ suggests as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> or a
    <h3 class="heading settled" data-level="7.3" id="alternative-2-add-lazy_counted_iterator-and-deprecate-counted_iterator"><span class="secno">7.3. </span><span class="content">Alternative 2: Add <code class="highlight"><c- n>lazy_counted_iterator</c-></code> and deprecate <code class="highlight"><c- n>counted_iterator</c-></code></span><a class="self-link" href="#alternative-2-add-lazy_counted_iterator-and-deprecate-counted_iterator"></a></h3>
    <p>This alternative strives to reduce to additional complexity in teachability and
 direct the users to the right direction.</p>
-   <p>The proposal here is to adopt <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take</c-></code> as propsed in this paper and mark <code class="highlight"><c- n>counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-></code> and <code class="highlight"><c- n>take</c-></code> as deprecated.</p>
+   <p>The proposal here is to adopt <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_counted</c-></code> and <code class="highlight"><c- n>lazy_take</c-></code> as proposed in this paper and mark <code class="highlight"><c- n>counted_iterator</c-></code>, <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>counted</c-></code> and <code class="highlight"><c- n>take</c-></code> as deprecated. We could either specify attribute <code class="highlight"><c- p>[[</c-><c- n>deprecated</c-><c- p>]]</c-></code>, or, to allow greater implementer freedom, deprecation here
+could mean adding a non-normative note that the compiler should warn in these
+cases.</p>
    <h4 class="heading settled" data-level="7.3.1" id="alternative-2-variation-ii-partial-deprecation"><span class="secno">7.3.1. </span><span class="content">Alternative 2 variation II: Partial deprecation</span><a class="self-link" href="#alternative-2-variation-ii-partial-deprecation"></a></h4>
    <p>To allow things like <code class="highlight"><c- n>vector</c-> <c- o>|</c-> <c- n>take</c-><c- p>(</c-><c- n>n</c-><c- p>)</c-></code> to keep being <code class="highlight"><c- n>random_access_iterator</c-></code>,
 we want to suggest here to deprecate only the cases of <code class="highlight"><c- n>counted_iterator</c-></code> used <code class="highlight"><c- n>input_iterator</c-></code> or <code class="highlight"><c- n>forward_iterator</c-></code>, keeping the cases of <code class="highlight"><c- n>output_iterator</c-></code> and <code class="highlight"><c- n>bidirectional_iterator</c-></code> (and better) as they are.</p>

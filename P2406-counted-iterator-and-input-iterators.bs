@@ -283,7 +283,7 @@ following poll results:
 <tr><td> 3 <td> 8 <td> 9 <td> 2 <td> 2
 </table>
 
-Outcom: No consensus
+Outcome: No consensus
 
 WA: Preference to break C++20 sooner
 
@@ -326,14 +326,16 @@ Outcome:
 
 ## Alternative 1: Replace `counted_iterator` with `lazy_counted_iterator`
 
-This alternative propse to change `counted_iterator` to be what this paper
+This alternative propose to change `counted_iterator` to be what this paper
 suggests as `lazy_counted_iterator` or a variation of it.
 
 Issues with this alternative are:
 
 1. This is breaking change (both ABI and source breaking, and depending on the
    design it might be a silent break of behavior change too)
-2. At least one implementer can't/won't ship it
+2. At least one implementer can't/won't ship it. Another implementer could ship
+   it but seems to vaguely prefer not to and is wondering whether or not
+   breaking this now is worth it
 3. It would require that we lose `base()` (which LEWG opposed) since otherwise
    there'd be a behavior-breaking/dangerous change
 
@@ -344,9 +346,11 @@ This alternative strives to reduce to additional complexity in teachability and
 direct the users to the right direction.
 
 The proposal here is to adopt `lazy_counted_iterator`, `views::lazy_counted` and
-`lazy_take` as propsed in this paper and mark `counted_iterator`,
-`views::counted` and `take` as deprecated.
-
+`lazy_take` as proposed in this paper and mark `counted_iterator`,
+`views::counted` and `take` as deprecated. We could either specify attribute
+`[[deprecated]]`, or, to allow greater implementer freedom, deprecation here
+could mean adding a non-normative note that the compiler should warn in these
+cases.
 
 ### Alternative 2 variation II: Partial deprecation
 
