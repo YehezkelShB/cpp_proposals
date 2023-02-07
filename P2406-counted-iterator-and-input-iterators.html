@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="ad1a94b0410ac0c4941c72490491cfafcaa0b626" name="document-revision">
+  <meta content="eb3256eba5916123156ce734c5f8de218f87183f" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2169,8 +2169,9 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        </ol>
      </ol>
     <li><a href="#opens"><span class="secno">8</span> <span class="content">Opens</span></a>
-    <li><a href="#note-about-optimization"><span class="secno">9</span> <span class="content">Note about optimization</span></a>
-    <li><a href="#acknowledgements"><span class="secno">10</span> <span class="content">Acknowledgements</span></a>
+    <li><a href="#implementation-experience"><span class="secno">9</span> <span class="content">Implementation experience</span></a>
+    <li><a href="#note-about-optimization"><span class="secno">10</span> <span class="content">Note about optimization</span></a>
+    <li><a href="#acknowledgements"><span class="secno">11</span> <span class="content">Acknowledgements</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -2190,6 +2191,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>Simplify the definition of <code class="highlight"><c- b>void</c-> <c- k>operator</c-><c- o>++</c-><c- p>(</c-><c- b>int</c-><c- p>)</c-></code></p>
     <li data-md>
      <p>Add <a href="#opens">opens</a> section for additional design suggestions/questions raised</p>
+    <li data-md>
+     <p>Add <a href="#implementation-experience">implementation experience</a> section</p>
    </ul>
    <p>r3: Itegreating LEWG feedback:</p>
    <ul>
@@ -2790,12 +2793,16 @@ expression <code class="highlight"><c- n>views</c-><c- o>::</c-><c- n>lazy_take<
      <p>There was a suggestion to combine <code class="highlight"><c- k>operator</c-><c- o>*</c-></code> definitions into a single <code class="highlight"><c- k>const</c-></code> overload, but we aren’t sure about this and would like to hear more
   about it.</p>
    </ul>
-   <h2 class="heading settled" data-level="9" id="note-about-optimization"><span class="secno">9. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
+   <h2 class="heading settled" data-level="9" id="implementation-experience"><span class="secno">9. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation-experience"></a></h2>
+   <p>The current wording has been implemented over Microsoft STL <a data-link-type="biblio" href="#biblio-msft-stl">[MSFT-STL]</a>.</p>
+   <p>There is also a partial implementation, that is based as much as possible directly on the
+wording of this paper <a data-link-type="biblio" href="#biblio-yb-impl">[YB-IMPL]</a>.</p>
+   <h2 class="heading settled" data-level="10" id="note-about-optimization"><span class="secno">10. </span><span class="content">Note about optimization</span><a class="self-link" href="#note-about-optimization"></a></h2>
    <p>It’s interesting to note that with any level of optimization enabled (including <code class="highlight"><c- o>-</c-><c- n>Og</c-></code>!), gcc is able to "fix the issue" <a data-link-type="biblio" href="#biblio-ce-opt">[CE-OPT]</a> for the filter+take case (but
 not for <code class="highlight"><c- n>input_iterator</c-></code>, of course). It’s maybe even more interesting to see
 the mentioned optimization is not an optimizer bug, and when the filter will
 never return another number, it doesn’t change the behavior <a data-link-type="biblio" href="#biblio-ce-opt2">[CE-OPT2]</a>.</p>
-   <h2 class="heading settled" data-level="10" id="acknowledgements"><span class="secno">10. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
+   <h2 class="heading settled" data-level="11" id="acknowledgements"><span class="secno">11. </span><span class="content">Acknowledgements</span><a class="self-link" href="#acknowledgements"></a></h2>
    <p>Many thanks to the Israeli NB members for their feedback and support, in
 particular Inbal Levi, Dvir Yitzchaki, Dan Raviv and Andrei Zissu. Thanks r/cpp
 Reddit users for their feedback on P2406R0 <a data-link-type="biblio" href="#biblio-reddit-cpp">[reddit-cpp]</a>. Thanks SG9 members
@@ -2941,8 +2948,12 @@ for their feedback and guidance.</p>
    <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz"><cite>Optimizer magic solves filter+take issue, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
    <dt id="biblio-ce-opt2">[CE-OPT2]
    <dd><a href="https://gcc.godbolt.org/z/PvMY8WeaT"><cite>Optimizer is right when filter really never returns, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/PvMY8WeaT">https://gcc.godbolt.org/z/PvMY8WeaT</a>
+   <dt id="biblio-msft-stl">[MSFT-STL]
+   <dd><a href="https://github.com/YehezkelShB/STL/tree/P2406R2-Option2"><cite>GitHub - YehezkelShB/STL - forked from microsoft/STL - P2406R2-Option2 branch</cite></a>. URL: <a href="https://github.com/YehezkelShB/STL/tree/P2406R2-Option2">https://github.com/YehezkelShB/STL/tree/P2406R2-Option2</a>
    <dt id="biblio-range-v3-issue57">[RANGE-V3-ISSUE57]
    <dd><a href="https://github.com/ericniebler/range-v3/issues/57"><cite>range-v3 - istream_range filtered with take(N) should stop reading at N</cite></a>. URL: <a href="https://github.com/ericniebler/range-v3/issues/57">https://github.com/ericniebler/range-v3/issues/57</a>
    <dt id="biblio-reddit-cpp">[REDDIT-CPP]
    <dd><a href="https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y"><cite>r/cpp comments on P2406R0</cite></a>. URL: <a href="https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y">https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y</a>
+   <dt id="biblio-yb-impl">[YB-IMPL]
+   <dd><a href="https://github.com/YehezkelShB/LazyCountedIterator"><cite>GitHub - YehezkelShB/LazyCountedIterator</cite></a>. URL: <a href="https://github.com/YehezkelShB/LazyCountedIterator">https://github.com/YehezkelShB/LazyCountedIterator</a>
   </dl>

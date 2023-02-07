@@ -55,6 +55,14 @@ ED: https://wg21.link/P2406
     "reddit-cpp": {
         "href": "https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y",
         "title": "r/cpp comments on P2406R0"
+    },
+    "MSFT-STL": {
+        "href": "https://github.com/YehezkelShB/STL/tree/P2406R2-Option2",
+        "title": "GitHub - YehezkelShB/STL - forked from microsoft/STL - P2406R2-Option2 branch"
+    },
+    "YB-IMPL": {
+        "href": "https://github.com/YehezkelShB/LazyCountedIterator",
+        "title": "GitHub - YehezkelShB/LazyCountedIterator"
     }
 }
 </pre>
@@ -66,6 +74,7 @@ r4: Integrate SG9 feedback (Issaquah)
 - Simplify the definition of when two iterators refer to the same sequence
 - Simplify the definition of `void operator++(int)`
 - Add [[#opens|opens]] section for additional design suggestions/questions raised
+- Add [[#implementation-experience|implementation experience]] section
 
 r3: Itegreating LEWG feedback:
 - Define `iterator_concept` and `iterator_category` like other iterator adaptors
@@ -845,6 +854,14 @@ friend constexpr bool operator==(const CI<OtherConst>& y, const sentinel& x);
 - There was a suggestion to combine `operator*` definitions into a single
   `const` overload, but we aren't sure about this and would like to hear more
   about it.
+
+
+# Implementation experience
+
+The current wording has been implemented over Microsoft STL [[MSFT-STL]].
+
+There is also a partial implementation, that is based as much as possible directly on the
+wording of this paper [[YB-IMPL]].
 
 
 # Note about optimization
