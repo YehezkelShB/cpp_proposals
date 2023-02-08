@@ -1563,7 +1563,7 @@ Possible extra rowspan handling
   <meta content="Bikeshed version 44af0bf3e, updated Fri Jul 29 17:05:16 2022 -0700" name="generator">
   <link href="https://wg21.link/P2406" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="4af3f08a11bbe75bcf9a9ae08118f6362c781815" name="document-revision">
+  <meta content="5116475a6e072d976b422b7fc290f6d8fab071b2" name="document-revision">
 <style>
 .ins, ins, ins *, span.ins, span.ins * {
   background-color: rgb(200, 250, 200);
@@ -2097,7 +2097,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P2406R5<br>Add `lazy_counted_iterator`</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-07">2023-02-07</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2023-02-08">2023-02-08</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2149,11 +2149,12 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li>
          <a href="#poll-outcomes"><span class="secno">7.1.1</span> <span class="content">Poll outcomes</span></a>
          <ol class="toc">
-          <li><a href="#poll-reject-the-nb-comment-us-46-107"><span class="secno">7.1.1.1</span> <span class="content">POLL: Reject the NB Comment US-46-107</span></a>
-          <li><a href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.2</span> <span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span></a>
-          <li><a href="#poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.3</span> <span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span></a>
-          <li><a href="#poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.4</span> <span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span></a>
-          <li><a href="#poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.5</span> <span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
+          <li><a href="#poll-reject-c23-national-body-comment-us-46-107"><span class="secno">7.1.1.1</span> <span class="content">POLL: Reject C++23 National Body comment <span>[US-46-107]</span></span></a>
+          <li><a href="#poll-forward-p2406r4-to-lwg-for-c-23"><span class="secno">7.1.1.2</span> <span class="content">POLL: Forward P2406R4 to LWG for C++ 23</span></a>
+          <li><a href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.3</span> <span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span></a>
+          <li><a href="#poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.4</span> <span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span></a>
+          <li><a href="#poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.5</span> <span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span></a>
+          <li><a href="#poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.6</span> <span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
          </ol>
        </ol>
       <li><a href="#alternative-1-replace-counted_iterator-with-lazy_counted_iterator"><span class="secno">7.2</span> <span class="content">Alternative 1: Replace <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span></a>
@@ -2372,7 +2373,7 @@ case.</p>
    <p>LEWG reviewed R4 of this paper (Issaquah - 2023-02-07 morning) with the
 following poll results:</p>
    <h4 class="heading settled" data-level="7.1.1" id="poll-outcomes"><span class="secno">7.1.1. </span><span class="content">Poll outcomes</span><a class="self-link" href="#poll-outcomes"></a></h4>
-   <h5 class="heading settled" data-level="7.1.1.1" id="poll-reject-the-nb-comment-us-46-107"><span class="secno">7.1.1.1. </span><span class="content">POLL: Reject the NB Comment US-46-107</span><a class="self-link" href="#poll-reject-the-nb-comment-us-46-107"></a></h5>
+   <h5 class="heading settled" data-level="7.1.1.1" id="poll-reject-c23-national-body-comment-us-46-107"><span class="secno">7.1.1.1. </span><span class="content">POLL: Reject C++23 National Body comment <a data-link-type="biblio" href="#biblio-us-46-107">[US-46-107]</a></span><a class="self-link" href="#poll-reject-c23-national-body-comment-us-46-107"></a></h5>
    <table>
     <tbody>
      <tr>
@@ -2390,7 +2391,24 @@ following poll results:</p>
    </table>
    <p>Outcome: No consensus</p>
    <p>WA: Preference to break C++20 sooner</p>
-   <h5 class="heading settled" data-level="7.1.1.2" id="poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.2. </span><span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span><a class="self-link" href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"></a></h5>
+   <h5 class="heading settled" data-level="7.1.1.2" id="poll-forward-p2406r4-to-lwg-for-c-23"><span class="secno">7.1.1.2. </span><span class="content">POLL: Forward P2406R4 to LWG for C++ 23</span><a class="self-link" href="#poll-forward-p2406r4-to-lwg-for-c-23"></a></h5>
+   <table>
+    <tbody>
+     <tr>
+      <th> SF 
+      <th> WF 
+      <th> N 
+      <th> WA 
+      <th> SA 
+     <tr>
+      <td> 1 
+      <td> 0 
+      <td> 5 
+      <td> 12 
+      <td> 5 
+   </table>
+   <p>Outcome: Consensus against.</p>
+   <h5 class="heading settled" data-level="7.1.1.3" id="poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"><span class="secno">7.1.1.3. </span><span class="content">POLL: Change <code class="highlight"><c- n>counted_iterator</c-></code> to have the proposed behavior of <code class="highlight"><c- n>lazy_counted_iterator</c-></code>, which is a breaking change.</span><a class="self-link" href="#poll-change-counted_iterator-to-have-the-proposed-behavior-of-lazy_counted_iterator-which-is-a-breaking-change"></a></h5>
    <table>
     <tbody>
      <tr>
@@ -2406,8 +2424,8 @@ following poll results:</p>
       <td> 1 
       <td> 3 
    </table>
-   <p>Outcome:</p>
-   <h5 class="heading settled" data-level="7.1.1.3" id="poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.3. </span><span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span><a class="self-link" href="#poll-change-iterator-category-to-at-most-forward"></a></h5>
+   <p>Outcome: Consensus in favor.</p>
+   <h5 class="heading settled" data-level="7.1.1.4" id="poll-change-iterator-category-to-at-most-forward"><span class="secno">7.1.1.4. </span><span class="content">POLL: Change iterator category to at most <code class="highlight"><c- n>forward</c-></code></span><a class="self-link" href="#poll-change-iterator-category-to-at-most-forward"></a></h5>
    <table>
     <tbody>
      <tr>
@@ -2423,8 +2441,8 @@ following poll results:</p>
       <td> 0 
       <td> 2 
    </table>
-   <p>Outcome:</p>
-   <h5 class="heading settled" data-level="7.1.1.4" id="poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.4. </span><span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span><a class="self-link" href="#poll-require-forward-as-a-minimum-underlying-iterator-category"></a></h5>
+   <p>Outcome: No consensus, but leaning towards favoring this.</p>
+   <h5 class="heading settled" data-level="7.1.1.5" id="poll-require-forward-as-a-minimum-underlying-iterator-category"><span class="secno">7.1.1.5. </span><span class="content">POLL: Require <code class="highlight"><c- n>forward</c-></code> as a minimum underlying iterator category</span><a class="self-link" href="#poll-require-forward-as-a-minimum-underlying-iterator-category"></a></h5>
    <table>
     <tbody>
      <tr>
@@ -2440,8 +2458,8 @@ following poll results:</p>
       <td> 3 
       <td> 3 
    </table>
-   <p>Outcome:</p>
-   <h5 class="heading settled" data-level="7.1.1.5" id="poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.5. </span><span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#poll-remove-base-from-lazy_counted_iterator"></a></h5>
+   <p>Outcome: No consensus.</p>
+   <h5 class="heading settled" data-level="7.1.1.6" id="poll-remove-base-from-lazy_counted_iterator"><span class="secno">7.1.1.6. </span><span class="content">POLL: Remove <code class="highlight"><c- n>base</c-></code> from <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#poll-remove-base-from-lazy_counted_iterator"></a></h5>
    <table>
     <tbody>
      <tr>
@@ -2457,7 +2475,7 @@ following poll results:</p>
       <td> 3 
       <td> 1 
    </table>
-   <p>Outcome:</p>
+   <p>Outcome: Weak consensus in favor.</p>
    <h3 class="heading settled" data-level="7.2" id="alternative-1-replace-counted_iterator-with-lazy_counted_iterator"><span class="secno">7.2. </span><span class="content">Alternative 1: Replace <code class="highlight"><c- n>counted_iterator</c-></code> with <code class="highlight"><c- n>lazy_counted_iterator</c-></code></span><a class="self-link" href="#alternative-1-replace-counted_iterator-with-lazy_counted_iterator"></a></h3>
    <p>This alternative propose to change <code class="highlight"><c- n>counted_iterator</c-></code> to be what this paper
 suggests as <code class="highlight"><c- n>lazy_counted_iterator</c-></code> or a variation of it.</p>
@@ -2484,7 +2502,7 @@ cases.</p>
    <p>To allow things like <code class="highlight"><c- n>vector</c-> <c- o>|</c-> <c- n>take</c-><c- p>(</c-><c- n>n</c-><c- p>)</c-></code> to keep being <code class="highlight"><c- n>random_access_iterator</c-></code>,
 we want to suggest here to deprecate only the cases of <code class="highlight"><c- n>counted_iterator</c-></code> used <code class="highlight"><c- n>input_iterator</c-></code> or <code class="highlight"><c- n>forward_iterator</c-></code>, keeping the cases of <code class="highlight"><c- n>output_iterator</c-></code> and <code class="highlight"><c- n>bidirectional_iterator</c-></code> (and better) as they are.</p>
    <p>We also want LWEG to consider the case of <code class="highlight"><c- n>istreambuf_iterator</c-></code> (or any iterator
-considered as "lazy input iterator", see <span>[P2578]</span> for further discussion),
+considered as "lazy input iterator", see <a data-link-type="biblio" href="#biblio-d2578r0">[D2578R0]</a> for further discussion),
 where current behavior of <code class="highlight"><c- n>take</c-></code> does the right thing. Forcing the user to use <code class="highlight"><c- n>lazy_take</c-></code> and then incrementing the iterator once again to continue reading
 from the right location seems like another teachability issue.</p>
    <h2 class="heading settled" data-level="8" id="wording"><span class="secno">8. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
@@ -3107,12 +3125,16 @@ preparing R5 of this paper.</p>
    <dd><a href="https://gcc.godbolt.org/z/4dahzG8Gz"><cite>Optimizer magic solves filter+take issue, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/4dahzG8Gz">https://gcc.godbolt.org/z/4dahzG8Gz</a>
    <dt id="biblio-ce-opt2">[CE-OPT2]
    <dd><a href="https://gcc.godbolt.org/z/PvMY8WeaT"><cite>Optimizer is right when filter really never returns, Compiler Explorer</cite></a>. URL: <a href="https://gcc.godbolt.org/z/PvMY8WeaT">https://gcc.godbolt.org/z/PvMY8WeaT</a>
+   <dt id="biblio-d2578r0">[D2578R0]
+   <dd><a href="https://isocpp.org/files/papers/D2578R0.html"><cite>D2578R0 - Block eager input (non-forward) iterators from counted_iterator</cite></a>. URL: <a href="https://isocpp.org/files/papers/D2578R0.html">https://isocpp.org/files/papers/D2578R0.html</a>
    <dt id="biblio-msft-stl">[MSFT-STL]
    <dd><a href="https://github.com/YehezkelShB/STL/tree/P2406R2-Option2"><cite>GitHub - YehezkelShB/STL - forked from microsoft/STL - P2406R2-Option2 branch</cite></a>. URL: <a href="https://github.com/YehezkelShB/STL/tree/P2406R2-Option2">https://github.com/YehezkelShB/STL/tree/P2406R2-Option2</a>
    <dt id="biblio-range-v3-issue57">[RANGE-V3-ISSUE57]
    <dd><a href="https://github.com/ericniebler/range-v3/issues/57"><cite>range-v3 - istream_range filtered with take(N) should stop reading at N</cite></a>. URL: <a href="https://github.com/ericniebler/range-v3/issues/57">https://github.com/ericniebler/range-v3/issues/57</a>
    <dt id="biblio-reddit-cpp">[REDDIT-CPP]
    <dd><a href="https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y"><cite>r/cpp comments on P2406R0</cite></a>. URL: <a href="https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y">https://www.reddit.com/r/cpp/comments/orw4q8/wg21_july_2021_mailing/h6kqu7y</a>
+   <dt id="biblio-us-46-107">[US-46-107]
+   <dd><a href="https://github.com/cplusplus/nbballot/issues/523"><cite>US 46-107 25.5.7.1 [counted.iterator] Too many iterator increments</cite></a>. URL: <a href="https://github.com/cplusplus/nbballot/issues/523">https://github.com/cplusplus/nbballot/issues/523</a>
    <dt id="biblio-yb-impl">[YB-IMPL]
    <dd><a href="https://github.com/YehezkelShB/LazyCountedIterator"><cite>GitHub - YehezkelShB/LazyCountedIterator</cite></a>. URL: <a href="https://github.com/YehezkelShB/LazyCountedIterator">https://github.com/YehezkelShB/LazyCountedIterator</a>
   </dl>

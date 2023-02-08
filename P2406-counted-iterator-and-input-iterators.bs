@@ -7,7 +7,7 @@ Editor: Yehuda Bernat, YehudaMBer@gmail.com
 Shortname: P2406
 Abstract: `counted_iterator` increments its internal iterator even when reaching its own end, which makes it unusable in some cases, especially for input iterators. This paper suggests adding `lazy_counted_iterator` alternative to be used in such cases
 Group: WG21
-Date: 2023-02-07
+Date: 2023-02-08
 Markup Shorthands: markdown yes
 Revision: 5
 Default Highlight: CPP
@@ -63,6 +63,14 @@ ED: https://wg21.link/P2406
     "YB-IMPL": {
         "href": "https://github.com/YehezkelShB/LazyCountedIterator",
         "title": "GitHub - YehezkelShB/LazyCountedIterator"
+    },
+    "D2578R0": {
+        "href": "https://isocpp.org/files/papers/D2578R0.html",
+        "title": "D2578R0 - Block eager input (non-forward) iterators from counted_iterator"
+    },
+    "US-46-107": {
+        "href": "https://github.com/cplusplus/nbballot/issues/523",
+        "title": "US 46-107 25.5.7.1 [counted.iterator] Too many iterator increments"
     }
 }
 </pre>
@@ -276,7 +284,7 @@ following poll results:
 
 ### Poll outcomes
 
-#### POLL: Reject the NB Comment US-46-107
+#### POLL: Reject C++23 National Body comment [[US-46-107]]
 
 <table>
 <tr><th> SF <th> WF <th> N <th> WA <th> SA
@@ -287,6 +295,15 @@ Outcome: No consensus
 
 WA: Preference to break C++20 sooner
 
+#### POLL: Forward P2406R4 to LWG for C++ 23
+
+<table>
+<tr><th> SF <th> WF <th> N <th> WA <th> SA
+<tr><td> 1 <td> 0 <td> 5 <td> 12 <td> 5
+</table>
+
+Outcome: Consensus against.
+
 #### POLL: Change `counted_iterator` to have the proposed behavior of `lazy_counted_iterator`, which is a breaking change.
 
 <table>
@@ -294,7 +311,7 @@ WA: Preference to break C++20 sooner
 <tr><td> 6 <td> 12 <td> 2 <td> 1 <td> 3
 </table>
 
-Outcome:
+Outcome: Consensus in favor.
 
 #### POLL: Change iterator category to at most `forward`
 
@@ -303,7 +320,7 @@ Outcome:
 <tr><td> 0 <td> 8 <td> 7 <td> 0 <td> 2
 </table>
 
-Outcome:
+Outcome: No consensus, but leaning towards favoring this.
 
 #### POLL: Require `forward` as a minimum underlying iterator category
 
@@ -312,7 +329,7 @@ Outcome:
 <tr><td> 0 <td> 3 <td> 5 <td> 3 <td> 3
 </table>
 
-Outcome:
+Outcome: No consensus.
 
 #### POLL: Remove `base` from `lazy_counted_iterator`
 
@@ -321,7 +338,7 @@ Outcome:
 <tr><td> 1 <td> 9 <td> 1 <td> 3 <td> 1
 </table>
 
-Outcome:
+Outcome: Weak consensus in favor.
 
 
 ## Alternative 1: Replace `counted_iterator` with `lazy_counted_iterator`
@@ -360,7 +377,7 @@ we want to suggest here to deprecate only the cases of `counted_iterator` used
 and `bidirectional_iterator` (and better) as they are.
 
 We also want LWEG to consider the case of `istreambuf_iterator` (or any iterator
-considered as "lazy input iterator", see [[P2578]] for further discussion),
+considered as "lazy input iterator", see [[D2578R0]] for further discussion),
 where current behavior of `take` does the right thing. Forcing the user to use
 `lazy_take` and then incrementing the iterator once again to continue reading
 from the right location seems like another teachability issue.
